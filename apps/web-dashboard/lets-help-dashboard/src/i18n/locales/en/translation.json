@@ -1,0 +1,12 @@
+{
+    "login": {
+      "title": "Sign In",
+      "subtitle": "Use your email and password to sign in",
+      "emailLabel": "Email Address",
+      "passwordLabel": "Password",
+      "signIn": "Sign in",
+      "noAccount": "Don't have an account?",
+      "signupFree": "Sign up for free."
+    }
+  }
+  

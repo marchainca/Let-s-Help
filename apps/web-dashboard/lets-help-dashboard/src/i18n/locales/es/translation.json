@@ -1,0 +1,12 @@
+{
+    "login": {
+      "title": "Inicia Sesión",
+      "subtitle": "Ingresa correo electrónico y contraseña para ingresar",
+      "emailLabel": "Correo electrónico",
+      "passwordLabel": "Contraseña",
+      "signIn": "Entrar",
+      "noAccount": "¿No tienes cuenta?",
+      "signupFree": "Regístrate gratis."
+    }
+  }
+  

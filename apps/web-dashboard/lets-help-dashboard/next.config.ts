@@ -1,0 +1,12 @@
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  env: {
+    NEXT_PUBLIC_API_BASE_URL: process.env.NEXT_PUBLIC_API_BASE_URL,
+    NEXT_PUBLIC_ACTIVITIES_API_URL: process.env.NEXT_PUBLIC_ACTIVITIES_API_URL,
+    NEXT_PUBLIC_AUTH_TOKEN: process.env.NEXT_PUBLIC_AUTH_TOKEN,
+    NEXT_PUBLIC_LOGIN_ENDPOINT: process.env.NEXT_PUBLIC_LOGIN_ENDPOINT,
+    NEXT_PUBLIC_UPDATE_ACTIVITY_ENDPOINT: process.env.NEXT_PUBLIC_UPDATE_ACTIVITY_ENDPOINT,
+  },
+};
+
+export default nextConfig;

@@ -8,7 +8,7 @@ import { ConfigModule } from '@nestjs/config';
 import { AttendanceModule } from './attendance/attendance.module';
 import { FirestoreConnectionService } from './firebase/firestore-connection.service';
 import { SchedulerModule } from './scheduler/scheduler.module';
-import { RecognitionModule } from './recognition/recognition.module';
+import { BeneficiaryModule } from './beneficiary/beneficiary.module';
 import { ReportsModule } from './reports/reports.module';
 import { ActivitiesModule } from './activities/activities.module';
 
@@ -23,7 +23,7 @@ import { ActivitiesModule } from './activities/activities.module';
     UsersModule,
     AttendanceModule,
     SchedulerModule,
-    RecognitionModule,
+    BeneficiaryModule,
     ReportsModule,
     ActivitiesModule
   ],

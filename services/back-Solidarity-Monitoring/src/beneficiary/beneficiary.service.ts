@@ -14,7 +14,7 @@ const { Canvas, Image, ImageData } = canvas;
 faceapi.env.monkeyPatch({ Canvas, Image, ImageData }as any);
 
 @Injectable()
-export class RecognitionService {
+export class BeneficiaryService {
   private firestore: Firestore;
   private storage: Storage;
   private bucketName: string;

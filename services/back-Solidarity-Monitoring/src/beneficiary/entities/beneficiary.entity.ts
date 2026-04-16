@@ -1,8 +1,8 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, ManyToOne, OneToMany, JoinColumn } from 'typeorm';
 import { Address } from './address.entity';
 import { BiometricData } from './biometric-data.entity';
-import { Absence } from './absence.entity';
-import { Report } from './report.entity';
+import { Absence } from '../../users/entities/absence.entity';
+import { Report } from '../../users/entities/report.entity';
 
 @Entity('Beneficiaries')
 export class Beneficiary {

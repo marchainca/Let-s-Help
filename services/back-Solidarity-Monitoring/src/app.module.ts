@@ -11,12 +11,37 @@ import { SchedulerModule } from './scheduler/scheduler.module';
 import { BeneficiaryModule } from './beneficiary/beneficiary.module';
 import { ReportsModule } from './reports/reports.module';
 import { ActivitiesModule } from './activities/activities.module';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { ConfigService } from '@nestjs/config';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
       expandVariables: true,
+    }),
+    TypeOrmModule.forRootAsync({
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => {
+        const databaseUrl = configService.get<string>('DATABASE_URL');
+        const schemaFromUrl = databaseUrl
+          ? new URL(databaseUrl).searchParams.get('schema')
+          : null;
+
+        return {
+          type: 'postgres',
+          url: databaseUrl,
+          host: configService.get<string>('DB_HOST', 'localhost'),
+          port: configService.get<number>('DB_PORT', 5432),
+          username: configService.get<string>('DB_USERNAME', 'postgres'),
+          password: configService.get<string>('DB_PASSWORD', '123'),
+          database: configService.get<string>('DB_NAME', 'lets_help'),
+          schema: configService.get<string>('DB_SCHEMA', schemaFromUrl ?? 'public'),
+          entities: [__dirname + '/**/*.entity{.ts,.js}'],
+          synchronize: configService.get<string>('DB_SYNCHRONIZE', 'false') === 'true',
+          ssl: configService.get<string>('DB_SSL', 'false') === 'true',
+        };
+      },
     }),
     FirebaseModule,
     AuthModule,

@@ -32,6 +32,21 @@
 $ npm install
 ```
 
+## PostgreSQL setup
+
+1. Copy `.env.example` to `.env`.
+2. You can use `DATABASE_URL` directly (recommended), for example:
+   - `postgresql://postgres:1234@localhost:5432/postgres?schema=public`
+3. Or fill the PostgreSQL variables individually:
+   - `DB_HOST`
+   - `DB_PORT`
+   - `DB_USERNAME`
+   - `DB_PASSWORD`
+   - `DB_NAME`
+   - `DB_SCHEMA`
+   - `DB_SYNCHRONIZE` (`true` only in local development)
+   - `DB_SSL` (`true` when your provider requires SSL)
+
 ## Running the app
 
 ```bash

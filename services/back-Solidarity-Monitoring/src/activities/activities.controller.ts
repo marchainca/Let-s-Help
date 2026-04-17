@@ -10,15 +10,18 @@ import { UpdateActivityDto } from './dtos/update-activity.dto';
 @UseGuards(JwtAuthGuard)
 export class ActivitiesController {
     constructor(private readonly activitiesService: ActivitiesService) {}
-    
+
     /**
-     * Endpoint para obtener el contenido de la colección 'programs'.
-     * @returns Lista de actividades.
+     * Endpoint para obtener todas las
+     * actividades discriminadas por programas
+     * y subprogramas.
+     * @returns Lista de actividades con sus
+     * correspondientes programas y subprogramas.
     */
     @Get('/getAllActivities')
     async getActivities(): Promise<CustomResponse> {
         try {
-            const allActivities = await this.activitiesService.getAllActivities();
+            const allActivities = await this.activitiesService.getProgramsWithSubprogramsAndTasks();
             return await sendResponse(true, params.ResponseMessages.MESSAGE_SUCCESS, allActivities );
         } catch (error) {
             throw new HttpException(
@@ -31,7 +34,6 @@ export class ActivitiesController {
             HttpStatus.BAD_REQUEST,
             );
         }
-        
     }
 
 
@@ -55,7 +57,6 @@ export class ActivitiesController {
             HttpStatus.BAD_REQUEST,
             );
         }
-        
     }
 
     /**
@@ -79,7 +80,6 @@ export class ActivitiesController {
             HttpStatus.BAD_REQUEST,
             );
         }
-    
     }
 
     /**
@@ -92,7 +92,6 @@ export class ActivitiesController {
         try {
             console.log("que llega en createProgram", body)
             const createProgram = await this.activitiesService.createProgram(body);
-            
             return await sendResponse(true, params.ResponseMessages.MESSAGE_SUCCESS, createProgram );
         } catch (error) {
             throw new HttpException(
@@ -105,7 +104,7 @@ export class ActivitiesController {
             HttpStatus.BAD_REQUEST,
             );
         }
-    
+
     }
 
     /**
@@ -117,7 +116,7 @@ export class ActivitiesController {
     async createSubprogram(@Body() body: JSON): Promise<CustomResponse> {
         try {
             const createSubprogram = await this.activitiesService.createSubprogram(body);
-            
+
             return await sendResponse(true, params.ResponseMessages.MESSAGE_SUCCESS, createSubprogram );
         } catch (error) {
             throw new HttpException(
@@ -130,7 +129,7 @@ export class ActivitiesController {
             HttpStatus.BAD_REQUEST,
             );
         }
-    
+
     }
 
 
@@ -144,7 +143,7 @@ export class ActivitiesController {
         try {
             console.log("Que se recibe en createActivity", body);
             const createActivity = await this.activitiesService.createActivity(body);
-            
+
             return await sendResponse(true, params.ResponseMessages.MESSAGE_SUCCESS, createActivity );
         } catch (error) {
             throw new HttpException(
@@ -157,7 +156,7 @@ export class ActivitiesController {
             HttpStatus.BAD_REQUEST,
             );
         }
-    
+
     }
 
     /**
@@ -170,7 +169,7 @@ export class ActivitiesController {
         try {
 
             const getPrograms = await this.activitiesService.getPrograms(id);
-            
+
             return await sendResponse(true, params.ResponseMessages.MESSAGE_SUCCESS, getPrograms );
         } catch (error) {
             throw new HttpException(
@@ -183,7 +182,7 @@ export class ActivitiesController {
                 HttpStatus.BAD_REQUEST,
             );
         }
-    
+
     }
 
     /**
@@ -196,7 +195,7 @@ export class ActivitiesController {
     async getActivitiesBySubprogram(@Query('programId') programId: string, @Query('subprogramId') subprogramId: string): Promise<CustomResponse> {
         try {
            const activities = await this.activitiesService.getActivitiesBySubprogram(programId, subprogramId);
-            return await sendResponse(true, params.ResponseMessages.MESSAGE_SUCCESS, activities );            
+            return await sendResponse(true, params.ResponseMessages.MESSAGE_SUCCESS, activities );
         } catch (error) {
             throw new HttpException(
                 {
@@ -207,9 +206,9 @@ export class ActivitiesController {
                 },
                 HttpStatus.BAD_REQUEST,
             );
-            
+
         }
-        
+
     }
 
     /**
@@ -233,7 +232,7 @@ export class ActivitiesController {
                 HttpStatus.BAD_REQUEST,
             );
         }
-        
+
     }
 
 }

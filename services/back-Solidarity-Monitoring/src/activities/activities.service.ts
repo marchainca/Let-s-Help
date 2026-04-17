@@ -1,40 +1,40 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { Firestore } from '@google-cloud/firestore';
 import { errorResponse } from 'src/tools/function.tools';
 import { UpdateActivityDto } from './dtos/update-activity.dto';
+import { DataBaseService } from './data-base.service';
 
 @Injectable()
 export class ActivitiesService {
     private firestore: Firestore;
 
-    constructor() {
-      this.firestore = new Firestore();
-    }
-  
+    constructor(
+      private readonly databaseService: DataBaseService,
+    ) {}
+
     /**
-     * Obtiene el contenido de la colección 'programs' desde Firestore.
-     * @returns Lista con los datos de todos los documentos en la colección 'programs'.
+     * Obtiene la lista de todas las actividades.
+     * @returns Lista de actividades.
      */
-    async getAllActivities(): Promise<any[]> {
+    async getProgramsWithSubprogramsAndTasks(): Promise<any[]> {
       try {
-        const programsRef = this.firestore.collection('programs');
-        const snapshot = await programsRef.get();
-  
-        if (snapshot.empty) {
-          console.log('No se encontraron documentos en la colección "programs".');
-          return [];
-        }
-  
-        // Mapear los documentos para devolver su contenido
-        const programs = snapshot.docs.map(doc => ({
-          id: doc.id, 
-          ...doc.data(), 
-        }));
-  
-        return programs;
-      } catch (error) {
-        console.error('Error al obtener los programas:', error);
-        throw new Error('Error al obtener los programas.');
+        const programsAndActivities = await this.databaseService.getAllProgramsWithActivities();
+
+        const structuredData = programsAndActivities.map(program => {
+          const result: any = { id: program.NameProgram };
+          for (const sub of program.subPrograms) {
+            result[sub.NameSubProgram] = sub.tasks.map(t => t.NameTask);
+          }
+        
+        return result;
+        });
+        console.log('Datos estructurados:', structuredData);
+        return structuredData;
+
+      }catch (error: any) {
+        console.error('Error al obtener las actividades', error instanceof Error ? error.message : error);
+        const statusCode = (error instanceof HttpException) ? error.getStatus() : HttpStatus.INTERNAL_SERVER_ERROR;
+        throw new HttpException(error instanceof Error ? error.message : 'Error desconocido', statusCode);
       }
     }
 
@@ -46,12 +46,12 @@ export class ActivitiesService {
         try {
         const programsRef = this.firestore.collection('programs');
         const snapshot = await programsRef.get();
-    
+
         if (snapshot.empty) {
             console.log('No se encontraron documentos en la colección "programs".');
             return [];
         }
-    
+
         // Extraer solo los nombres de los programas (IDs de los documentos)
         const programNames = snapshot.docs.map(doc => doc.id);
         return programNames;
@@ -70,11 +70,11 @@ export class ActivitiesService {
       try {
           const programRef = this.firestore.collection('programs').doc(programName);
           const doc = await programRef.get();
-      
+
           if (!doc.exists) {
               throw await errorResponse(`Error: The program "${programName}" does not exist.`, 'getProgramActivities');
           }
-      
+
           // Retornar las actividades del programa
           return doc.data();
       } catch (error) {
@@ -94,7 +94,7 @@ export class ActivitiesService {
         description: body.description,
         responsible: body.responsible
       });
-    
+
       console.log('Programa creado con ID:', programRef.id);
       return programRef.id
 
@@ -112,10 +112,10 @@ export class ActivitiesService {
       // Creamos un nuevo documento en la subcolección "subprograms"
       const subprogramRef = programRef.collection('subprograms').doc();
       await subprogramRef.set({
-        name: body.name,                       
+        name: body.name,
         description: body.description
       });
-    
+
       console.log('Subprograma creado con ID:', subprogramRef.id);
       return subprogramRef.id
 
@@ -177,7 +177,7 @@ export class ActivitiesService {
 
       const programById = this.firestore.collection('programas');
       const snapshot = await programById.where('responsible', '==', id).get();
-    
+
       if (snapshot.empty) {
         throw await errorResponse(`Error: No programs linked to the id: ${id}`, 'getPrograms');
       }
@@ -204,7 +204,7 @@ export class ActivitiesService {
           };
         })
       );
-    
+
       return programs;
     } catch (error) {
         console.error(`Error al obtener el programa para el id: ${id}` , error);
@@ -306,5 +306,5 @@ export class ActivitiesService {
       throw error;
     }
   }
-  
+
 }

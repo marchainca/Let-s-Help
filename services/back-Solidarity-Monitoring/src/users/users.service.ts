@@ -3,37 +3,41 @@ import * as argon2 from 'argon2';
 import { FirebaseService } from 'src/firebase/firebase.service';
 import { BeneficiaryService } from 'src/beneficiary/beneficiary.service';
 import { errorResponse, isBase64, uploadImageToCloudStorage } from 'src/tools/function.tools';
+import { DataBaseService } from './data-base.service';
 
 @Injectable()
 export class UsersService {
     private collectionName = 'users';
     
-    constructor(private readonly firebaseService: FirebaseService
+    constructor(
+        private readonly firebaseService: FirebaseService,
+        private readonly dataBaseService: DataBaseService,
     ) {}
 
     /**
      * Crear usuarios en Firestore
      * @param data Datos del usuario
      */
-    async createUser(data: any): Promise<string> {
+    async createUser(data: any): Promise<object> {
         try {
-           
-            const userByEmail = await this.firebaseService.findUserByField("email", data.email, this.collectionName);
-            console.log("Consulta de usuario por email:", userByEmail, userByEmail[0] == false);
+            const userByEmail = await this.dataBaseService.getUserByEmail(data.email);
+            console.log("Consulta de usuario por email:", userByEmail.length > 0 ? "Usuario encontrado" : "No se encontró usuario");
 
             if (userByEmail.length > 0 ) {
-                throw await errorResponse("Error: user is already registered with the email", "createUser");
+                throw await errorResponse(`Error: user is already registered with the email ${data.email}`, "createUser");
             }
 
-            const userByIdNumber = await this.firebaseService.findUserByField("idNumber", data.idNumber, this.collectionName);
+            const userByIdNumber = await this.dataBaseService.getUserByIdNumber(data.idNumber);
+            console.log("Consulta de usuario por idNumber:", userByIdNumber.length > 0 ? "Usuario encontrado" : "No se encontró usuario");  
 
             if (userByIdNumber.length > 0) {
-                throw await errorResponse("Error: user is already registered with the idNumber", "createUser");
+                throw await errorResponse(`Error: user is already registered with the idNumber ${data.idNumber}`, "createUser");
             }
 
             //data.password = await argon2.hash(data.password);
-
-            return await this.firebaseService.createDocument(this.collectionName, data);
+            
+            const newUser = await this.dataBaseService.createUser(data);
+            return { id: newUser[0].IdUser };
         } catch (error) {
             console.error("Error al crear usuario:", error);
             throw error;

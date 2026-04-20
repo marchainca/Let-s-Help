@@ -1,6 +1,7 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, ManyToOne, OneToMany, JoinColumn } from 'typeorm';
 import { Program } from './program.entity';
 import { Task } from '../../activities/entities/task.entity';
+import { Activity } from './activity.entity';
 
 @Entity('Sub_Programs')
 export class SubProgram {
@@ -25,4 +26,7 @@ export class SubProgram {
 
   @OneToMany(() => Task, task => task.subProgram)
   tasks: Task[];
+
+  @OneToMany(() => Activity, activity => activity.subProgram)
+  activities: Activity[];
 }

@@ -5,6 +5,7 @@ import { Task } from '../../activities/entities/task.entity';
 import { Activity } from '../../activities/entities/activity.entity';
 import { Absence } from './absence.entity';
 import { Report } from './report.entity';
+import { ActivityTracking } from 'src/activities/entities/activity-tracking.entity';
 
 @Entity('Users')
 export class User {
@@ -56,4 +57,7 @@ export class User {
 
   @OneToMany(() => Report, report => report.user)
   reports: Report[];
+
+  @OneToMany(() => ActivityTracking, tracking => tracking.user)
+  activityTrackings: ActivityTracking[];
 }

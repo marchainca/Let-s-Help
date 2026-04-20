@@ -140,7 +140,7 @@ CREATE TABLE Sub_Programs (
 );
 
 -- =============================================
--- 11. Tasks
+-- 11. Tasks - se deja creada aunque no se va a usar en esta versión, para evitar problemas de dependencias con Activities
 -- =============================================
 CREATE TABLE Tasks (
     IdTask        SERIAL PRIMARY KEY,
@@ -155,6 +155,8 @@ CREATE TABLE Tasks (
 -- =============================================
 CREATE TABLE Activities (
     IdActivity   SERIAL PRIMARY KEY,
+    IdProgram    INTEGER NOT NULL REFERENCES Programs(IdProgram) ON DELETE CASCADE,
+    IdSubProgram INTEGER NOT NULL REFERENCES Sub_Programs(IdSubProgram) ON DELETE CASCADE,
     IdUser       INTEGER NOT NULL REFERENCES Users(IdUser), -- usuario que crea/lidera la actividad
     NameActivity VARCHAR(250) NOT NULL,
     CreatedAt    TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -186,6 +188,20 @@ CREATE TABLE Reports (
     según el manual disciplinario 
 */
 -- =============================================
+-- 15. ActivitiesTracking
+-- =============================================
+CREATE TABLE "Activities_tracking" (
+    "IdTracking"          SERIAL PRIMARY KEY,
+    "IdActivity"          INTEGER NOT NULL REFERENCES "Activities"("IdActivity"),
+    "IdUser"              INTEGER NOT NULL REFERENCES "Users"("IdUser"),
+    "ActualAttendees"     INTEGER,
+    "ExecutedActivities"  INTEGER,
+    "PlannedActivities"   INTEGER,
+    "ProjectedAttendees"  INTEGER,
+    "WeekNumber"          INTEGER,
+    "CreatedAt"           TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+-- =============================================
 -- ÍNDICES RECOMENDADOS
 -- =============================================
 CREATE INDEX idx_users_idrole ON Users(IdRole);
@@ -205,6 +221,9 @@ CREATE INDEX idx_absences_idbeneficiary ON Absences(IdBeneficiary);
 CREATE INDEX idx_absences_idactivity ON Absences(IdActivity);
 CREATE INDEX idx_reports_iduser ON Reports(IdUser);
 CREATE INDEX idx_reports_idbeneficiary ON Reports(IdBeneficiary);
+CREATE INDEX idx_Activities_tracking_idactivity ON Activities_tracking(IdActivity);
+CREATE INDEX idx_Activities_tracking_iduser ON Activities_tracking(IdUser);
+CREATE INDEX idx_Activities_tracking_week ON Activities_tracking(WeekNumber);
 
 -- =============================================
 -- COMENTARIOS
@@ -214,3 +233,4 @@ COMMENT ON TABLE Absences IS 'Registro de inasistencias de beneficiarios a activ
 COMMENT ON TABLE Reports IS 'Reportes disciplinarios o incidencias sobre beneficiarios';
 COMMENT ON TABLE Tasks IS 'Tareas asignadas a usuarios dentro de subprogramas';
 COMMENT ON COLUMN Tasks.IdAssignedTo IS 'Usuario responsable de ejecutar la tarea';
+COMMENT ON TABLE Activities_tracking IS 'Seguimiento semanal de actividades: registra ejecución, asistencia real vs proyectada, y avance de actividades planificadas vs ejecutadas.';

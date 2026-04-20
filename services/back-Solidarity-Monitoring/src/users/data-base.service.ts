@@ -18,7 +18,7 @@ export class DataBaseService {
             newUser.Birthdate = userData.birthdate;
             newUser.role = userData.role;
             newUser.FirstName = userData.name;
-            newUser.LastName = userData.name;
+            //newUser.LastName = userData.name;
             newUser.Password = userData.password;
             newUser.UrlImage = userData.urlImage || null;
             const createUser = await this.userRepository.save(newUser);

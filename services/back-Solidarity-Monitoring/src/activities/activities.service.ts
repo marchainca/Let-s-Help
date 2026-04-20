@@ -23,16 +23,16 @@ export class ActivitiesService {
         const structuredData = programsAndActivities.map(program => {
           const result: any = { id: program.NameProgram };
           for (const sub of program.subPrograms) {
-            result[sub.NameSubProgram] = sub.tasks.map(t => t.NameTask);
+            result[sub.NameSubProgram] = sub.activities.map(t => t.NameActivity);
           }
         
-        return result;
+          return result;
         });
-        console.log('Datos estructurados:', structuredData);
+        //console.log('Datos estructurados:', structuredData);
         return structuredData;
 
       }catch (error: any) {
-        console.error('Error al obtener las actividades', error instanceof Error ? error.message : error);
+        console.error('Error al obtener las actividades', error);
         throw error;
       }
     }
@@ -95,17 +95,9 @@ export class ActivitiesService {
 
   async createSubprogram(body: any): Promise<string>{
     try {
-      // Obtenemos la referencia al documento del programa
-      const programRef = this.firestore.collection('programas').doc(body.programId);
-      // Creamos un nuevo documento en la subcolección "subprograms"
-      const subprogramRef = programRef.collection('subprograms').doc();
-      await subprogramRef.set({
-        name: body.name,
-        description: body.description
-      });
-
-      console.log('Subprograma creado con ID:', subprogramRef.id);
-      return subprogramRef.id
+      
+      const subprogram = await this.databaseService.createSubprogram(body);
+      return subprogram;
 
     } catch (error) {
       console.error('Error al crear el programa:', error);
@@ -117,7 +109,7 @@ export class ActivitiesService {
   async createActivity(body: any): Promise<string> {
     try {
       // Referencia al documento de un subprograma específico
-      const subprogramRef = this.firestore.collection('programas')
+      /* const subprogramRef = this.firestore.collection('programas')
       .doc(body.programId)
       .collection('subprograms')
       .doc(body.subprogramId);
@@ -146,8 +138,17 @@ export class ActivitiesService {
 
       await activityRef.set(activityData);
 
-      console.log('Actividad creada con ID:', activityRef.id);
-      return activityRef.id;
+      console.log('Actividad creada con ID:', activityRef.id); */
+      //Buscar si el programa y subprograma existe
+      await this.databaseService.findProgramById(body.programId);
+      await this.databaseService.findSubprogramById(body.subprogramId);
+
+      const user = await this.databaseService.findUserByIdentification(body.activityData.responsible);
+
+      const newActivity = await this.databaseService.createActivity(body, user.IdUser);
+      const newActivityWithDetails = await this.databaseService.createActivityWithDetails(body, newActivity, user.IdUser);
+
+      return newActivityWithDetails;
     } catch (error) {
         console.error('Error al crear la actividad:', error);
         throw error;

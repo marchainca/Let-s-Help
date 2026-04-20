@@ -38,7 +38,7 @@ import { ConfigService } from '@nestjs/config';
           database: configService.get<string>('DB_NAME', 'lets_help'),
           schema: configService.get<string>('DB_SCHEMA', schemaFromUrl ?? 'public'),
           entities: [__dirname + '/**/*.entity{.ts,.js}'],
-          synchronize: configService.get<string>('DB_SYNCHRONIZE', 'false') === 'true',
+          synchronize: configService.get<string>('DB_SYNCHRONIZE', 'false') === 'false',
           ssl: configService.get<string>('DB_SSL', 'false') === 'true',
         };
       },

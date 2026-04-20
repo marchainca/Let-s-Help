@@ -68,6 +68,8 @@ export class ActivitiesController {
     async getProgramActivities(@Param('programName') programName: string): Promise<CustomResponse> {
         try {
             const activities = await this.activitiesService.getProgramActivities(programName);
+            
+
             return await sendResponse(true, params.ResponseMessages.MESSAGE_SUCCESS, activities );
         } catch (error) {
             throw new HttpException(

@@ -158,7 +158,7 @@ export class DataBaseService {
         }
     }
 
-    async createActivityWithDetails(body: object, activityId: number, userId: number): Promise<string> {
+    async createActivityTracking(body: object, activityId: number, userId: number): Promise<string> {
         try {
             
             const newActivityTracking = new ActivityTracking;

@@ -146,9 +146,13 @@ export class ActivitiesService {
       const user = await this.databaseService.findUserByIdentification(body.activityData.responsible);
 
       const newActivity = await this.databaseService.createActivity(body, user.IdUser);
-      const newActivityWithDetails = await this.databaseService.createActivityWithDetails(body, newActivity, user.IdUser);
+      for( let week = 1; week <= 4; week++) {
+        body['activityData'].weekNumber = week;
+        await this.databaseService.createActivityTracking(body, newActivity, user.IdUser);
+      }
+      
 
-      return newActivityWithDetails;
+      return 'Activity created successfully';
     } catch (error) {
         console.error('Error al crear la actividad:', error);
         throw error;

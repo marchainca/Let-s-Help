@@ -167,45 +167,31 @@ export class ActivitiesService {
    */
   async getPrograms(id: string): Promise<any> {
     try {
+      // Se cambia la busqueda a la base de datos relacional
+      const leadUser = await this.databaseService.findUserByIdentification(id);
+      const programs = await this.databaseService.getPrograms(leadUser.IdUser);
 
-      const programById = this.firestore.collection('programas');
-      const snapshot = await programById.where('responsible', '==', id).get();
+      // replicar la estructura de datos obtenida en firestore para no afectar el controlador ni el frontend
+      const structuredData = programs.map(program => ({
+        id: program.IdProgram.toString(),
+        name: program.NameProgram,
+        description: program.DescriptionProgram ?? '',
+        responsible: program.leadUser?.Identification ?? '',
+        subprograms: (program.subPrograms || []).map(sub => ({
+          id: sub.IdSubProgram.toString(),
+          name: sub.NameSubProgram
+        }))
+      }));
+      //console.log('Datos estructurados:', structuredData);
 
-      if (snapshot.empty) {
-        throw await errorResponse(`Error: No programs linked to the id: ${id}`, 'getPrograms');
-      }
-
-      //console.log("data de snapshot", snapshot);
-
-      // Obtener programas con subprogramas
-      const programs = await Promise.all(
-        snapshot.docs.map(async (doc) => {
-          const programData = doc.data();
-          const subprogramsRef = doc.ref.collection('subprograms');
-          const subprogramsSnapshot = await subprogramsRef.get();
-
-          // Obtener nombres de los subprogramas
-          const subprograms = subprogramsSnapshot.docs.map(subDoc => ({
-            id: subDoc.id,
-            name: subDoc.data().name,
-          }));
-
-          return {
-            id: doc.id,
-            ...programData,
-            subprograms,
-          };
-        })
-      );
-
-      return programs;
+      return structuredData;
     } catch (error) {
-        console.error(`Error al obtener el programa para el id: ${id}` , error);
-        throw error;
+      console.error(`Error al obtener el programa para el id: ${id}`, error);
+      throw error;
     }
   }
 
-   /**
+  /**
    * Obtiene las actividades asociadas a un subprograma específico dentro de un programa.
    * @param programId ID del programa principal.
    * @param subprogramId ID del subprograma.
@@ -217,24 +203,29 @@ export class ActivitiesService {
     }
 
     try {
-      const programRef = this.firestore.collection('programas').doc(programId);
-      const subprogramRef = programRef.collection('subprograms').doc(subprogramId);
-      const activitiesRef = subprogramRef.collection('activities');
 
-      const activitiesSnapshot = await activitiesRef.get();
+      const activities = await this.databaseService.getActivitiesWithTrackingsBySubProgram(parseInt(subprogramId));
 
-      if (activitiesSnapshot.empty) {
+      if (activities.length == 0) {
         console.log(`No se encontraron actividades para el subprograma: ${subprogramId}`);
-        return [];
+        return [];        
       }
 
-      // Extraer las actividades
-      const activities = activitiesSnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data(),
+      //transfrormar la estructura de datos obtenida de la base de datos relacional para que coincida con la estructura esperada por el controlador y el frontend
+      const structuredActivities = activities.map(activity => ({
+        id: activity.IdActivity.toString(),
+        title: activity.NameActivity,
+        activities: (activity.activityTrackings || []).map(tracking => ({
+          weekNumber: tracking.WeekNumber,
+          projectedActivities: tracking.PlannedActivities ?? 0,
+          executedActivities: tracking.ExecutedActivities ?? 0,
+          projectedAttendees: tracking.ProjectedAttendees ?? 0,
+          actualAttendees: tracking.ActualAttendees ?? 0,
+          responsible: activity.user?.Identification ?? ''   // identificación del responsable de la actividad
+        }))
       }));
 
-      return activities;
+      return structuredActivities;
     } catch (error) {
       console.error('Error al obtener las actividades del subprograma:', error);
       throw error;
@@ -247,15 +238,15 @@ export class ActivitiesService {
    * @returns Mensaje de éxito si la actualización es exitosa.
    */
   async updateActivityWeek(updateActivityDto: UpdateActivityDto): Promise<string> {
-    const { programId, subprogramId, activityId, weekNumber, ...updatedFields } = updateActivityDto;
+   /*  const { programId, subprogramId, activityId, weekNumber, ...updatedFields } = updateActivityDto;
 
     if (!programId || !subprogramId || !activityId || !weekNumber) {
       throw await errorResponse(`Error: ProgramId, subprogramId, activityId, and weekNumber are required for updating.`, 'updateActivityWeek');
-    }
+    } */
 
     try {
       // Referencia al documento de la actividad dentro del subprograma
-      const activityRef = this.firestore.collection('programas')
+      /* const activityRef = this.firestore.collection('programas')
         .doc(programId)
         .collection('subprograms')
         .doc(subprogramId)
@@ -292,7 +283,45 @@ export class ActivitiesService {
       // Guardar el array actualizado en Firestore
       await activityRef.update({ activities: updatedActivities });
 
-      console.log(`Semana ${weekNumber} de la actividad ${activityId} actualizada correctamente.`);
+      console.log(`Semana ${weekNumber} de la actividad ${activityId} actualizada correctamente.`); */
+      const {
+        programId,
+        subprogramId,
+        activityId,
+        projectedActivities,
+        executedActivities,
+        projectedAttendees,
+        actualAttendees,
+        weekNumber,
+      } = updateActivityDto;
+
+      const progId = parseInt(programId, 10);
+      const subProgId = parseInt(subprogramId, 10);
+      const actId = parseInt(activityId, 10);
+
+      const activity = await this.databaseService.findActivityWithSubProgramAndProgram(actId, progId);
+
+      if (!activity) {
+        throw await errorResponse(`Error: The activity with ID ${activityId} was not found.`, 'updateActivityWeek');
+      }
+
+      if (activity.subProgram?.IdProgram !== progId) {
+        throw await errorResponse(`Error: The activity with ID ${activityId} does not belong to the specified program.`, 'updateActivityWeek');
+      }
+
+      const tracking = await this.databaseService.findActivityTrackingByActivityAndWeek(actId, weekNumber);
+
+      if (!tracking) {
+        throw await errorResponse(`Error: Week ${weekNumber} was not found in the activity.`, 'updateActivityWeek');
+      }
+
+      // Actualizar solo los campos que fueron enviados en el DTO
+      tracking.PlannedActivities = projectedActivities;
+      tracking.ExecutedActivities = executedActivities;
+      tracking.ProjectedAttendees = projectedAttendees;
+      tracking.ActualAttendees = actualAttendees;
+      await this.databaseService.updateActivityTracking(tracking);
+
       return `Semana ${weekNumber} de la actividad ${activityId} actualizada correctamente.`;
     } catch (error) {
       console.error('Error al actualizar la actividad:', error);

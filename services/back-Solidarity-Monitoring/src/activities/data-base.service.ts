@@ -65,6 +65,26 @@ export class DataBaseService {
         }
     }
 
+    async getPrograms(id: string): Promise<Program[]> {
+        try{
+            /* const program = await this.programRepository.find({ where: { IdLeadUser: parseInt(id) },
+                relations: ['subPrograms', 'subPrograms.activities'] });
+            console.log('Program fetched for user ID:', id, program); */
+            const programs = await this.programRepository.find({
+                where: { IdLeadUser: parseInt(id) },
+                relations: ['subPrograms', 'leadUser']
+            });
+
+            if (!programs) {
+                throw new Error(`No se encontró un programa con el ID: ${id}`);
+            }
+            return programs;
+        }catch (error) {
+            console.error(`Error al obtener el programa para el id: ${id}` , error);
+            throw error;
+        }
+    }
+
     async createProgram(body: object, idUser): Promise<string> {
         try {
             const newProgram = new Program();
@@ -176,6 +196,70 @@ export class DataBaseService {
         }catch (error) {
             console.error('Error creating activity with details:', error.message || error);
             throw error;
+        }
+    }
+
+    async getActivitiesWithTrackingsBySubProgram(subProgramId: number): Promise<Activity[]> {
+        try {
+            // Obtenemos las actividades del subprograma, con sus trackings y el usuario responsable
+            const activities = await this.activityRepository
+                .createQueryBuilder('act')
+                .leftJoinAndSelect('act.activityTrackings', 'track')
+                .leftJoinAndSelect('act.user', 'user')   // para obtener la identificación del responsable
+                .where('act.IdSubProgram = :subProgramId', { subProgramId })
+                .orderBy('act.IdActivity', 'ASC')
+                .addOrderBy('track.WeekNumber', 'ASC')
+                .getMany();
+            
+            return activities;
+        } catch (error) {
+            console.error(`Error al obtener actividades para el subprograma ID: ${subProgramId}`, error.message || error);
+            throw error;            
+        }
+        
+    }
+
+    // Verificar que la actividad existe y pertenece al subprograma y programa indicados
+    async findActivityWithSubProgramAndProgram(actId: number, progId: number): Promise<Activity> {
+        try {
+            const activity = await this.activityRepository.findOne({
+                where: {
+                IdActivity: actId,
+                IdProgram: progId,
+                },
+                relations: ['subProgram'],
+            });
+
+            return activity;
+            
+        } catch (error) {
+            console.error(`Error al encontrar actividad con ID: ${actId} para el programa ID: ${progId}`, error.message || error);
+            throw error;    
+        }
+    }
+
+    //Buscar el registro de tracking para esa actividad y semana
+    async findActivityTrackingByActivityAndWeek(actId: number, weekNumber: number): Promise<ActivityTracking> {
+        try {
+            const activityTracking = await this.activityTrackingRepository.findOne({
+                where: {
+                    IdActivity: actId,
+                    WeekNumber: weekNumber,
+                },
+            });
+            return activityTracking;
+        } catch (error) {
+            console.error(`Error al encontrar tracking para actividad ID: ${actId} y semana: ${weekNumber}`, error.message || error);
+            throw error;    
+        }
+    }
+
+    async updateActivityTracking(activityTracking: ActivityTracking): Promise<void> {
+        try {
+            await this.activityTrackingRepository.save(activityTracking);
+        } catch (error) {
+            console.error(`Error al actualizar tracking para actividad ID: ${activityTracking.IdActivity} y semana: ${activityTracking.WeekNumber}`, error.message || error);
+            throw error;    
         }
     }
 }

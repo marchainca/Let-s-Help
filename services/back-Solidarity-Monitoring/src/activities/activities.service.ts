@@ -108,37 +108,6 @@ export class ActivitiesService {
 
   async createActivity(body: any): Promise<string> {
     try {
-      // Referencia al documento de un subprograma específico
-      /* const subprogramRef = this.firestore.collection('programas')
-      .doc(body.programId)
-      .collection('subprograms')
-      .doc(body.subprogramId);
-
-      // Referencia al documento de la actividad dentro de la colección 'activities'
-      const activityRef = subprogramRef.collection('activities').doc();
-
-      // Generar las actividades para cada una de las 4 semanas en un array
-      const activitiesArray = [];
-      for (let week = 1; week <= 4; week++) {
-          activitiesArray.push({
-              weekNumber: week,
-              projectedActivities: body.activityData.projectedActivities,
-              executedActivities: body.activityData.executedActivities,
-              projectedAttendees: body.activityData.projectedAttendees,
-              actualAttendees: body.activityData.actualAttendees,
-              responsible: body.activityData.responsible
-          });
-      }
-
-      // Crear el documento con el campo 'activities' como un array
-      const activityData = {
-          title: body.activityData.title,
-          activities: activitiesArray
-      };
-
-      await activityRef.set(activityData);
-
-      console.log('Actividad creada con ID:', activityRef.id); */
       //Buscar si el programa y subprograma existe
       await this.databaseService.findProgramById(body.programId);
       await this.databaseService.findSubprogramById(body.subprogramId);
@@ -238,52 +207,8 @@ export class ActivitiesService {
    * @returns Mensaje de éxito si la actualización es exitosa.
    */
   async updateActivityWeek(updateActivityDto: UpdateActivityDto): Promise<string> {
-   /*  const { programId, subprogramId, activityId, weekNumber, ...updatedFields } = updateActivityDto;
-
-    if (!programId || !subprogramId || !activityId || !weekNumber) {
-      throw await errorResponse(`Error: ProgramId, subprogramId, activityId, and weekNumber are required for updating.`, 'updateActivityWeek');
-    } */
-
+   
     try {
-      // Referencia al documento de la actividad dentro del subprograma
-      /* const activityRef = this.firestore.collection('programas')
-        .doc(programId)
-        .collection('subprograms')
-        .doc(subprogramId)
-        .collection('activities')
-        .doc(activityId);
-
-      // Obtener el documento actual
-      const activityDoc = await activityRef.get();
-      if (!activityDoc.exists) {
-        throw await errorResponse(`Error: The activity with ID ${activityId} was not found.`, 'updateActivityWeek');
-      }
-
-      // Obtener el array de actividades
-      const activityData = activityDoc.data();
-      if (!activityData || !Array.isArray(activityData.activities)) {
-        throw new Error('El documento no contiene un array de actividades válido.');
-      }
-
-      // Encontrar la posición en el array donde weekNumber coincide
-      const weekIndex = activityData.activities.findIndex((week: any) => week.weekNumber === weekNumber);
-      if (weekIndex === -1) {
-        throw await errorResponse(`Error: Week ${weekNumber} was not found in the activity.`, 'updateActivityWeek');
-      }
-
-      // Crear una copia del array actual
-      const updatedActivities = [...activityData.activities];
-
-      // Actualizar solo los campos enviados en la semana específica
-      updatedActivities[weekIndex] = {
-        ...updatedActivities[weekIndex], // Mantiene los valores existentes
-        ...updatedFields, // Actualiza solo los valores proporcionados
-      };
-
-      // Guardar el array actualizado en Firestore
-      await activityRef.update({ activities: updatedActivities });
-
-      console.log(`Semana ${weekNumber} de la actividad ${activityId} actualizada correctamente.`); */
       const {
         programId,
         subprogramId,

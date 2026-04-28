@@ -2,11 +2,14 @@ import { Firestore } from '@google-cloud/firestore';
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { errorResponse } from 'src/tools/function.tools';
 import { CreateAttendanceDto } from './dtos/create-attendance.dto';
+import { DataBaseServiceAttendance } from './data-base-attendance.service';
 
 @Injectable()
 export class AttendanceService {
     private firestore: Firestore
-    constructor(){
+    constructor(
+        private readonly dataBaseServiceAttendance: DataBaseServiceAttendance,
+    ){
         this.firestore = new Firestore();
     }
 
@@ -59,26 +62,19 @@ export class AttendanceService {
             console.log("Error in listAttendances: ", error)
             throw error;
         }
-        
+
     }
 
-    // Buscar integrante por el hash facial
     async identifyIntegrante(identificacion: string): Promise<any> {
         try {
-            const integrantesRef = this.firestore.collection('faceRecognition');
-            const querySnapshot = await integrantesRef.where('documentNumber', '==', identificacion).get();
-            console.log("Consulta en identifyIntegrante", querySnapshot.docs[0].data())
-            if (querySnapshot.empty) {
-                throw await errorResponse("Error: Invalid hash", "identifyIntegrante");
-            }
-
-            const integrante = querySnapshot.docs[0].data();
+            console.log('Llega al servicio de identificación:', identificacion);
+            const integrante = await this.dataBaseServiceAttendance.getBeneficiaryByIdentification(identificacion);
             return integrante;
         } catch (error) {
             console.log("Error in identifyIntegrante: ", error)
             throw error;
         }
-        
+
     }
 
     private async isDuplicateAttendance(
@@ -99,20 +95,20 @@ export class AttendanceService {
     // Registrar asistencia
     async registerAttendance(data: CreateAttendanceDto): Promise<object> {
         try {
-            const { 
-                program, 
-                subProgram, 
-                activity, 
-                firstName, 
-                lastName, 
-                documentType, 
-                documentNumber 
+            const {
+                program,
+                subProgram,
+                activity,
+                firstName,
+                lastName,
+                documentType,
+                documentNumber
               } = data;
-              
+
             const fechaActual = new Date().toISOString().split('T')[0]; // Fecha en formato YYYY-MM-DD
             const isDuplicate = await this.isDuplicateAttendance(documentNumber, activity, fechaActual);
             if (isDuplicate) {
-                throw await errorResponse("Error: An attendance record already exists for the member for this activity and date.", 
+                throw await errorResponse("Error: An attendance record already exists for the member for this activity and date.",
                     "registerAttendance");
             }
             const integrantesRef = this.firestore.collection('faceRecognition');
@@ -122,18 +118,18 @@ export class AttendanceService {
                 throw await errorResponse("Error: Invalid Identification", "registerAttendance");
             }
             const asistenciasRef = this.firestore.collection('attendances');
-            
+
             const newAttendanceRef = asistenciasRef.doc();
-            
+
             await newAttendanceRef.set({
                 tipoDocumento: documentType,
                 identificacion: documentNumber,
                 fecha: fechaActual,
                 actividad: activity,
-                programa: program, 
+                programa: program,
                 subPrograma: subProgram,
-                nombresApellidos: firstName + " " + lastName, 
-               
+                nombresApellidos: firstName + " " + lastName,
+
             });
 
             return {message: `Asistencia registrada exitosamente para el integrante ${querySnapshot.docs[0].data().nombre}`};
@@ -141,7 +137,7 @@ export class AttendanceService {
             console.log("Error in registerAttendance: ", error)
             throw error;
         }
-        
+
     }
 
     // Registrar inasistencia
@@ -174,6 +170,6 @@ export class AttendanceService {
             console.log("Error in registerAbsence: ", error)
             throw error;
         }
-        
+
     }
 }

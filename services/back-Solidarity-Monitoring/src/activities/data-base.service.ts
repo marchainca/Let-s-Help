@@ -39,7 +39,7 @@ export class DataBaseService {
             return activities;
         }catch(error){
             console.error('Error fetching programs with activities:', error);
-            throw error.message || 'Error fetching programs with activities';
+            throw error;
         }
     }
 

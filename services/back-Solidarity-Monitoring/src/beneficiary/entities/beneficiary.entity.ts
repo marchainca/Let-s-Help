@@ -3,6 +3,8 @@ import { Address } from './address.entity';
 import { BiometricData } from './biometric-data.entity';
 import { Absence } from '../../users/entities/absence.entity';
 import { Report } from '../../users/entities/report.entity';
+import { Neighborhood } from './neighborhood.entity';
+import { DocumentType } from './document-type.entity';
 
 @Entity('Beneficiaries')
 export class Beneficiary {
@@ -25,6 +27,15 @@ export class Beneficiary {
   LastName: string;
 
   @Column({ type: 'int', nullable: true })
+  IdDocumentType: number;
+
+  @Column({ type: 'varchar', length: 100, nullable: true })
+  PolicyNumber: string;
+
+  @Column({ type: 'varchar', length: 20, nullable: true })
+  EmergencyContact: string;
+
+  @Column({ type: 'int', nullable: true })
   IdAddress: number;
 
   @Column({ type: 'varchar', length: 250, nullable: true })
@@ -37,6 +48,10 @@ export class Beneficiary {
   @JoinColumn({ name: 'IdAddress' })
   address: Address;
 
+  @ManyToOne(() => Neighborhood)
+  @JoinColumn({ name: 'IdNeighborhood' })
+  neighborhood: Neighborhood;
+
   @OneToMany(() => BiometricData, biometric => biometric.beneficiary)
   biometricData: BiometricData[];
 
@@ -45,4 +60,8 @@ export class Beneficiary {
 
   @OneToMany(() => Report, report => report.beneficiary)
   reports: Report[];
+
+  @ManyToOne(() => DocumentType)
+  @JoinColumn({ name: 'IdDocumentType' })
+  documentType: DocumentType;
 }

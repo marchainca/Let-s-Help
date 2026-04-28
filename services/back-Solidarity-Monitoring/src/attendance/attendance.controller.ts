@@ -28,7 +28,7 @@ export class AttendanceController {
             if (isNaN(pageNumber) || pageNumber < 1) {
                 throw new BadRequestException('El parámetro "page" debe ser un número mayor o igual a 1.');
             }
-            
+
             if (isNaN(limitNumber) || limitNumber < 1) {
             throw new BadRequestException('El parámetro "limit" debe ser un número mayor o igual a 1.');
             }
@@ -47,27 +47,33 @@ export class AttendanceController {
                 HttpStatus.BAD_REQUEST,
             );
         }
-        
+
     }
 
      // Ruta para identificar al integrante
     @Post('identify')
-    async identifyIntegrante(@Body('identificacion') identificacion: string): Promise<CustomResponse> {
+    async identifyIntegrante(@Body() body: { identificacion: string }): Promise<CustomResponse> {
         try {
-            const identify= await this.attendanceService.identifyIntegrante(identificacion);
+            const { identificacion } = body || {};
+            if (!identificacion) {
+                throw new BadRequestException('El campo "identificacion" es obligatorio.');
+            }
+            console.log('Llega al controlador de identificación:', identificacion);
+            const identify = await this.attendanceService.identifyIntegrante(identificacion);
             return await sendResponse(true, params.ResponseMessages.SUCCESS, identify);
         } catch (error) {
+            console.log("Error en el controlador de identificación: ", error);
             throw new HttpException(
                 {
-                code: error.code,
-                message: error.message,
-                attribute: error.attribute,
-                statusCode: error.statusCode,
+                code: error?.code,
+                message: error?.message || 'Error en la identificación del integrante.',
+                attribute: error?.attribute,
+                statusCode: error?.statusCode,
                 },
                 HttpStatus.BAD_REQUEST,
             );
         }
-        
+
     }
 
     // Ruta para registrar asistencia
@@ -87,7 +93,7 @@ export class AttendanceController {
                 HttpStatus.BAD_REQUEST,
             );
         }
-        
+
     }
 
     // Endpoint para registrar inasistencias
@@ -116,8 +122,8 @@ export class AttendanceController {
                 HttpStatus.BAD_REQUEST,
             );
         }
-        
 
-        
+
+
     }
 }

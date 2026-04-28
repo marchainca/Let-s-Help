@@ -183,9 +183,9 @@ CREATE TABLE Reports (
     IdBeneficiary     INTEGER NOT NULL REFERENCES Beneficiaries(IdBeneficiary), -- beneficiario que comete la falla.    DescriptionReport TEXT NOT NULL,
     CreatedAt         TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
-/* 
+/*
     - Evaluar para una segunda versión guardar el tipo de falta
-    según el manual disciplinario 
+    según el manual disciplinario
 */
 -- =============================================
 -- 15. ActivitiesTracking
@@ -201,6 +201,17 @@ CREATE TABLE "Activities_tracking" (
     "WeekNumber"          INTEGER,
     "CreatedAt"           TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+-- =============================================
+-- 16. DocumentTypes
+-- =============================================
+CREATE TABLE "DocumentTypes" (
+    "IdDocumentType" SERIAL PRIMARY KEY,
+    "Name" VARCHAR(100) NOT NULL,
+    "Description" VARCHAR(250),
+    "CreatedAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
 -- =============================================
 -- ÍNDICES RECOMENDADOS
 -- =============================================
@@ -234,3 +245,21 @@ COMMENT ON TABLE Reports IS 'Reportes disciplinarios o incidencias sobre benefic
 COMMENT ON TABLE Tasks IS 'Tareas asignadas a usuarios dentro de subprogramas';
 COMMENT ON COLUMN Tasks.IdAssignedTo IS 'Usuario responsable de ejecutar la tarea';
 COMMENT ON TABLE Activities_tracking IS 'Seguimiento semanal de actividades: registra ejecución, asistencia real vs proyectada, y avance de actividades planificadas vs ejecutadas.';
+COMMENT ON TABLE DocumentTypes IS 'Tipos de documentos de identificación (Cédula, Tarjeta de Identidad, etc.)';
+
+-- =============================================
+-- ALTERACIONES POSTERIORES
+-- =============================================
+
+-- Agregar columnas faltantes a la tabla Beneficiaries
+-- Se agregan columnas para almacenar el tipo de documento, número de póliza de salud y contacto de emergencia, que son datos relevantes para la gestión de los beneficiarios.
+
+ALTER TABLE "Beneficiaries"
+ADD COLUMN "IdDocumentType" INTEGER REFERENCES "DocumentTypes"("IdDocumentType") ON DELETE SET NULL,
+ADD COLUMN "PolicyNumber" VARCHAR(100),
+ADD COLUMN "EmergencyContact" VARCHAR(20);
+
+-- Agregar columna para relacionar beneficiarios con barrios, lo que permitirá un análisis geográfico más detallado de la población beneficiaria y facilitará la planificación de actividades y recursos en función de la ubicación de los beneficiarios.
+
+ALTER TABLE "Beneficiaries"
+ADD COLUMN "IdNeighborhood" INTEGER REFERENCES "Neighborhoods"("IdNeighborhood") ON DELETE SET NULL;

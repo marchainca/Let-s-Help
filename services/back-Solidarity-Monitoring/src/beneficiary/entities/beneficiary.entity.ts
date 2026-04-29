@@ -5,6 +5,7 @@ import { Absence } from '../../users/entities/absence.entity';
 import { Report } from '../../users/entities/report.entity';
 import { Neighborhood } from './neighborhood.entity';
 import { DocumentType } from './document-type.entity';
+import { Attendance } from 'src/attendance/entities/attendance.entity';
 
 @Entity('Beneficiaries')
 export class Beneficiary {
@@ -64,4 +65,7 @@ export class Beneficiary {
   @ManyToOne(() => DocumentType)
   @JoinColumn({ name: 'IdDocumentType' })
   documentType: DocumentType;
+
+  @OneToMany(() => Attendance, attendance => attendance.beneficiary)
+  attendances: Attendance[];
 }

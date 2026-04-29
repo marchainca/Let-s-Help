@@ -2,18 +2,21 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Beneficiary } from 'src/beneficiary/entities/beneficiary.entity';
 import { Repository } from 'typeorm';
+import { Attendance } from './entities/attendance.entity';
 
 
 @Injectable()
 export class DataBaseServiceAttendance {
      constructor(
         @InjectRepository(Beneficiary)
-        private readonly beneficiaryRepository: Repository<Beneficiary>
+        private readonly beneficiaryRepository: Repository<Beneficiary>,
+        @InjectRepository(Attendance)
+        private readonly attendanceRepository: Repository<Attendance>
     ){}
 
     async getBeneficiaryByIdentification(identification: string): Promise<any> {
         try {
-            console.log('Buscando beneficiario con identificación:', identification);
+            //console.log('Buscando beneficiario con identificación:', identification);
             // Buscar beneficiario con todas las relaciones necesarias
             const beneficiary = await this.beneficiaryRepository.findOne({
             where: { Identification: identification },
@@ -87,6 +90,37 @@ export class DataBaseServiceAttendance {
             return result;
         } catch (error) {
             console.error('Error en getBeneficiaryByIdentification:', error);
+            throw error;
+        }
+    }
+
+    // Buscar asistencia existente
+    async findExistingAttendance(idBeneficiary: number, idActivity: number, attendanceDate: Date): Promise<Attendance | null> {
+        try {
+            const existing = await this.attendanceRepository.findOne({
+                where: {
+                    IdBeneficiary: idBeneficiary,
+                    IdActivity: idActivity,
+                    AttendanceDate: attendanceDate,
+                },
+            });
+            return existing;
+        } catch (error) {
+            console.error('Error al buscar asistencia existente:', error);
+            throw error;
+        }
+    }
+
+    // Registrar asistencia o actualizar si ya existe
+    async registerAttendance(register: Partial<Attendance>): Promise<object> {
+        try {
+
+            await this.attendanceRepository.save(register);
+
+            return {message: `Asistencia registrada exitosamente para el beneficiario con ID ${register.IdBeneficiary} en la actividad con ID ${register.IdActivity}`};
+
+        } catch (error) {
+            console.error('Error al registrar asistencia:', error);
             throw error;
         }
     }

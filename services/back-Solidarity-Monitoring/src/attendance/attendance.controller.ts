@@ -58,7 +58,7 @@ export class AttendanceController {
             if (!identificacion) {
                 throw new BadRequestException('El campo "identificacion" es obligatorio.');
             }
-            console.log('Llega al controlador de identificación:', identificacion);
+            //console.log('Llega al controlador de identificación:', identificacion);
             const identify = await this.attendanceService.identifyIntegrante(identificacion);
             return await sendResponse(true, params.ResponseMessages.SUCCESS, identify);
         } catch (error) {

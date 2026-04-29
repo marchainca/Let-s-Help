@@ -3,12 +3,15 @@ import { BadRequestException, Injectable, NotFoundException } from '@nestjs/comm
 import { errorResponse } from 'src/tools/function.tools';
 import { CreateAttendanceDto } from './dtos/create-attendance.dto';
 import { DataBaseServiceAttendance } from './data-base-attendance.service';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Attendance } from './entities/attendance.entity';
 
 @Injectable()
 export class AttendanceService {
     private firestore: Firestore
     constructor(
-        private readonly dataBaseServiceAttendance: DataBaseServiceAttendance,
+        private readonly dataBaseServiceAttendance: DataBaseServiceAttendance
+
     ){
         this.firestore = new Firestore();
     }
@@ -67,7 +70,7 @@ export class AttendanceService {
 
     async identifyIntegrante(identificacion: string): Promise<any> {
         try {
-            console.log('Llega al servicio de identificación:', identificacion);
+            //console.log('Llega al servicio de identificación:', identificacion);
             const integrante = await this.dataBaseServiceAttendance.getBeneficiaryByIdentification(identificacion);
             return integrante;
         } catch (error) {
@@ -92,47 +95,55 @@ export class AttendanceService {
         return !querySnapshot.empty; // Retorna true si ya existe una asistencia
     }
 
-    // Registrar asistencia
+    /**
+ * Registra la asistencia de un beneficiario a una actividad.
+ * @param idActivity - ID de la actividad
+ * @param idBeneficiary - ID del beneficiario
+ * @param status - Estado de la asistencia ('present', 'absent', 'justified', 'late')
+ * @returns mensaje de éxito o error
+ */
     async registerAttendance(data: CreateAttendanceDto): Promise<object> {
         try {
-            const {
-                program,
-                subProgram,
-                activity,
-                firstName,
-                lastName,
-                documentType,
-                documentNumber
-              } = data;
+            const { IdBeneficiary, IdActivity, status } = data;
 
-            const fechaActual = new Date().toISOString().split('T')[0]; // Fecha en formato YYYY-MM-DD
-            const isDuplicate = await this.isDuplicateAttendance(documentNumber, activity, fechaActual);
-            if (isDuplicate) {
-                throw await errorResponse("Error: An attendance record already exists for the member for this activity and date.",
-                    "registerAttendance");
+            // Validar que el estado sea válido
+            const validStatuses = ['present', 'absent', 'justified', 'late'];
+            if (!validStatuses.includes(status)) {
+                throw new BadRequestException(`Estado inválido. Debe ser uno de: ${validStatuses.join(', ')}`);
             }
-            const integrantesRef = this.firestore.collection('faceRecognition');
-            let querySnapshot = await integrantesRef.where('documentNumber', '==', documentNumber).get();
-            console.log("Consulta asistenciasRef");
-            if (querySnapshot.empty) {
-                throw await errorResponse("Error: Invalid Identification", "registerAttendance");
+
+            // Obtener la fecha actual (solo fecha, sin hora)
+            const today = new Date();
+            const attendanceDate = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+
+            // Verificar si ya existe un registro para este beneficiario, actividad y fecha
+            const existing = await this.dataBaseServiceAttendance.findExistingAttendance(IdBeneficiary, IdActivity, attendanceDate);
+
+            if (existing) {
+            // Si ya existe, se puede actualizar el estado (opcional)
+            existing.Status = status;
+            existing.UpdatedAt = new Date();
+            await this.dataBaseServiceAttendance.registerAttendance(existing);
+
+            return {
+                message: `Asistencia actualizada correctamente para el beneficiario ${IdBeneficiary} en la actividad ${IdActivity}`,
+                attendance: existing,
+            };
             }
-            const asistenciasRef = this.firestore.collection('attendances');
 
-            const newAttendanceRef = asistenciasRef.doc();
+            // Crear nuevo registro
+            const newAttendance: Partial<Attendance> = {
+            IdBeneficiary: IdBeneficiary,
+            IdActivity: IdActivity,
+            AttendanceDate: attendanceDate,
+            Status: status,
+            CreatedAt: new Date(),
+            UpdatedAt: new Date(),
+            };
 
-            await newAttendanceRef.set({
-                tipoDocumento: documentType,
-                identificacion: documentNumber,
-                fecha: fechaActual,
-                actividad: activity,
-                programa: program,
-                subPrograma: subProgram,
-                nombresApellidos: firstName + " " + lastName,
+           await this.dataBaseServiceAttendance.registerAttendance(newAttendance);
 
-            });
-
-            return {message: `Asistencia registrada exitosamente para el integrante ${querySnapshot.docs[0].data().nombre}`};
+            return {message: `Asistencia registrada exitosamente para el integrante ${IdBeneficiary} en la actividad ${IdActivity}`};
         } catch (error) {
             console.log("Error in registerAttendance: ", error)
             throw error;

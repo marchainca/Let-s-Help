@@ -3,6 +3,7 @@ import { User } from '../../users/entities/user.entity';
 import { Absence } from '../../users/entities/absence.entity';
 import { ActivityTracking } from './activity-tracking.entity';
 import { SubProgram } from './sub-program.entity';
+import { Attendance } from 'src/attendance/entities/attendance.entity';
 
 @Entity('Activities')
 export class Activity {
@@ -32,6 +33,9 @@ export class Activity {
   activityTrackings: ActivityTracking[];
 
   @ManyToOne(() => SubProgram, subProgram => subProgram.activities)
-  @JoinColumn({ name: 'IdSubProgram' })   // Esta es la única definición de la columna
+  @JoinColumn({ name: 'IdSubProgram' })
   subProgram: SubProgram;
+
+  @OneToMany(() => Attendance, attendance => attendance.activity)
+  attendances: Attendance[];
 }

@@ -1,31 +1,16 @@
-import { IsString, IsNotEmpty } from 'class-validator';
+import { IsString, IsNotEmpty, IsNumber } from 'class-validator';
 
 export class CreateAttendanceDto {
-  @IsString()
+
+  @IsNumber()
   @IsNotEmpty()
-  program: string;
+  IdActivity: number;
+
+  @IsNumber()
+  @IsNotEmpty()
+  IdBeneficiary: number;
 
   @IsString()
   @IsNotEmpty()
-  subProgram: string;
-
-  @IsString()
-  @IsNotEmpty()
-  activity: string;
-
-  @IsString()
-  @IsNotEmpty()
-  firstName: string;
-
-  @IsString()
-  @IsNotEmpty()
-  lastName: string;
-
-  @IsString()
-  @IsNotEmpty()
-  documentType: string;
-
-  @IsString()
-  @IsNotEmpty()
-  documentNumber: string;
+  status: string;
 }

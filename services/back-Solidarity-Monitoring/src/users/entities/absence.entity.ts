@@ -1,7 +1,8 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, ManyToOne, JoinColumn } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, ManyToOne, JoinColumn, OneToMany } from 'typeorm';
 import { User } from './user.entity';
 import { Beneficiary } from '../../beneficiary/entities/beneficiary.entity';
 import { Activity } from '../../activities/entities/activity.entity';
+import { Attendance } from 'src/attendance/entities/attendance.entity';
 
 @Entity('Absences')
 export class Absence {
@@ -34,4 +35,7 @@ export class Absence {
   @ManyToOne(() => Activity, activity => activity.absences)
   @JoinColumn({ name: 'IdActivity' })
   activity: Activity;
+
+  @OneToMany(() => Attendance, attendance => attendance.absence)
+  attendances: Attendance[];
 }

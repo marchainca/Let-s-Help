@@ -13,6 +13,7 @@ DROP TABLE IF EXISTS Biometric_data CASCADE;
 DROP TABLE IF EXISTS Absences CASCADE;
 DROP TABLE IF EXISTS Reports CASCADE;
 DROP TABLE IF EXISTS Tasks CASCADE;
+DROP TABLE IF EXISTS "Activities_tracking" CASCADE;
 DROP TABLE IF EXISTS Sub_programs CASCADE;
 DROP TABLE IF EXISTS Programs CASCADE;
 DROP TABLE IF EXISTS Activities CASCADE;
@@ -213,6 +214,24 @@ CREATE TABLE "DocumentTypes" (
 );
 
 -- =============================================
+-- 17. Attendances
+-- =============================================
+
+CREATE TABLE "Attendances" (
+    "IdAttendance"      SERIAL PRIMARY KEY,
+    "IdBeneficiary"     INTEGER NOT NULL REFERENCES "Beneficiaries"("IdBeneficiary") ON DELETE CASCADE,
+    "IdActivity"        INTEGER NOT NULL REFERENCES "Activities"("IdActivity") ON DELETE CASCADE,
+    "AttendanceDate"    DATE NOT NULL,
+    "Status"            VARCHAR(20) NOT NULL DEFAULT 'present', -- present, absent, justified, late
+    "CheckInTime"       TIME,
+    "IdAbsence"         INTEGER REFERENCES "Absences"("IdAbsence") ON DELETE SET NULL,
+    "CreatedBy"         INTEGER REFERENCES "Users"("IdUser") ON DELETE SET NULL,
+    "CreatedAt"         TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    "UpdatedAt"         TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT "UQ_Attendance_Unique" UNIQUE ("IdBeneficiary", "IdActivity", "AttendanceDate")
+);
+
+-- =============================================
 -- ÍNDICES RECOMENDADOS
 -- =============================================
 CREATE INDEX idx_users_idrole ON Users(IdRole);
@@ -235,6 +254,11 @@ CREATE INDEX idx_reports_idbeneficiary ON Reports(IdBeneficiary);
 CREATE INDEX idx_Activities_tracking_idactivity ON Activities_tracking(IdActivity);
 CREATE INDEX idx_Activities_tracking_iduser ON Activities_tracking(IdUser);
 CREATE INDEX idx_Activities_tracking_week ON Activities_tracking(WeekNumber);
+CREATE INDEX idx_attendances_beneficiary ON "Attendances"("IdBeneficiary");
+CREATE INDEX idx_attendances_activity ON "Attendances"("IdActivity");
+CREATE INDEX idx_attendances_date ON "Attendances"("AttendanceDate");
+CREATE INDEX idx_attendances_status ON "Attendances"("Status");
+CREATE INDEX idx_attendances_idabsence ON "Attendances"("IdAbsence");
 
 -- =============================================
 -- COMENTARIOS
@@ -263,3 +287,7 @@ ADD COLUMN "EmergencyContact" VARCHAR(20);
 
 ALTER TABLE "Beneficiaries"
 ADD COLUMN "IdNeighborhood" INTEGER REFERENCES "Neighborhoods"("IdNeighborhood") ON DELETE SET NULL;
+
+-- Modificar la columna CheckInTime en la tabla Attendances para que tenga un valor por defecto de la hora actual, lo que facilitará el registro de asistencias sin necesidad de proporcionar explícitamente la hora de ingreso, y asegurará que siempre se registre un valor válido para esta columna.
+
+ALTER TABLE "Attendances" ALTER COLUMN "CheckInTime" SET DEFAULT CURRENT_TIME;

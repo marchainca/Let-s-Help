@@ -22,41 +22,27 @@ export class AttendanceService {
         limit: number = 10,
     ): Promise<{data: any[]; total: number; page: number; limit: number }> {
         try {
-            const asistenciasRef = this.firestore.collection('attendances');
-            let query: FirebaseFirestore.Query = asistenciasRef;
+            const rawData = await this.dataBaseServiceAttendance.getAttendances(filters, page, limit);
 
-            // Aplicar filtros si se proporcionan
-            if (filters?.identificacion) {
-            query = query.where('identificacion', '==', filters.identificacion);
-            }
-            if (filters?.actividad) {
-            query = query.where('actividad', '==', filters.actividad);
-            }
-            if (filters?.fecha) {
-            query = query.where('fecha', '==', filters.fecha);
-            }
+            const { rawResults, total } = rawData;
 
-            const querySnapshot = await query.get();
-
-            /* if (querySnapshot.empty) {
-            return [];
-            } */
-
-            // Transformar los documentos en un arreglo de objetos
-            const allAttendances = querySnapshot.docs.map(doc => ({
-                id: doc.id,
-                ...doc.data(),
+            // Mapear resultados planos a formato deseado
+            const data = rawResults.map(row => ({
+                id: row.id.toString(),
+                identificacion: row.identificacion,
+                fecha: row.fecha ? row.fecha.toISOString().split('T')[0] : null, // Asegurar formato YYYY-MM-DD
+                actividad: row.actividad,
             }));
 
-            // Implementar paginación manual
-            const total = allAttendances.length;
-            const startIndex = (page - 1) * limit;
-            const endIndex = startIndex + limit;
-
-            const paginatedData = allAttendances.slice(startIndex, endIndex);
+            /* return {
+                data: paginatedData,
+                total,
+                page,
+                limit,
+            }; */
 
             return {
-                data: paginatedData,
+                data,
                 total,
                 page,
                 limit,

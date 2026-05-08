@@ -1,0 +1,20 @@
+{
+  "files.trimTrailingWhitespace": true,
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "editor.formatOnSave": true,
+  "eslint.enable": true,
+  "eslint.run": "onSave",
+  "eslint.validate": [
+    "javascript",
+    "javascriptreact",
+    "typescript",
+    "typescriptreact"
+  ],
+  "eslint.workingDirectories": [
+    "services/back-Solidarity-Monitoring"
+  ],
+  "eslint.options": {
+    "configFile": "${workspaceFolder}/services/back-Solidarity-Monitoring/.eslintrc.js"
+  },
+  "prettier.configPath": "${workspaceFolder}/services/back-Solidarity-Monitoring/.prettierrc"
+}

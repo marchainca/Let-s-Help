@@ -1,8 +1,10 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Beneficiary } from 'src/beneficiary/entities/beneficiary.entity';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { Attendance } from './entities/attendance.entity';
+import { Activity } from 'src/activities/entities/activity.entity';
+import { Absence } from 'src/users/entities/absence.entity';
 
 
 @Injectable()
@@ -11,7 +13,11 @@ export class DataBaseServiceAttendance {
         @InjectRepository(Beneficiary)
         private readonly beneficiaryRepository: Repository<Beneficiary>,
         @InjectRepository(Attendance)
-        private readonly attendanceRepository: Repository<Attendance>
+        private readonly attendanceRepository: Repository<Attendance>,
+        @InjectRepository(Activity)
+        private readonly activityRepository: Repository<Activity>,
+        @InjectRepository(Absence)
+        private readonly absenceRepository: Repository<Absence>,
     ){}
 
     async getBeneficiaryByIdentification(identification: string): Promise<any> {
@@ -165,4 +171,64 @@ export class DataBaseServiceAttendance {
             throw error;
         }
     }
+
+    async isDuplicateAbsence(identificacion: string, actividad: string, fecha: string): Promise<boolean> {
+        try {
+            const existingAbsence = await this.attendanceRepository.createQueryBuilder('att')
+                .leftJoin('att.beneficiary', 'ben')
+                .leftJoin('att.activity', 'act')
+                .where('ben.Identification = :identificacion', { identificacion })
+                .andWhere('act.NameActivity = :actividad', { actividad })
+                .andWhere('att.AttendanceDate = :fecha', { fecha })
+                .andWhere('att.Status = :status', { status: 'absent' })
+                .getOne();
+            return !!existingAbsence;
+        }catch (error) {
+            console.error('Error al verificar ausencia duplicada:', error);
+            throw error;
+        }
+    }
+
+    //Buscar actividad por nombre (asumiendo nombre único o tomamos el mas reciente)
+    async findActivityByName(activityName: string): Promise<any> {
+        try {
+            const activity = await this.activityRepository.findOne({
+                where: { NameActivity: activityName },
+                order: { CreatedAt: 'DESC' }, // Si hay varias con el mismo nombre, tomar la más reciente
+            });
+            return activity;
+        } catch (error) {
+            console.error('Error al buscar actividad por nombre:', error);
+            throw error;
+        }
+    }
+
+    //Crear el registro en Absences y luego en Attendances con status 'absent' y el IdAbsence correspondiente
+    async registerAbsence(IdBeneficiary: number, IdActivity: number, motivo: string, fecha: string): Promise<object> {
+        try {
+            const newAbsence = this.absenceRepository.create({
+                IdUser: null,
+                IdBeneficiary,
+                IdActivity,
+                DescriptionAbsence: motivo,
+            });
+            const savedAbsence = await this.absenceRepository.save(newAbsence);
+            const newAttendance: Partial<Attendance> = {
+                IdBeneficiary,
+                IdActivity,
+                AttendanceDate: new Date(fecha),
+                Status: 'absent',
+                IdAbsence: savedAbsence.IdAbsence,
+                CreatedAt: new Date(),
+                UpdatedAt: new Date(),
+            };
+            await this.attendanceRepository.save(newAttendance);
+            return {message: `Inasistencia registrada exitosamente para el beneficiario con ID ${IdBeneficiary} en la actividad con ID ${IdActivity}`};
+        } catch (error) {
+            console.error('Error al registrar inasistencia:', error);
+            throw error;
+        }
+    }
+
+
 }

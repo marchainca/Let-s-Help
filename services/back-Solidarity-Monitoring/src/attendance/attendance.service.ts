@@ -141,26 +141,26 @@ export class AttendanceService {
     async registerAbsence(identificacion: string, actividad: string, motivo: string, fecha: string ): Promise<object> {
         try {
             // Validar que el integrante existe
-            const integrantesRef = this.firestore.collection('faceRecognition');
-            let querySnapshot = await integrantesRef.where('documentNumber', '==', identificacion).get();
-            /* const integranteRef = this.firestore.collection('faceRecognition').doc(identificacion);
-            const integranteDoc = await integranteRef.get(); */
 
-            if (querySnapshot.empty) {
-            throw new NotFoundException(`No se encontró un integrante con el ID ${identificacion}.`);
+            const integrant = await this.dataBaseServiceAttendance.getBeneficiaryByIdentification(identificacion);
+            if (!integrant) {
+                throw new NotFoundException(`No se encontró un integrante con el ID ${identificacion}.`);
+            }
+            //buscar actividad por nombre
+            const activity = await this.dataBaseServiceAttendance.findActivityByName(actividad);
+            if (!activity) {
+                throw new NotFoundException(`No se encontró una actividad con el nombre ${actividad}.`);
+            }
+
+            // Verificar si ya existe una ausencia registrada para el mismo integrante, actividad y fecha
+            const isDuplicate = await this.dataBaseServiceAttendance.isDuplicateAbsence(identificacion, actividad, fecha);
+
+            if (isDuplicate) {
+                throw new BadRequestException(`Ya existe una ausencia registrada para el integrante ${identificacion} en la actividad ${actividad} para la fecha ${fecha}.`);
             }
 
             // Crear un nuevo registro de inasistencia
-            const inasistenciasRef = this.firestore.collection('absences');
-            const newAbsenceRef = inasistenciasRef.doc();
-
-            await newAbsenceRef.set({
-            identificacion,
-            actividad,
-            motivo,
-            fecha: fecha,
-            createdAt: new Date().toISOString(),
-            });
+            await this.dataBaseServiceAttendance.registerAbsence(integrant.IdBeneficiary, activity.IdActivity, motivo, fecha);
 
             return {message: `Inasistencia registrada exitosamente para el integrante ${identificacion}`};
         } catch (error) {

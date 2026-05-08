@@ -16,12 +16,12 @@ export class UsersController {
     constructor(private readonly usersService: UsersService) {}
 
     @Post()
-    //@Roles('Admin')
+    @Roles('Admin')
     async createUser(@Body() userData: CreateUserDto): Promise<CustomResponse> {
         try {
           console.log("depués del try")
             const id = await this.usersService.createUser(userData);
-            
+
             return await sendResponse(true, params.ResponseMessages.CREATED, {id} )
         } catch (error) {
             throw new HttpException(
@@ -40,7 +40,6 @@ export class UsersController {
     @Get()
     @Roles('Admin')
     async getUsers(): Promise<any[]> {
-        
         try {
             return await this.usersService.getUsers();
         } catch (error) {
@@ -58,10 +57,10 @@ export class UsersController {
 
     // Ruta para actualizar un usuario por ID
     @Patch(':id')
-    async updateUser(@Param('id') userId: string, @Body() updateData: UpdateUserDto): Promise<string> {        
+    async updateUser(@Param('id') userId: string, @Body() updateData: UpdateUserDto): Promise<string> {
         try {
-          //console.log("contenido de userId: ", userId.slice(4))
-            await this.usersService.updateUser(userId.slice(4), updateData);
+          console.log("contenido de userId: ", userId)
+            await this.usersService.updateUser(userId, updateData);
             return `User with ID ${userId} updated successfully.`;
         } catch (error) {
             throw new HttpException(

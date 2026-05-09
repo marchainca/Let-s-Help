@@ -15,6 +15,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
     FirebaseService,
     UsersDataBaseService
   ],
-  controllers: [UsersController]
+  controllers: [UsersController],
+  exports: [UsersService, UsersDataBaseService],
 })
 export class UsersModule {}

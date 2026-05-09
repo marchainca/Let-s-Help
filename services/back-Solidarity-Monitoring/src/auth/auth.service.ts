@@ -3,6 +3,7 @@ import { JwtService } from '@nestjs/jwt';
 import * as argon2 from 'argon2';
 import { FirebaseService } from 'src/firebase/firebase.service';
 import { errorResponse } from 'src/tools/function.tools';
+import { UsersDataBaseService } from 'src/users/users-data-base.service';
 import { UsersService } from 'src/users/users.service';
 
 @Injectable()
@@ -10,29 +11,30 @@ export class AuthService {
     private collectionName = 'users';
     constructor(
         private readonly jwtService: JwtService,
-        private readonly firebaseService: FirebaseService
+        private readonly firebaseService: FirebaseService,
+        private readonly usersDatabaseService: UsersDataBaseService,
     ) {}
 
     async validateUser(email: string, password: string): Promise<any> {
         try {
             console.log("validateUser", email, password)
-            const user = await this.firebaseService.findUserByField("email", email, this.collectionName);
-            /* console.log("Despues de validar usuario")
-            console.log("valor de user", user[0].password); */
-            if (user.length < 1) {
-                throw await errorResponse("Error: Invalid email", "validateUser");
+           const user = await this.usersDatabaseService.getUserByEmail(email);
+
+           if (user.length < 1) {
+                throw await errorResponse("Error: Invalid data", "validateUser");
             }
 
-            if (user[0].password != password) {
-                throw await errorResponse("Error: Invalid password", "validateUser");
+            if (user[0].Password != password) {
+                throw await errorResponse("Error: Invalid pass", "validateUser");
             }
-            return { id: user[0].id, idNumber: user[0].idNumber, email: user[0].email, name: user[0].name, role: user[0].role, urlImage: user[0].urlImage, birthdate: user[0].birthdate};
+            return { id: user[0].IdUser, idNumber: user[0].Identification, email: user[0].Email, name: user[0].FirstName, role: user[0].role?.NameRole, urlImage: user[0].UrlImage, birthdate: user[0].Birthdate};
         } catch (error) {
+            console.log("Error validateUser", error)
             throw error;
         }
-        
+
     }
-    
+
     // Generar un JWT
     async login(user: any): Promise<object> {
         try {
@@ -48,5 +50,5 @@ export class AuthService {
             throw error;
         }
     }
-      
+
 }

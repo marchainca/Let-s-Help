@@ -32,8 +32,15 @@ export class UsersDataBaseService {
 
     async getUserByEmail(email: string): Promise<User[]> {
         try {
-            const userByEmail = await this.userRepository.find({ where: { Email: email } });
-            console.log('User found by email:', email, userByEmail);
+            const userByEmail = await this.userRepository.find({ where: { Email: email },
+                relations: ['role'] });
+
+            //console.log('User found by email:', email, userByEmail);
+
+            if (!userByEmail || userByEmail.length === 0) {
+                throw new NotFoundException(`Usuario con email ${email} no encontrado`);
+            }
+
             return userByEmail;
         } catch (error) {
             console.error('Error finding user by email:', email, error.message || error);

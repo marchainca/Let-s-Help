@@ -3,7 +3,7 @@ import { UsersService } from './users.service';
 import { UsersController } from './users.controller';
 import { FirebaseService } from 'src/firebase/firebase.service';
 import { BeneficiaryService } from 'src/beneficiary/beneficiary.service';
-import { DataBaseService } from './data-base.service';
+import { UsersDataBaseService } from './users-data-base.service';
 import { User } from './entities/user.entity';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
@@ -13,7 +13,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
   ],
   providers: [UsersService,
     FirebaseService,
-    DataBaseService
+    UsersDataBaseService
   ],
   controllers: [UsersController]
 })

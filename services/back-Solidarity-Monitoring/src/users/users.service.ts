@@ -3,7 +3,7 @@ import * as argon2 from 'argon2';
 import { FirebaseService } from 'src/firebase/firebase.service';
 import { BeneficiaryService } from 'src/beneficiary/beneficiary.service';
 import { errorResponse, isBase64, uploadImageToCloudStorage } from 'src/tools/function.tools';
-import { DataBaseService } from './data-base.service';
+import { UsersDataBaseService } from './users-data-base.service';
 
 @Injectable()
 export class UsersService {
@@ -11,7 +11,7 @@ export class UsersService {
 
     constructor(
         private readonly firebaseService: FirebaseService,
-        private readonly dataBaseService: DataBaseService,
+        private readonly dataBaseService: UsersDataBaseService,
     ) {}
 
     /**

@@ -6,7 +6,7 @@ import params from "./params";
 
 
 /**
- * Función reutilizable para enviar respuestas HTTP 
+ * Función reutilizable para enviar respuestas HTTP
  * @param success Si la operación fue exitosa(true) o fallida(false)
  * @param message El mensaje a enviar en la respuesta
  * @param data Los datos a incluir en la respuesta
@@ -14,13 +14,13 @@ import params from "./params";
 export async function sendResponse(success: boolean, message: string, content?: any): Promise<CustomResponse> {
     const code = success ? 1 : 0;
     const response: CustomResponse = {
-      code, 
+      code,
       message,
       content,
     };
     return response;
   }
-  
+
 export async function errorResponse(message: string, attribute: string): Promise<CustomResponse> {
   const response: CustomResponse = {
     code: params.ResponseCodes.ERROR,
@@ -90,6 +90,25 @@ export function formatDate(seconds: number) {
   const hours = String(date.getHours()).padStart(2, '0');
   const minutes = String(date.getMinutes()).padStart(2, '0');
   const secondsFormatted = String(date.getSeconds()).padStart(2, '0');
-  return `${year}-${month}-${day} ${hours}:${minutes}:${secondsFormatted}`; 
-  
+  return `${year}-${month}-${day} ${hours}:${minutes}:${secondsFormatted}`;
+
+}
+
+// metodo para guardar la imagen en el servidor local en la ruta "uploads" y retornar la ruta del archivo guardado
+export async function saveImageLocally(base64String: string, fileName: string, imagesFolder = process.env.IMAGES_FOLDER ?? 'uploads'): Promise<string> {
+
+  const fs = require('fs');
+  // Obtener la ruta absoluta del directorio actual y luego construir la ruta completa para la ubicación .env IMAGES_FOLDER usar this.configureModule.get('IMAGES_FOLDER') para obtener la ruta del directorio de imágenes desde el archivo .env;
+  const path = require('path');
+  const uploadsDir = path.join(__dirname, '..', '..', imagesFolder);
+
+  // Crear el directorio "uploads" si no existe
+
+  if (!fs.existsSync(uploadsDir)) {
+    fs.mkdirSync(uploadsDir);
+  }
+  const filePath = path.join(uploadsDir, fileName);
+  const buffer = Buffer.from(base64String, 'base64');
+  fs.writeFileSync(filePath, buffer);
+  return filePath;
 }

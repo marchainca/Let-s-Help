@@ -1,8 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import * as argon2 from 'argon2';
 import { FirebaseService } from 'src/firebase/firebase.service';
-import { BeneficiaryService } from 'src/beneficiary/beneficiary.service';
-import { errorResponse, isBase64, uploadImageToCloudStorage } from 'src/tools/function.tools';
+import { errorResponse } from 'src/tools/function.tools';
 import { UsersDataBaseService } from './users-data-base.service';
 
 @Injectable()

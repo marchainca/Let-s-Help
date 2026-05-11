@@ -1,6 +1,6 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, ManyToOne, JoinColumn } from 'typeorm';
 import { User } from './user.entity';
-import { Beneficiary } from '../../beneficiary/entities/beneficiary.entity';
+import { Beneficiary } from '../../recognition/entities/beneficiary.entity';
 
 @Entity('Reports')
 export class Report {

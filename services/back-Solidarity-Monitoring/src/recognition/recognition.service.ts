@@ -4,7 +4,7 @@ import * as canvas from 'canvas';
 import { loadFaceApiModels } from './face-api-loader';
 import { Firestore } from '@google-cloud/firestore';
 import { Person } from '../interfaces/interfaces'
-import { errorResponse, uploadImageToCloudStorage } from 'src/tools/function.tools';
+import { errorResponse, saveImageLocally, uploadImageToCloudStorage } from 'src/tools/function.tools';
 import { firebaseStorage } from '../firebase/firebase.config';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { Storage } from '@google-cloud/storage';
@@ -14,7 +14,7 @@ const { Canvas, Image, ImageData } = canvas;
 faceapi.env.monkeyPatch({ Canvas, Image, ImageData }as any);
 
 @Injectable()
-export class BeneficiaryService {
+export class RecognitionService {
   private firestore: Firestore;
   private storage: Storage;
   private bucketName: string;
@@ -40,7 +40,7 @@ export class BeneficiaryService {
   // Método para registrar una persona con su descriptor facial
   /* async registerPerson(data: any): Promise<string> {
     try {
-      const { name, lastName, email,  documentType, documentNumber, birthdate, address, 
+      const { name, lastName, email,  documentType, documentNumber, birthdate, address,
         neighborhood, policyNumber, emergencyContact, imageBase64   } = data;
 
       if (!imageBase64) {
@@ -65,7 +65,7 @@ export class BeneficiaryService {
       const personRef = this.firestore.collection('faceRecognition').doc();
       await personRef.set({
         name, lastName, email,
-        documentType, documentNumber, birthdate, 
+        documentType, documentNumber, birthdate,
         address, neighborhood, policyNumber, imageBase64,
         emergencyContact, descriptor, createdAt: new Date().toISOString(),
       });
@@ -75,14 +75,14 @@ export class BeneficiaryService {
       console.error("Error al detectar el rostro del integrante:", error);
       throw error;
     }
-    
+
   } */
 
   async registerPerson(data: any): Promise<string> {
     try {
-        const { 
-            name, lastName, email, documentType, documentNumber, birthdate, 
-            address, neighborhood, policyNumber, emergencyContact, imageBase64 
+        const {
+            name, lastName, email, documentType, documentNumber, birthdate,
+            address, neighborhood, policyNumber, emergencyContact, imageBase64
         } = data;
 
         // Verificar que la imagen en Base64 esté presente
@@ -105,15 +105,18 @@ export class BeneficiaryService {
 
         const descriptor = Array.from(detection.descriptor); // Convertir Float32Array a un array normal
 
-        // Subir la imagen a Cloud Storage
-        const imageUrl = await uploadImageToCloudStorage(imageBase64, `images/${documentNumber}-${Date.now()}.jpg`);
+        // subir la imagen a la carpeta local usando la función saveImageLocally
+        const fileName = `person_${Date.now()}.jpg`;
+        const filePath = `images/${fileName}`;
+        const imageUrl = await saveImageLocally(imageBase64, fileName);
+        console.log("URL de la imagen guardada localmente:", imageUrl);
 
         // Guardar los datos en Firestore
         const personRef = this.firestore.collection('faceRecognition').doc();
         await personRef.set({
             name, lastName, email,
-            documentType, documentNumber, birthdate, 
-            address, neighborhood, policyNumber, 
+            documentType, documentNumber, birthdate,
+            address, neighborhood, policyNumber,
             emergencyContact, imageUrl, descriptor, createdAt: new Date().toISOString(),
         });
 
@@ -123,7 +126,7 @@ export class BeneficiaryService {
         throw error;
     }
   }
-  
+
   // Método para subir la imagen a Cloud Storage
   /* async uploadImageToCloudStorage(base64String: string, filePath: string): Promise<string> {
     try {
@@ -149,7 +152,7 @@ export class BeneficiaryService {
         throw new Error("Error al subir la imagen.");
     }
 } */
-  
+
   // Método para identificar una persona
   async identifyPerson(imageBase64: string): Promise<any> {
     try {
@@ -159,79 +162,79 @@ export class BeneficiaryService {
           "identifyPerson"
         );
       }
-  
+
       // Decodificar la imagen en base64
       const img = await this.decodeImage(imageBase64);
-  
+
       // Generar descriptor facial para la imagen proporcionada
       const detection = await faceapi
         .detectSingleFace(img)
         .withFaceLandmarks()
         .withFaceDescriptor();
-  
+
       if (!detection) {
         throw await errorResponse(
           "Error: No face was detected in the image provided.",
           "identifyPerson"
         );
       }
-  
+
       const queryDescriptor = detection.descriptor;
-  
+
       // Recuperar todas las personas registradas desde Firestore
       const peopleSnapshot = await this.firestore.collection('faceRecognition').get();
       const people = peopleSnapshot.docs.map((doc) => ({
         id: doc.id,
         ...doc.data() as Omit<Person, 'id'>,
       }));
-  
+
       console.log('People data:', people);
-  
+
       if (people.length === 0) {
         throw await errorResponse("Error: There are no people registered to make the comparison.", "identifyPerson");
       }
-  
+
       // Crear labeledDescriptors para FaceMatcher
       const labeledDescriptors = people.map((person) => {
         if (!person.descriptor) {
           console.warn(`La persona ${person.name} ${person.lastName} no tiene un descriptor válido.`);
           return null;
         }
-  
+
         return new faceapi.LabeledFaceDescriptors(
           `${person.name} ${person.lastName}`,
           [new Float32Array(person.descriptor)]
         );
       }).filter(Boolean); // Filtrar cualquier valor nulo
-  
+
       console.log('Labeled Descriptors:', labeledDescriptors);
-  
+
       // Verificar si hay labeledDescriptors válidos
       if (labeledDescriptors.length === 0) {
         throw await errorResponse("Error: There are no valid descriptors to perform the comparison.", "identifyPerson");
       }
-  
+
       // Crear el faceMatcher con el umbral deseado
       const faceMatcher = new faceapi.FaceMatcher(labeledDescriptors, 0.4); // 0.4 para aproximadamente 90% de similitud
       const bestMatch = faceMatcher.findBestMatch(queryDescriptor);
-  
+
       console.log('Best match label:', bestMatch);
-  
+
       if (bestMatch.label === 'unknown') {
         throw await errorResponse("Error: No match found.", "identifyPerson");
       }
-  
+
       // Encontrar los datos de la persona identificada
       const identifiedPerson = people.find(
         (p) => `${p.name} ${p.lastName}` === bestMatch.label
       );
-  
+
       if (!identifiedPerson) {
         throw await errorResponse("Error: An error occurred while retrieving the data of the identified person.", "identifyPerson");
       }
-  
+
       console.log('Persona identificada:', identifiedPerson);
-  
+
       return {
         message: 'Persona identificada.',
         data: identifiedPerson,
@@ -284,5 +287,5 @@ export class BeneficiaryService {
       throw error;
     }
   }
-  
+
 }

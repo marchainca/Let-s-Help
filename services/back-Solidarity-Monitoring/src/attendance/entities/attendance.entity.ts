@@ -7,7 +7,7 @@ import {
   CreateDateColumn,
   UpdateDateColumn
 } from 'typeorm';
-import { Beneficiary } from '../../beneficiary/entities/beneficiary.entity';
+import { Beneficiary } from '../../recognition/entities/beneficiary.entity';
 import { Activity } from '../../activities/entities/activity.entity';
 import { User } from '../../users/entities/user.entity';
 import { Absence } from '../../users/entities/absence.entity'; // Ajusta la ruta según tu proyecto

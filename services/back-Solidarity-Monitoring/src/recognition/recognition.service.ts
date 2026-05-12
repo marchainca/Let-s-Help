@@ -106,7 +106,7 @@ export class RecognitionService {
         const descriptor = Array.from(detection.descriptor); // Convertir Float32Array a un array normal
 
         // subir la imagen a la carpeta local usando la función saveImageLocally
-        const fileName = `person_${Date.now()}.jpg`;
+        const fileName = `person_${Date.now()}.jpeg`;
         const filePath = `images/${fileName}`;
         const imageUrl = await saveImageLocally(imageBase64, fileName);
         console.log("URL de la imagen guardada localmente:", imageUrl);

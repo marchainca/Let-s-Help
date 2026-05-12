@@ -107,8 +107,14 @@ export async function saveImageLocally(base64String: string, fileName: string, i
   if (!fs.existsSync(uploadsDir)) {
     fs.mkdirSync(uploadsDir);
   }
+
+  // Eliminar encabezado base64 si está presente
+   const cleanBase64 = base64String.replace(
+    /^data:image\/\w+;base64,/,
+    '',
+  );
   const filePath = path.join(uploadsDir, fileName);
-  const buffer = Buffer.from(base64String, 'base64');
+  const buffer = Buffer.from(cleanBase64, 'base64');
   fs.writeFileSync(filePath, buffer);
   return filePath;
 }

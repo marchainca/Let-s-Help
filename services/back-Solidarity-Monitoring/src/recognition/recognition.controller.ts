@@ -14,7 +14,7 @@ export class RecognitionController {
   @Post('/register')
   async registerPerson(@Body() body: any): Promise<CustomResponse> {
     try {
-      console.log("Data recibida", body)
+      //console.log("Data recibida", body)
       const register = await this.recognitionService.registerPerson(body);
       return  await sendResponse(true, params.ResponseMessages.CREATED, {register} )
     } catch (error) {
@@ -28,7 +28,7 @@ export class RecognitionController {
         HttpStatus.BAD_REQUEST,
       );
     }
-    
+
   }
 
   // Endpoint para identificar una persona
@@ -38,7 +38,7 @@ export class RecognitionController {
       if (!imageBase64) {
         throw new BadRequestException('La imagen base64 es requerida.');
       }
-      console.log("que lelga en identifyPerson", imageBase64)
+      //console.log("que lelga en identifyPerson", imageBase64)
       imageBase64 = "data:image/jpg;base64," + imageBase64
       const identify = await this.recognitionService.identifyPerson(imageBase64);
       return sendResponse(true, params.ResponseMessages.MESSAGE_SUCCESS, identify)
@@ -53,7 +53,7 @@ export class RecognitionController {
         HttpStatus.BAD_REQUEST,
       );
     }
-    
+
   }
 
   @Get('/search')
@@ -73,6 +73,6 @@ export class RecognitionController {
         HttpStatus.BAD_REQUEST,
       );
     }
-    
+
   }
 }

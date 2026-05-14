@@ -8,6 +8,8 @@ import { errorResponse, saveImageLocally, uploadImageToCloudStorage } from 'src/
 import { firebaseStorage } from '../firebase/firebase.config';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { Storage } from '@google-cloud/storage';
+import { DataBaseRecognitionService } from './data-base-recognition.service';
+import { Beneficiary } from './entities/beneficiary.entity';
 // Extraer las clases necesarias de canvas
 const { Canvas, Image, ImageData } = canvas;
 // Configurar face-api para usar canvas en Node.js
@@ -19,7 +21,9 @@ export class RecognitionService {
   private storage: Storage;
   private bucketName: string;
 
-  constructor() {
+  constructor(
+    private readonly dataBaseRecognitionService: DataBaseRecognitionService,
+  ) {
     this.firestore = new Firestore();
     loadFaceApiModels(); // Cargar los modelos de Face API al iniciar el servicio
     this.storage = new Storage({
@@ -82,13 +86,21 @@ export class RecognitionService {
     try {
         const {
             name, lastName, email, documentType, documentNumber, birthdate,
-            address, neighborhood, policyNumber, emergencyContact, imageBase64
+            address, neighborhood, policyNumber, emergencyContact, imageBase64, city
         } = data;
 
         // Verificar que la imagen en Base64 esté presente
         if (!imageBase64) {
             throw await errorResponse("Error: The base64 image is required for registration.", "registerPerson");
         }
+
+        // validar si el beneficiario ya existe en la base de datos relacional usando el número de documento
+        const existingBeneficiary = await this.dataBaseRecognitionService.findBeneficiaryByIdentificationOrEmail(documentNumber, email);
+
+        if (existingBeneficiary) {
+          throw await errorResponse("Error: A beneficiary with the same identification or email already exists.", "registerPerson");
+        }
+
 
         // Decodificar la imagen Base64
         const img = await this.decodeImage(imageBase64);
@@ -106,21 +118,35 @@ export class RecognitionService {
         const descriptor = Array.from(detection.descriptor); // Convertir Float32Array a un array normal
 
         // subir la imagen a la carpeta local usando la función saveImageLocally
-        const fileName = `person_${Date.now()}.jpeg`;
+        const fileName = `person_${documentNumber}_${Date.now()}.jpg`;
         const filePath = `images/${fileName}`;
         const imageUrl = await saveImageLocally(imageBase64, fileName);
         console.log("URL de la imagen guardada localmente:", imageUrl);
 
-        // Guardar los datos en Firestore
-        const personRef = this.firestore.collection('faceRecognition').doc();
-        await personRef.set({
-            name, lastName, email,
-            documentType, documentNumber, birthdate,
-            address, neighborhood, policyNumber,
-            emergencyContact, imageUrl, descriptor, createdAt: new Date().toISOString(),
-        });
+        //guardar los datos en PostgreSQL
+        let docType = await this.dataBaseRecognitionService.getOrCreateDocumentType(documentType);
 
-        return `Persona registrada exitosamente con ID: ${personRef.id}`;
+        let neighborhoodEntity = await this.dataBaseRecognitionService.findOrCreateNeighborhood(neighborhood, city);
+
+        await this.dataBaseRecognitionService.createAddress(address, neighborhoodEntity);
+
+        const beneficiaryData = new Beneficiary();
+        beneficiaryData.FirstName = name;
+        beneficiaryData.LastName = lastName;
+        beneficiaryData.Email = email;
+        beneficiaryData.Identification = documentNumber;
+        beneficiaryData.Birthdate = new Date(birthdate);
+        beneficiaryData.IdDocumentType = docType.IdDocumentType;
+        beneficiaryData.PolicyNumber = policyNumber;
+        beneficiaryData.EmergencyContact = emergencyContact;
+        beneficiaryData.UrlImage = imageUrl;
+
+        await this.dataBaseRecognitionService.createBeneficiary(beneficiaryData);
+
+        await this.dataBaseRecognitionService.saveBiometricData(beneficiaryData.IdBeneficiary, descriptor);
+
+
+        return `Persona registrada exitosamente con ID: ${documentNumber}`;
     } catch (error) {
         console.error("Error al registrar la persona:", error);
         throw error;
@@ -181,64 +207,101 @@ export class RecognitionService {
 
       const queryDescriptor = detection.descriptor;
 
-      // Recuperar todas las personas registradas desde Firestore
-      const peopleSnapshot = await this.firestore.collection('faceRecognition').get();
-      const people = peopleSnapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data() as Omit<Person, 'id'>,
-      }));
+      // Recuperar todas las personas registradas desde la base de datos relacional junto con sus descriptores biométricos
+      const beneficiaries = await this.dataBaseRecognitionService.getAllBeneficiariesWithBiometricData();
 
-      console.log('People data:', people);
-
-      if (people.length === 0) {
+      if (beneficiaries.length === 0) {
         throw await errorResponse("Error: There are no people registered to make the comparison.", "identifyPerson");
       }
 
-      // Crear labeledDescriptors para FaceMatcher
-      const labeledDescriptors = people.map((person) => {
-        if (!person.descriptor) {
-          console.warn(`La persona ${person.name} ${person.lastName} no tiene un descriptor válido.`);
-          return null;
+      // Construir arreglo de personas con sus descriptores (similar a la estructura de Firestore)
+      const people = [];
+    for (const beneficiary of beneficiaries) {
+      // Obtener el descriptor más reciente (asumiendo que está ordenado por CreatedAt)
+      const latestBiometric = beneficiary.biometricData?.sort((a, b) => b.CreatedAt.getTime() - a.CreatedAt.getTime())[0];
+      if (!latestBiometric || !latestBiometric.binaryDescriptor) {
+        console.warn(`Beneficiario ${beneficiary.FirstName} ${beneficiary.LastName} no tiene descriptor biométrico válido.`);
+        continue;
+      }
+      let descriptorArray: number[];
+      try {
+        const buffer = latestBiometric.binaryDescriptor;
+        if (!buffer) {
+          console.warn(`Beneficiario ${beneficiary.FirstName} ${beneficiary.LastName} no tiene descriptor biométrico válido.`);
+          continue;
         }
 
-        return new faceapi.LabeledFaceDescriptors(
-          `${person.name} ${person.lastName}`,
-          [new Float32Array(person.descriptor)]
-        );
-      }).filter(Boolean); // Filtrar cualquier valor nulo
-
-      console.log('Labeled Descriptors:', labeledDescriptors);
-
-      // Verificar si hay labeledDescriptors válidos
-      if (labeledDescriptors.length === 0) {
-        throw await errorResponse("Error: There are no valid descriptors to perform the comparison.", "identifyPerson");
+        // Intentar parsear como JSON
+        const jsonString = buffer.toString('utf8');
+        if (jsonString.trim().startsWith('[')) {
+          descriptorArray = JSON.parse(jsonString);
+        } else {
+          throw new Error('Not JSON');
+        }
+      } catch (err) {
+        // Fallback: interpretar como Float32Array binario
+        // Asegurar que el buffer sea el correcto
+        const buffer = latestBiometric.binaryDescriptor;
+        const floatArray = new Float32Array(buffer.buffer, buffer.byteOffset, buffer.byteLength / Float32Array.BYTES_PER_ELEMENT);
+        descriptorArray = Array.from(floatArray);
       }
+      const documentTypeName = beneficiary.documentType?.Name
+      people.push({
+        id: beneficiary.IdBeneficiary.toString(),
+        name: beneficiary.FirstName,
+        lastName: beneficiary.LastName,
+        email: beneficiary.Email,
+        documentType: documentTypeName,
+        documentNumber: beneficiary.Identification,
+        birthdate: beneficiary.Birthdate ? beneficiary.Birthdate.toISOString().split('T')[0] : '',
+        address: '',  // se puede construir si se tienen relaciones address, city, state
+        neighborhood: beneficiary.neighborhood?.NameNeighborhood || '',
+        policyNumber: beneficiary.PolicyNumber,
+        emergencyContact: beneficiary.EmergencyContact,
+        imageUrl: beneficiary.UrlImage,
+        descriptor: descriptorArray,
+        createdAt: beneficiary.CreatedAt ? beneficiary.CreatedAt.toISOString() : '',
+      });
+    }
 
-      // Crear el faceMatcher con el umbral deseado
-      const faceMatcher = new faceapi.FaceMatcher(labeledDescriptors, 0.4); // 0.4 para aproximadamente 90% de similitud
-      const bestMatch = faceMatcher.findBestMatch(queryDescriptor);
+     if (people.length === 0) {
+      throw await errorResponse("Error: There are no valid descriptors to perform the comparison.", "identifyPerson");
+    }
 
-      console.log('Best match label:', bestMatch);
-
-      if (bestMatch.label === 'unknown') {
-        throw await errorResponse("Error: No match found.", "identifyPerson");
-      }
-
-      // Encontrar los datos de la persona identificada
-      const identifiedPerson = people.find(
-        (p) => `${p.name} ${p.lastName}` === bestMatch.label
+    // Crear labeledDescriptors para FaceMatcher
+    const labeledDescriptors = people.map((person) => {
+      if (!person.descriptor) return null;
+      return new faceapi.LabeledFaceDescriptors(
+        `${person.name} ${person.lastName}`,
+        [new Float32Array(person.descriptor)]
       );
+    }).filter(Boolean);
 
-      if (!identifiedPerson) {
-        throw await errorResponse("Error: An error occurred while retrieving the data of the identified person.", "identifyPerson");
-      }
+    if (labeledDescriptors.length === 0) {
+      throw await errorResponse("Error: There are no valid descriptors to perform the comparison.", "identifyPerson");
+    }
 
-      console.log('Persona identificada:', identifiedPerson);
+    // Crear el faceMatcher
+    const faceMatcher = new faceapi.FaceMatcher(labeledDescriptors, 0.4);
+    const bestMatch = faceMatcher.findBestMatch(queryDescriptor);
 
-      return {
-        message: 'Persona identificada.',
-        data: identifiedPerson,
-      };
+    if (bestMatch.label === 'unknown') {
+      throw await errorResponse("Error: No match found.", "identifyPerson");
+    }
+
+    // Encontrar los datos de la persona identificada
+    const identifiedPerson = people.find(
+      (p) => `${p.name} ${p.lastName}` === bestMatch.label
+    );
+
+    if (!identifiedPerson) {
+      throw await errorResponse("Error: An error occurred while retrieving the data of the identified person.", "identifyPerson");
+    }
+
+    return {
+      message: 'Persona identificada.',
+      data: identifiedPerson,
+    };
     } catch (error) {
       console.error('Error al identificar a la persona:', error);
       throw error;
@@ -256,31 +319,14 @@ export class RecognitionService {
       if (!searchTerm) {
         throw await errorResponse("Error: You must provide a search term.", "searchByName");
       }
-      // Referencia a la colección "faceRecognition"
-      const collectionRef = this.firestore.collection('faceRecognition');
 
-      // Realizar la consulta
-      const snapshot = await collectionRef
-        .where('name', '>=', searchTerm) // Comienza con el término de búsqueda
-        .where('name', '<=', searchTerm + '\uf8ff') // Termina con el término de búsqueda
-        .get();
-
-      if (snapshot.empty) {
-        console.log('No se encontraron coincidencias.');
-        return [];
-      }
-
-      // Extraer solo los campos necesarios
-      const results = snapshot.docs.map(doc => {
-        const data = doc.data();
-        return {
-          id: doc.id,
-          name: data.name,
-          lastName: data.lastName,
-          documentNumber: data.documentNumber,
-        };
-      });
-
+      const beneficiaries = await this.dataBaseRecognitionService.searchBeneficiariesByName(searchTerm);
+      const results = beneficiaries.map(b => ({
+        id: b.IdBeneficiary.toString(),
+        name: `${b.FirstName || ''} ${b.LastName || ''}`.trim(),
+        lastName: b.LastName || '',
+        documentNumber: b.Identification || '',
+      }));
       return results;
     } catch (error) {
       console.error('Error al buscar por nombre:', error);

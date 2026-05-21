@@ -23,6 +23,7 @@ import { DocumentType } from './entities/document-type.entity';
   ],
   providers: [RecognitionService, DataBaseRecognitionService,
   ],
-  controllers: [RecognitionController]
+  controllers: [RecognitionController],
+  exports: [DataBaseRecognitionService]
 })
 export class RecognitionModule {}

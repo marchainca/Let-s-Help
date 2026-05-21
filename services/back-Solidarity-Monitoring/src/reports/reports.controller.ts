@@ -18,7 +18,7 @@ export class ReportsController {
    */
   @Post('/create')
   async createReport(@Body() report: CreateReportDto): Promise<CustomResponse> {
-    try { 
+    try {
         const createReport = await this.reportsService.createReport(report);
         return sendResponse(true, params.ResponseMessages.MESSAGE_SUCCESS, createReport)
     } catch (error) {
@@ -32,7 +32,7 @@ export class ReportsController {
         HttpStatus.BAD_REQUEST,
         );
     }
-    
+
   }
 
   /**
@@ -42,7 +42,6 @@ export class ReportsController {
    */
   @Get('/search')
   async findReports(@Query('term') searchTerm: string): Promise<CustomResponse> {
-
     try {
         const findReport = await this.reportsService.findReports(searchTerm);
         return sendResponse(true, params.ResponseMessages.MESSAGE_SUCCESS, findReport)
@@ -55,7 +54,7 @@ export class ReportsController {
                 statusCode: error.statusCode,
             },
             HttpStatus.BAD_REQUEST,
-        );        
+        );
     }
 
   }
@@ -69,7 +68,7 @@ export class ReportsController {
 async listRecentReports(): Promise<CustomResponse> {
     try {
         const listReport = await this.reportsService.listRecentReports();
-        return sendResponse(true, params.ResponseMessages.MESSAGE_SUCCESS, listReport) 
+        return sendResponse(true, params.ResponseMessages.MESSAGE_SUCCESS, listReport)
     } catch (error) {
         throw new HttpException(
             {
@@ -79,7 +78,7 @@ async listRecentReports(): Promise<CustomResponse> {
                 statusCode: error.statusCode,
             },
             HttpStatus.BAD_REQUEST,
-        );        
+        );
     }
 
 }

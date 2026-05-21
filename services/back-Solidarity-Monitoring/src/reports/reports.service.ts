@@ -3,13 +3,20 @@ import { Firestore } from '@google-cloud/firestore';
 import { Report } from '../interfaces/interfaces';
 import { errorResponse, formatDate } from 'src/tools/function.tools';
 import { CreateReportDto } from './dtos/create-report.dto';
+import { DataBaseRecognitionService } from 'src/recognition/data-base-recognition.service';
+import { DataBaseServiceAttendance } from 'src/attendance/data-base-attendance.service';
+import { DataBaseReportsService } from './data-base-reports.service';
+import { UsersDataBaseService } from 'src/users/users-data-base.service';
 
 @Injectable()
 export class ReportsService {
-  
+
   private firestore: Firestore;
-    
-  constructor() { this.firestore = new Firestore(); };
+
+  constructor(
+    private readonly dataBaseReportsService: DataBaseReportsService,
+    private readonly usersDataBaseService: UsersDataBaseService,
+  ) { this.firestore = new Firestore(); };
 
   /**
    * Crea un nuevo reporte.
@@ -22,24 +29,34 @@ export class ReportsService {
 
           // Validar longitud del reporte
           if (reporte.length > 500) {
-              throw await errorResponse('Error: The "report" field cannot exceed 500 characters.', "createReport");
+            throw await errorResponse('Error: The "report" field cannot exceed 500 characters.', "createReport");
           }
 
-          // Guardar el reporte en Firestore
-          const docRef = this.firestore.collection('reports').doc();
-          await docRef.set({
-          identificacion,
-          nombresApellidos,
-          reporte,
-          createdBy,
-          createdAt: new Date(),
-          });
+          // Buscar el beneficiario por identificación
+          const beneficiary = await this.dataBaseReportsService.getBeneficiaryByIdentification(identificacion);
 
-          return {id: docRef.id}; // Retorna el ID del reporte creado
+          if (!beneficiary) {
+            throw await errorResponse(`Error: Beneficiary with identification ${identificacion} not found`, "createReport");
+          }
+
+          // Buscar el usuario que crea el reporte por identificación
+          const user = await this.usersDataBaseService.getUserByIdNumber(createdBy);
+          if (!user || user.length === 0) {
+            throw await errorResponse(`Error: User with identification ${createdBy} not found`, "createReport");
+          }
+
+          // Crear el nuevo reporte
+          const newReport = await this.dataBaseReportsService.createReport({
+            IdUser: user[0].IdUser,
+            IdBeneficiary: beneficiary.IdBeneficiary,
+            DescriptionReport: reporte,
+          });
+          return {id: newReport.IdReport.toString()} ; // Retorna el ID del reporte creado
       } catch (error) {
-          throw error;
+        console.error('Error in createReport:', error);
+        throw error;
       }
-      
+
   }
 
   /**
@@ -47,45 +64,30 @@ export class ReportsService {
    * @param searchTerm Término de búsqueda.
    * @returns Lista de reportes coincidentes.
   */
-  async findReports(searchTerm: string): Promise<Report[]> {
+  async findReports(searchTerm: string): Promise<any> {
       try {
         if (!searchTerm) {
           throw await errorResponse('Error: You must provide a search term.', 'findReports');
         }
-    
-        // Realizar consultas a Firestore
-        const reportsRef = this.firestore.collection('reports');
-        const snapshotByIdentificacion = await reportsRef
-          .where('identificacion', '>=', searchTerm)
-          .where('identificacion', '<=', searchTerm + '\uf8ff')
-          .get();
-    
-        const snapshotByName = await reportsRef
-          .where('nombresApellidos', '>=', searchTerm)
-          .where('nombresApellidos', '<=', searchTerm + '\uf8ff')
-          .get();
-    
-        // Combinar resultados y eliminar duplicados
-        const results = [
-          ...snapshotByIdentificacion.docs,
-          ...snapshotByName.docs,
-        ].map(doc => {
-          const data = doc.data() as Report;
-          return {
-            id: doc.id,
-            ...data,
-            createdAt: data.createdAt ? formatDate(data.createdAt._seconds): null,
-          };
-        });
-    
-        console.log('Resultados de los reportes: ', results);
-    
-        const uniqueResults = Array.from(new Map(results.map(r => [r.id, r])).values());
-        return uniqueResults;
+        // Buscar reportes utilizando el servicio de base de datos de reportes
+        const reports = await this.dataBaseReportsService.findReports(searchTerm);
+        //console.log('Reports found:', reports);
+
+        // Formatear la fecha (similar al formato original)
+        const formatResult = reports.map((row: any) => ({
+        id: row.idreport,
+        identificacion: row.identificationbeneficiary,
+        nombresApellidos: row.nombresapellidos,
+        reporte: row.descriptionreport,
+        createdBy: row.identification,
+        createdAt: row.createdat ? this.formatDate(row.createdat) : null,
+      }));
+
+      return formatResult;
       } catch (error) {
         throw error;
       }
-    }
+  }
 
   /**
    * Lista los últimos 10 reportes creados, ordenados por fecha de creación (descendente).
@@ -93,35 +95,33 @@ export class ReportsService {
    */
   async listRecentReports(): Promise<Report[]> {
       try {
-          const reportsRef = this.firestore.collection('reports');
-          
-          // Consulta para obtener los últimos 10 reportes
-          const snapshot = await reportsRef
-              .orderBy('createdAt', 'desc') // Ordenar por fecha de creación (descendente)
-              //.limit(10) // Limitar a los 10 más recientes
-              .get();
-      
-          if (snapshot.empty) {
-              console.log('No se encontraron reportes recientes.');
-              return [];
-          }
-      
-          // Extraer los datos de los documentos
-          const results = snapshot.docs.map(doc => {
-              const data = doc.data() as Report;
-              return {
-                id: doc.id,
-                ...data,
-                createdAt: data.createdAt ? formatDate(data.createdAt._seconds): null,
-              };
-            });
-      
-          return results;
+        const results = await this.dataBaseReportsService.listRecentReports();
+
+        const formattedResults = results.map((row: any) => ({
+          id: row.id,
+          identificacion: row.identificacion,
+          nombresApellidos: row.nombresapellidos,
+          reporte: row.reporte,
+          createdBy: row.createdby,
+          createdAt: row.createdat ? this.formatDate(row.createdat) : null,
+        }));
+
+        return formattedResults;
       } catch (error) {
           console.error('Error al listar los reportes recientes:', error);
           throw error;
       }
   }
-  
-}
 
+  private formatDate(date: Date): string {
+    const d = new Date(date);
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    const hours = String(d.getHours()).padStart(2, '0');
+    const minutes = String(d.getMinutes()).padStart(2, '0');
+    const seconds = String(d.getSeconds()).padStart(2, '0');
+    return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+  }
+
+}

@@ -5,7 +5,6 @@ import { DocumentType } from './entities/document-type.entity';
 import { Neighborhood } from './entities/neighborhood.entity';
 import { Address } from './entities/address.entity';
 import { Beneficiary } from './entities/beneficiary.entity';
-import { data } from '@tensorflow/tfjs-node';
 import { City } from './entities/city.entity';
 import { BiometricData } from './entities/biometric-data.entity';
 

@@ -64,11 +64,11 @@ export class ActivitiesController {
      * @param programName Nombre del programa.
      * @returns Actividades asociadas al programa.
     */
-    @Get('/program-activities/:programName')
+    @Get('/:programName')
     async getProgramActivities(@Param('programName') programName: string): Promise<CustomResponse> {
         try {
             const activities = await this.activitiesService.getProgramActivities(programName);
-            
+
 
             return await sendResponse(true, params.ResponseMessages.MESSAGE_SUCCESS, activities );
         } catch (error) {

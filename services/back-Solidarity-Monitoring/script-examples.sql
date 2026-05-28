@@ -2,29 +2,29 @@
 -- 1. Asegurar que existe un rol (por ejemplo, "Líder")
 -- =============================================
 INSERT INTO "Roles" ("IdRole", "NameRole", "Description", "CreatedAt")
-VALUES (1, 'Líder', 'Usuario líder de programas', NOW())
+VALUES (2, 'Admin', 'Usuario Admin', NOW())
 ON CONFLICT ("IdRole") DO NOTHING;
 
 -- =============================================
 -- 2. Crear un usuario líder (IdLeadUser = 1)
 -- =============================================
 INSERT INTO "Users" (
-    "IdUser", 
-    "Identification", 
-    "Email", 
-    "FirstName", 
-    "LastName", 
-    "Password", 
-    "IdRole", 
+    "IdUser",
+    "Identification",
+    "Email",
+    "FirstName",
+    "LastName",
+    "Password",
+    "IdRole",
     "CreatedAt"
 ) VALUES (
-    2, 
-    '4567890123', 
-    'lead@program.com', 
-    'Lead', 
-    'User', 
-    'dummy_hash', 
-    1, 
+    2,
+    '4567890123',
+    'lead@program.com',
+    'Lead',
+    'User',
+    'dummy_hash',
+    1,
     NOW()
 ) ON CONFLICT ("IdUser") DO NOTHING;
 

@@ -130,14 +130,25 @@ export class DataBaseRecognitionService {
 
             // Usamos createQueryBuilder para obtener los beneficiarios junto con su descriptor biométrico más reciente
             const beneficiaries = await this.beneficiaryRepository
-                .createQueryBuilder('beneficiary')
-                .select(['beneficiary.IdBeneficiary', 'beneficiary.FirstName',
-                    'beneficiary.LastName', 'beneficiary.Identification',
-                    'beneficiary.UrlImage' , 'beneficiary.CreatedAt','biometricData.binaryDescriptor'])
-                .leftJoinAndSelect('beneficiary.biometricData', 'biometricData')
-                .orderBy('beneficiary.IdBeneficiary', 'DESC')
-                .distinctOn(['beneficiary.IdBeneficiary'])
-                .getMany();
+            .createQueryBuilder('beneficiary')
+            .leftJoinAndSelect('beneficiary.biometricData', 'biometricData')
+            .leftJoinAndSelect('beneficiary.documentType', 'documentType')
+            .leftJoinAndSelect('beneficiary.address', 'address')
+            .leftJoinAndSelect('address.neighborhood', 'neighborhood')
+            .addSelect([
+                'beneficiary.IdBeneficiary', 'beneficiary.FirstName',
+                'beneficiary.LastName', 'beneficiary.Identification',
+                'beneficiary.UrlImage', 'beneficiary.CreatedAt',
+                'beneficiary.PolicyNumber', 'beneficiary.EmergencyContact',
+                'beneficiary.Email', 'beneficiary.Birthdate',
+                'biometricData.binaryDescriptor',
+                'documentType.Name',
+                'address.Street', 'address.Number',
+                'neighborhood.NameNeighborhood'
+            ])
+            .orderBy('beneficiary.IdBeneficiary', 'DESC')
+            .distinctOn(['beneficiary.IdBeneficiary'])
+            .getMany();
             return beneficiaries;
         } catch (error) {
             console.error("Error al obtener los beneficiarios con datos biométricos:", error);

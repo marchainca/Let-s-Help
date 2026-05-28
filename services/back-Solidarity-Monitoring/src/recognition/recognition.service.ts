@@ -209,7 +209,7 @@ export class RecognitionService {
 
       // Recuperar todas las personas registradas desde la base de datos relacional junto con sus descriptores biométricos
       const beneficiaries = await this.dataBaseRecognitionService.getAllBeneficiariesWithBiometricData();
-
+      console.log("Beneficiarios obtenidos de la base de datos:", beneficiaries);
       if (beneficiaries.length === 0) {
         throw await errorResponse("Error: There are no people registered to make the comparison.", "identifyPerson");
       }
@@ -253,9 +253,9 @@ export class RecognitionService {
         email: beneficiary.Email,
         documentType: documentTypeName,
         documentNumber: beneficiary.Identification,
-        birthdate: beneficiary.Birthdate ? beneficiary.Birthdate.toISOString().split('T')[0] : '',
-        address: '',  // se puede construir si se tienen relaciones address, city, state
-        neighborhood: beneficiary.neighborhood?.NameNeighborhood || '',
+        birthdate: beneficiary.Birthdate ? beneficiary.Birthdate : '',
+        address: beneficiary.address ? `${beneficiary.address.Street} ${beneficiary.address.Number||""}`: '',
+        neighborhood: beneficiary.address?.neighborhood.NameNeighborhood || '',
         policyNumber: beneficiary.PolicyNumber,
         emergencyContact: beneficiary.EmergencyContact,
         imageUrl: beneficiary.UrlImage,
@@ -321,6 +321,7 @@ export class RecognitionService {
       }
 
       const beneficiaries = await this.dataBaseRecognitionService.searchBeneficiariesByName(searchTerm);
+      console.log("Beneficiarios encontrados:", beneficiaries);
       const results = beneficiaries.map(b => ({
         id: b.IdBeneficiary.toString(),
         name: `${b.FirstName || ''} ${b.LastName || ''}`.trim(),

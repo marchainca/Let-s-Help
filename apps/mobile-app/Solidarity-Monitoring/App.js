@@ -28,8 +28,8 @@ export default function App() {
     <UserProvider>
       <CameraPermissionProvider>
         <NavigationContainer>
-          <Stack.Navigator initialRouteName="Login">          
-            <Stack.Screen name="Login" component={LoginScreen} options={{ headerShown: false }} />          
+          <Stack.Navigator initialRouteName="Login">
+            <Stack.Screen name="Login" component={LoginScreen} options={{ headerShown: false }} />
             <Stack.Screen name="Home" component={DrawerNavigator} options={{ headerShown: false }} />
             <Stack.Screen name="Indicators" component={IndicatorsScreen} />
             <Stack.Screen name="Attendance" component={AttendanceScreen} />

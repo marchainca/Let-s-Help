@@ -72,7 +72,7 @@ const FaceRecognitionScreen = ({ navigation }) => {
 
       if (response.ok) {
         // Si el reconocimiento facial es exitoso, navegar al formulario con los datos recibidos
-        console.log("Reconocimiento exitoso", responseData);
+        //console.log("Reconocimiento exitoso", responseData);
 
         if (responseData.code == 1) {
           navigation.navigate('AttendanceFormWithData', {
@@ -95,7 +95,7 @@ const FaceRecognitionScreen = ({ navigation }) => {
           //setErrorMessage(responseData.message || 'Error en el reconocimiento.');
         }
 
-        
+
       } else {
         // Mostrar mensaje de error del backend
         //const errorData = await response.json();

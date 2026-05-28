@@ -1,7 +1,40 @@
 import React, { useState, useEffect } from 'react';
 import { FlatList, View, Text, StyleSheet, Image, ActivityIndicator } from 'react-native';
-import { ProgressCircle } from 'react-native-svg-charts';
+import Svg, { Circle } from 'react-native-svg';
 import { BarChart } from 'react-native-chart-kit';
+
+const PROGRESS_RING_SIZE = 80;
+
+const ProgressRing = ({ progress, color, strokeWidth = 6 }) => {
+  const radius = (PROGRESS_RING_SIZE - strokeWidth) / 2;
+  const circumference = 2 * Math.PI * radius;
+  const center = PROGRESS_RING_SIZE / 2;
+
+  return (
+    <Svg width={PROGRESS_RING_SIZE} height={PROGRESS_RING_SIZE}>
+      <Circle
+        cx={center}
+        cy={center}
+        r={radius}
+        stroke="#f0f0f0"
+        strokeWidth={strokeWidth}
+        fill="none"
+      />
+      <Circle
+        cx={center}
+        cy={center}
+        r={radius}
+        stroke={color}
+        strokeWidth={strokeWidth}
+        fill="none"
+        strokeDasharray={`${circumference} ${circumference}`}
+        strokeDashoffset={circumference * (1 - progress)}
+        strokeLinecap="round"
+        transform={`rotate(-90 ${center} ${center})`}
+      />
+    </Svg>
+  );
+};
 
 const IndicatorsScreen = () => {
   const [isLoading, setIsLoading] = useState(true);
@@ -38,13 +71,7 @@ const IndicatorsScreen = () => {
   const renderProgressCircle = (progress, color, label) => (
     <View style={styles.progressItem}>
       <View style={styles.circleContainer}>
-        <ProgressCircle
-          style={styles.progressCircle}
-          progress={progress}
-          progressColor={color}
-          strokeWidth={6}
-          backgroundColor="#f0f0f0"
-        />
+        <ProgressRing progress={progress} color={color} strokeWidth={6} />
         <View style={styles.progressTextContainer}>
           <Text style={styles.progressText}>{Math.round(progress * 100)}%</Text>
         </View>
@@ -138,10 +165,6 @@ const styles = StyleSheet.create({
     position: 'relative',
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  progressCircle: {
-    height: 80,
-    width: 80,
   },
   progressTextContainer: {
     position: 'absolute',

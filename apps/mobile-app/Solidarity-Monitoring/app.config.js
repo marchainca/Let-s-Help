@@ -5,6 +5,7 @@ export default {
     name: "solidarity-monitorin",
     slug: "solidarity-monitorin",
     version: "1.0.0",
+    plugins: ["expo-asset"],
     extra: {
       apiUrl: process.env.API_URL,
       appEnv: process.env.APP_ENV,

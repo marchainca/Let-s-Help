@@ -12,10 +12,11 @@ import { ActivityTracking } from './entities/activity-tracking.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Activity, Program, SubProgram, 
+    TypeOrmModule.forFeature([Activity, Program, SubProgram,
       Task, User, ActivityTracking]),
   ],
   providers: [ActivitiesService, DataBaseService],
-  controllers: [ActivitiesController]
+  controllers: [ActivitiesController],
+  //exports: [Task],
 })
 export class ActivitiesModule {}

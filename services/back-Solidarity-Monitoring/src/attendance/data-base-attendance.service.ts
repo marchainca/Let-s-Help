@@ -5,6 +5,7 @@ import { In, Repository } from 'typeorm';
 import { Attendance } from './entities/attendance.entity';
 import { Activity } from 'src/activities/entities/activity.entity';
 import { Absence } from 'src/users/entities/absence.entity';
+import { Task } from 'src/activities/entities/task.entity';
 
 
 @Injectable()
@@ -14,8 +15,8 @@ export class DataBaseServiceAttendance {
         private readonly beneficiaryRepository: Repository<Beneficiary>,
         @InjectRepository(Attendance)
         private readonly attendanceRepository: Repository<Attendance>,
-        @InjectRepository(Activity)
-        private readonly activityRepository: Repository<Activity>,
+        @InjectRepository(Task)
+        private readonly activityRepository: Repository<Task>,
         @InjectRepository(Absence)
         private readonly absenceRepository: Repository<Absence>,
     ){}
@@ -78,12 +79,15 @@ export class DataBaseServiceAttendance {
 
             // Construir respuesta
             const result = {
+            idBeneficiary: beneficiary.IdBeneficiary,
             name: beneficiary.FirstName || '',
             lastName: beneficiary.LastName || '',
             email: beneficiary.Email || '',
             documentType: documentTypeName,
             documentNumber: beneficiary.Identification || '',
-            birthdate: beneficiary.Birthdate ? beneficiary.Birthdate.toISOString().split('T')[0] : '',
+            //solucionar el error TypeError: beneficiary.Birthdate.toISOString is not a function
+            birthdate: beneficiary.Birthdate instanceof Date ? beneficiary.Birthdate.toISOString().split('T')[0] : '',
+            //birthdate: beneficiary.Birthdate ? beneficiary.Birthdate.toISOString().split('T')[0] : '',
             address: fullAddress,
             neighborhood: beneficiary.neighborhood?.NameNeighborhood || '',
             policyNumber: beneficiary.PolicyNumber || '',
@@ -189,11 +193,12 @@ export class DataBaseServiceAttendance {
         }
     }
 
-    //Buscar actividad por nombre (asumiendo nombre único o tomamos el mas reciente)
+    //Buscar actividad por nombre
     async findActivityByName(activityName: string): Promise<any> {
         try {
+            //cambiar al repositorio Tasks para buscar por nombre de actividad
             const activity = await this.activityRepository.findOne({
-                where: { NameActivity: activityName },
+                where: { NameTask: activityName },
                 order: { CreatedAt: 'DESC' }, // Si hay varias con el mismo nombre, tomar la más reciente
             });
             return activity;
@@ -230,5 +235,16 @@ export class DataBaseServiceAttendance {
         }
     }
 
+    async findProgramByName(programName: string): Promise<any> {
+        try {
+            const program = await this.activityRepository.manager.getRepository('Program').findOne({
+                where: { NameProgram: programName },
+            });
+            return program;
+        } catch (error) {
+            console.error('Error al buscar programa por nombre:', error);
+            throw error;
+        }
+    }
 
 }

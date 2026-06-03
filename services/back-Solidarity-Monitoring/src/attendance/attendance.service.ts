@@ -90,7 +90,24 @@ export class AttendanceService {
  */
     async registerAttendance(data: CreateAttendanceDto): Promise<object> {
         try {
-            const { IdBeneficiary, IdActivity, status } = data;
+
+            const { activity, documentNumber, program } = data;
+
+            //consultar actividad por nombre para obtener su ID
+            const activityRecord = await this.dataBaseServiceAttendance.findActivityByName(activity.toString());
+            if (!activityRecord) {
+                throw new NotFoundException(`No se encontró una actividad con el nombre ${activity}.`);
+            }
+
+            //consultar programa por nombre para obtener su ID
+            const programRecord = await this.dataBaseServiceAttendance.findProgramByName(program);
+            const status = 'present'; // Por defecto, se registra como presente
+
+            // Validar que el beneficiario existe
+            const integrant = await this.dataBaseServiceAttendance.getBeneficiaryByIdentification(documentNumber);
+            if (!integrant) {
+                throw new NotFoundException(`No se encontró un integrante con el número de documento ${documentNumber}.`);
+            }
 
             // Validar que el estado sea válido
             const validStatuses = ['present', 'absent', 'justified', 'late'];
@@ -101,6 +118,10 @@ export class AttendanceService {
             // Obtener la fecha actual (solo fecha, sin hora)
             const today = new Date();
             const attendanceDate = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+
+            const IdBeneficiary = integrant.idBeneficiary;
+            const IdActivity = activityRecord.IdTask;
+            const programId = programRecord ? programRecord.IdProgram : null;
 
             // Verificar si ya existe un registro para este beneficiario, actividad y fecha
             const existing = await this.dataBaseServiceAttendance.findExistingAttendance(IdBeneficiary, IdActivity, attendanceDate);
@@ -126,7 +147,7 @@ export class AttendanceService {
             CreatedAt: new Date(),
             UpdatedAt: new Date(),
             };
-
+            console.log("Registro de asistencia a crear: ", newAttendance);
            await this.dataBaseServiceAttendance.registerAttendance(newAttendance);
 
             return {message: `Asistencia registrada exitosamente para el integrante ${IdBeneficiary} en la actividad ${IdActivity}`};

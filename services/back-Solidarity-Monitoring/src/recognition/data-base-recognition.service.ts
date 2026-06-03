@@ -62,6 +62,9 @@ export class DataBaseRecognitionService {
     // Para simplificar, asumimos que ya existen o usamos un servicio auxiliar.
     async findOrCreateNeighborhood(neighborhoodName: string, city: string): Promise<Neighborhood> {
         try {
+            if(city === undefined){
+                city = "Palmira";
+            }
             let neighborhood = await this.neighborhoodRepository.findOne({ where: { NameNeighborhood: neighborhoodName, city: { NameCity: city } },
                 relations: ['city'] });
             if (!neighborhood) {

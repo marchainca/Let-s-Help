@@ -79,7 +79,7 @@ const AttendanceFormWithDataScreen = ({ route, navigation }) => {
       Alert.alert('Error', 'Por favor seleccione un programa, subprograma y actividad.');
       return;
     }
-  
+
     const attendanceData = {
       program: selectedProgram,
       subProgram: selectedSubProgram,
@@ -90,9 +90,9 @@ const AttendanceFormWithDataScreen = ({ route, navigation }) => {
       documentNumber: recognizedData.documentNumber,
       /* age: recognizedData.age, */
     };
-  
+    console.log('Datos de asistencia a registrar:', attendanceData);
     try {
-      const apiUrl = `${process.env.EXPO_PUBLIC_API_URL}attendance/register`; // Asegúrate de que este endpoint sea correcto
+      const apiUrl = `${process.env.EXPO_PUBLIC_API_URL}attendance/register`;
       const response = await fetch(apiUrl, {
         method: 'POST',
         headers: {
@@ -101,7 +101,7 @@ const AttendanceFormWithDataScreen = ({ route, navigation }) => {
         },
         body: JSON.stringify(attendanceData),
       });
-  
+
       if (response.ok) {
         Alert.alert('Éxito', 'Asistencia registrada con éxito.');
         navigation.goBack();
@@ -114,7 +114,7 @@ const AttendanceFormWithDataScreen = ({ route, navigation }) => {
       Alert.alert('Error', 'No se pudo conectar con el servidor.');
     }
   };
-  
+
 
   return (
     <ScrollView style={styles.container}>

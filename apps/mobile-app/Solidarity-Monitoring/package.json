@@ -3,10 +3,11 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "start": "cross-env NODE_ENV=development expo start",
+    "start": "cross-env NODE_ENV=development REACT_NATIVE_PACKAGER_HOSTNAME=192.168.1.33 expo start --lan",
+    "start:tunnel": "cross-env NODE_ENV=development expo start --tunnel",
     "build": "cross-env NODE_ENV=production expo build",
-    "android": "expo start --android",
-    "ios": "expo start --ios",
+    "android": "expo start --lan --android",
+    "ios": "expo start --lan --ios",
     "web": "expo start --web"
   },
   "dependencies": {

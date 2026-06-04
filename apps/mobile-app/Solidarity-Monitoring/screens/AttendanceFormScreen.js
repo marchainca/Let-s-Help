@@ -1,12 +1,13 @@
+// AttendanceFormScreen.js
 import React, { useState, useEffect, useContext } from 'react';
 import {
   View,
   Text,
   TextInput,
   StyleSheet,
-  FlatList,
   TouchableOpacity,
   Alert,
+  ScrollView,
 } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import DateTimePicker from '@react-native-community/datetimepicker';
@@ -42,7 +43,6 @@ const AttendanceFormScreen = ({ navigation }) => {
   const [suggestions, setSuggestions] = useState([]); // Suggestions for names
   const [loadingSuggestions, setLoadingSuggestions] = useState(false); // Loading state for suggestions
 
-  
   const fetchPrograms = async () => {
     try {
       const apiUrl = `${process.env.EXPO_PUBLIC_API_URL}activities/programs`;
@@ -52,7 +52,7 @@ const AttendanceFormScreen = ({ navigation }) => {
 
       if (response.ok) {
         const data = await response.json();
-        setPrograms(data.content.getPrograms || []); 
+        setPrograms(data.content.getPrograms || []);
       } else {
         console.error('Error fetching programs:', await response.text());
       }
@@ -61,7 +61,6 @@ const AttendanceFormScreen = ({ navigation }) => {
     }
   };
 
-  
   const fetchSubprogramsAndActivities = async (programName) => {
     try {
       const apiUrl = `${process.env.EXPO_PUBLIC_API_URL}activities/${encodeURIComponent(programName)}`;
@@ -72,8 +71,8 @@ const AttendanceFormScreen = ({ navigation }) => {
       if (response.ok) {
         const data = await response.json();
         const subprogramsData = Object.keys(data.content || {}); // Extract subprogram names
-        setSubprograms(subprogramsData); 
-        setActivities(data.content || {}); 
+        setSubprograms(subprogramsData);
+        setActivities(data.content || {});
         setActivity(''); // Reset activity selection
         setSubprogram(''); // Reset subprogram selection
       } else {
@@ -194,108 +193,108 @@ const AttendanceFormScreen = ({ navigation }) => {
   }, []);
 
   return (
-    <FlatList
-      data={[{ key: 'form' }]}
-      renderItem={() => (
-        <View style={styles.container}>
-          <Text style={styles.header}>Formulario de Inasistencias</Text>
+    <ScrollView
+      contentContainerStyle={styles.container}
+      keyboardShouldPersistTaps="handled"
+    >
+      <Text style={styles.header}>Formulario de Inasistencias</Text>
 
-          {/* Program Selector */}
-          <Picker
-            selectedValue={program}
-            style={styles.picker}
-            onValueChange={(itemValue) => handleProgramChange(itemValue)}
-          >
-            <Picker.Item label="Seleccione un programa" value="" />
-            {programs.map((programName, index) => (
-              <Picker.Item key={index} label={programName} value={programName} />
-            ))}
-          </Picker>
+      {/* Program Selector */}
+      <Picker
+        selectedValue={program}
+        style={styles.picker}
+        onValueChange={(itemValue) => handleProgramChange(itemValue)}
+      >
+        <Picker.Item label="Seleccione un programa" value="" />
+        {programs.map((programName, index) => (
+          <Picker.Item key={index} label={programName} value={programName} />
+        ))}
+      </Picker>
 
-          {/* Subprogram Selector */}
-          <Picker
-            selectedValue={subprogram}
-            style={styles.picker}
-            onValueChange={(itemValue) => handleSubprogramChange(itemValue)}
-            enabled={!!program}
-          >
-            <Picker.Item label="Seleccione un subprograma" value="" />
-            {subprograms.map((subprogramName, index) => (
-              <Picker.Item key={index} label={subprogramName} value={subprogramName} />
-            ))}
-          </Picker>
+      {/* Subprogram Selector */}
+      <Picker
+        selectedValue={subprogram}
+        style={styles.picker}
+        onValueChange={(itemValue) => handleSubprogramChange(itemValue)}
+        enabled={!!program}
+      >
+        <Picker.Item label="Seleccione un subprograma" value="" />
+        {subprograms.map((subprogramName, index) => (
+          <Picker.Item key={index} label={subprogramName} value={subprogramName} />
+        ))}
+      </Picker>
 
-          {/* Activity Selector */}
-          <Picker
-            selectedValue={activity}
-            style={styles.picker}
-            onValueChange={(itemValue) => setActivity(itemValue)}
-            enabled={!!subprogram}
-          >
-            <Picker.Item label="Seleccione una actividad" value="" />
-            {(activities[subprogram] || []).map((activityName, index) => (
-              <Picker.Item key={index} label={activityName} value={activityName} />
-            ))}
-          </Picker>
+      {/* Activity Selector */}
+      <Picker
+        selectedValue={activity}
+        style={styles.picker}
+        onValueChange={(itemValue) => setActivity(itemValue)}
+        enabled={!!subprogram}
+      >
+        <Picker.Item label="Seleccione una actividad" value="" />
+        {(activities[subprogram] || []).map((activityName, index) => (
+          <Picker.Item key={index} label={activityName} value={activityName} />
+        ))}
+      </Picker>
 
-          {/* Form Fields */}
-          <Text style={styles.label}>Nombres:</Text>
-          <TextInput
-            style={styles.input}
-            value={formData.firstName}
-            onChangeText={(text) => handleInputChange('firstName', text)}
-            placeholder="Introduce el nombre"
-          />
-          {loadingSuggestions && <Text style={styles.loadingText}>Buscando...</Text>}
-          {suggestions.length > 0 && (
-            <FlatList
-              data={suggestions}
-              keyExtractor={(item) => item.id}
-              renderItem={({ item }) => (
-                <TouchableOpacity style={styles.suggestionItem} onPress={() => handleSuggestionSelect(item)}>
-                  <Text>{item.name.trim()} {item.lastName.trim()}</Text>
-                </TouchableOpacity>
-              )}
-              style={styles.suggestionsList}
-              keyboardShouldPersistTaps="handled"
-            />
-          )}
-
-          <Text style={styles.label}>Apellidos:</Text>
-          <TextInput style={styles.input} value={formData.lastName} editable={false} />
-
-          <Text style={styles.label}>N° Documento:</Text>
-          <TextInput style={styles.input} value={formData.documentNumber} editable={false} />
-
-          <Text style={styles.label}>Fecha:</Text>
-          <TouchableOpacity style={styles.input} onPress={() => setShowDatePicker(true)}>
-            <Text>{selectedDate.toISOString().split('T')[0]}</Text>
-          </TouchableOpacity>
-          {showDatePicker && (
-            <DateTimePicker value={selectedDate} mode="date" display="default" onChange={handleDateChange} />
-          )}
-
-          <Text style={styles.label}>Motivo de la inasistencia:</Text>
-          <TextInput
-            style={styles.input}
-            value={formData.reason}
-            onChangeText={(text) => handleInputChange('reason', text)}
-          />
-
-          <TouchableOpacity style={styles.submitButton} onPress={handleSubmit} disabled={isSubmitting}>
-            <Text style={styles.submitButtonText}>{isSubmitting ? 'Registrando...' : 'Registrar Inasistencia'}</Text>
-          </TouchableOpacity>
+      {/* Form Fields */}
+      <Text style={styles.label}>Nombres:</Text>
+      <TextInput
+        style={styles.input}
+        value={formData.firstName}
+        onChangeText={(text) => handleInputChange('firstName', text)}
+        placeholder="Introduce el nombre"
+      />
+      {loadingSuggestions && <Text style={styles.loadingText}>Buscando...</Text>}
+      {suggestions.length > 0 && (
+        <View style={styles.suggestionsList}>
+          {suggestions.map((item) => (
+            <TouchableOpacity
+              key={item.id}
+              style={styles.suggestionItem}
+              onPress={() => handleSuggestionSelect(item)}
+            >
+              <Text>
+                {item.name.trim()} {item.lastName.trim()}
+              </Text>
+            </TouchableOpacity>
+          ))}
         </View>
       )}
-      keyExtractor={(item) => item.key}
-      keyboardShouldPersistTaps="handled"
-    />
+
+      <Text style={styles.label}>Apellidos:</Text>
+      <TextInput style={styles.input} value={formData.lastName} editable={false} />
+
+      <Text style={styles.label}>N° Documento:</Text>
+      <TextInput style={styles.input} value={formData.documentNumber} editable={false} />
+
+      <Text style={styles.label}>Fecha:</Text>
+      <TouchableOpacity style={styles.input} onPress={() => setShowDatePicker(true)}>
+        <Text>{selectedDate.toISOString().split('T')[0]}</Text>
+      </TouchableOpacity>
+      {showDatePicker && (
+        <DateTimePicker value={selectedDate} mode="date" display="default" onChange={handleDateChange} />
+      )}
+
+      <Text style={styles.label}>Motivo de la inasistencia:</Text>
+      <TextInput
+        style={styles.input}
+        value={formData.reason}
+        onChangeText={(text) => handleInputChange('reason', text)}
+        multiline
+        textAlignVertical="top"
+      />
+
+      <TouchableOpacity style={styles.submitButton} onPress={handleSubmit} disabled={isSubmitting}>
+        <Text style={styles.submitButtonText}>{isSubmitting ? 'Registrando...' : 'Registrar Inasistencia'}</Text>
+      </TouchableOpacity>
+    </ScrollView>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
+    flexGrow: 1,
     padding: 20,
     backgroundColor: '#fff',
   },
@@ -327,13 +326,18 @@ const styles = StyleSheet.create({
     marginBottom: 15,
   },
   suggestionsList: {
-    maxHeight: 150,
     marginVertical: 5,
+    marginBottom: 15,
   },
   suggestionItem: {
     padding: 10,
     borderBottomWidth: 1,
     borderBottomColor: '#ccc',
+  },
+  loadingText: {
+    marginBottom: 10,
+    color: '#888',
+    fontStyle: 'italic',
   },
   submitButton: {
     marginTop: 20,

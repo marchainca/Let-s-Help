@@ -18,12 +18,12 @@ const ReportsScreen = () => {
   const { user } = useContext(UserContext);
 
   // Estados para el formulario
-  const [nameQuery, setNameQuery] = useState(''); 
-  const [id, setId] = useState(''); 
-  const [name, setName] = useState(''); 
-  const [lastName, setLastName] = useState(''); 
-  const [profileImage, setProfileImage] = useState(''); 
-  const [report, setReport] = useState(''); 
+  const [nameQuery, setNameQuery] = useState('');
+  const [id, setId] = useState('');
+  const [name, setName] = useState('');
+  const [lastName, setLastName] = useState('');
+  const [profileImage, setProfileImage] = useState('');
+  const [report, setReport] = useState('');
 
   // Estados para manejar la búsqueda
   const [loadingSuggestions, setLoadingSuggestions] = useState(false);
@@ -35,7 +35,7 @@ const ReportsScreen = () => {
   // Consultar al backend para autocompletar nombres
   const fetchSuggestions = async (query) => {
     if (!query) {
-      setSuggestions([]); 
+      setSuggestions([]);
       return;
     }
 
@@ -50,7 +50,7 @@ const ReportsScreen = () => {
 
       if (response.ok) {
         const data = await response.json();
-        setSuggestions(data.content || []); 
+        setSuggestions(data.content || []);
       } else {
         const errorData = await response.json();
         console.error('Error al buscar sugerencias:', errorData.message);
@@ -67,8 +67,8 @@ const ReportsScreen = () => {
     setName(item.name.trim());
     setLastName(item.lastName.trim());
     setId(item.documentNumber);
-    setProfileImage(`data:image/jpeg;base64,${item.profileImage || ''}`); 
-    setSuggestions([]); 
+    setProfileImage(`data:image/jpeg;base64,${item.profileImage || ''}`);
+    setSuggestions([]);
     setNameQuery(item.name.trim());
   };
 
@@ -78,12 +78,17 @@ const ReportsScreen = () => {
       Alert.alert('Error', 'Por favor escribe el reporte antes de enviarlo.');
       return;
     }
-
+    console.log("Datos del reporte a enviar: ", {
+      identificacion: id,
+      nombresApellidos: name + " " + lastName,
+      reporte: report,
+      createdBy: user.idNumber,
+    });
     const requestData = {
       identificacion: id,
       nombresApellidos: name + " " + lastName,
       reporte: report,
-      createdBy: user.name,
+      createdBy: user.idNumber,
     };
 
     try {
@@ -151,7 +156,7 @@ const ReportsScreen = () => {
           value={nameQuery}
           onChangeText={(text) => {
             setNameQuery(text);
-            fetchSuggestions(text); 
+            fetchSuggestions(text);
           }}
         />
         {loadingSuggestions && <Text style={styles.loadingText}>Buscando...</Text>}
@@ -170,7 +175,7 @@ const ReportsScreen = () => {
               </TouchableOpacity>
             )}
             style={styles.suggestionsList}
-            keyboardShouldPersistTaps="handled" 
+            keyboardShouldPersistTaps="handled"
           />
         )}
       </View>
@@ -181,7 +186,7 @@ const ReportsScreen = () => {
         <TextInput
           style={styles.input}
           value={id}
-          editable={false} 
+          editable={false}
         />
       </View>
 
@@ -191,7 +196,7 @@ const ReportsScreen = () => {
         <TextInput
           style={styles.input}
           value={`${name} ${lastName}`}
-          editable={false} 
+          editable={false}
         />
       </View>
 

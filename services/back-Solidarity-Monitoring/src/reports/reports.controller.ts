@@ -7,7 +7,7 @@ import { CreateReportDto } from './dtos/create-report.dto';
 import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 
 @Controller('letsHelp/Colombia/reports')
-@UseGuards(JwtAuthGuard)
+//@UseGuards(JwtAuthGuard)
 export class ReportsController {
     constructor(private readonly reportsService: ReportsService) {}
 

@@ -212,7 +212,7 @@ export class DataBaseServiceAttendance {
     async registerAbsence(IdBeneficiary: number, IdActivity: number, motivo: string, fecha: string): Promise<object> {
         try {
             const newAbsence = this.absenceRepository.create({
-                IdUser: null,
+                IdUser: 1, //se deja hardcodeado por ahora, luego se debe obtener el Id del usuario autenticado que registra la ausencia
                 IdBeneficiary,
                 IdActivity,
                 DescriptionAbsence: motivo,

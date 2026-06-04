@@ -169,6 +169,7 @@ export class AttendanceService {
             }
             //buscar actividad por nombre
             const activity = await this.dataBaseServiceAttendance.findActivityByName(actividad);
+            console.log("Actividad encontrada: ", activity);
             if (!activity) {
                 throw new NotFoundException(`No se encontró una actividad con el nombre ${actividad}.`);
             }
@@ -181,7 +182,7 @@ export class AttendanceService {
             }
 
             // Crear un nuevo registro de inasistencia
-            await this.dataBaseServiceAttendance.registerAbsence(integrant.IdBeneficiary, activity.IdActivity, motivo, fecha);
+            await this.dataBaseServiceAttendance.registerAbsence(integrant.idBeneficiary, activity.IdTask, motivo, fecha);
 
             return {message: `Inasistencia registrada exitosamente para el integrante ${identificacion}`};
         } catch (error) {

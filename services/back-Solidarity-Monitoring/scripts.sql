@@ -12,7 +12,6 @@ CREATE DATABASE lets_help;
 DROP TABLE IF EXISTS Biometric_data CASCADE;
 DROP TABLE IF EXISTS Absences CASCADE;
 DROP TABLE IF EXISTS Reports CASCADE;
-DROP TABLE IF EXISTS Tasks CASCADE;
 DROP TABLE IF EXISTS "Activities_tracking" CASCADE;
 DROP TABLE IF EXISTS Sub_programs CASCADE;
 DROP TABLE IF EXISTS Programs CASCADE;
@@ -141,17 +140,6 @@ CREATE TABLE Sub_Programs (
 );
 
 -- =============================================
--- 11. Tasks - se deja creada aunque no se va a usar en esta versión, para evitar problemas de dependencias con Activities
--- =============================================
-CREATE TABLE Tasks (
-    IdTask        SERIAL PRIMARY KEY,
-    IdSubProgram  INTEGER NOT NULL REFERENCES Sub_Programs(IdSubProgram) ON DELETE CASCADE,
-    NameTask      VARCHAR(250) NOT NULL,
-    IdAssignedTo  INTEGER REFERENCES Users(IdUser) ON DELETE SET NULL,
-    CreatedAt     TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
--- =============================================
 -- 12. Activities
 -- =============================================
 CREATE TABLE Activities (
@@ -243,8 +231,6 @@ CREATE INDEX idx_beneficiaries_idneighborhood ON Beneficiaries(IdNeighborhood);
 CREATE INDEX idx_biometric_idbeneficiary ON BiometricData(IdBeneficiary);
 CREATE INDEX idx_programs_idleaduser ON Programs(IdLeadUser);
 CREATE INDEX idx_subprograms_idprogram ON SubPrograms(IdProgram);
-CREATE INDEX idx_tasks_idsubprogram ON Tasks(IdSubProgram);
-CREATE INDEX idx_tasks_idassignedto ON Tasks(IdAssignedTo);
 CREATE INDEX idx_activities_iduser ON Activities(IdUser);
 CREATE INDEX idx_absences_iduser ON Absences(IdUser);
 CREATE INDEX idx_absences_idbeneficiary ON Absences(IdBeneficiary);
@@ -266,8 +252,6 @@ CREATE INDEX idx_attendances_idabsence ON "Attendances"("IdAbsence");
 COMMENT ON TABLE Beneficiaries IS 'Personas beneficiarias del programa de solidaridad';
 COMMENT ON TABLE Absences IS 'Registro de inasistencias de beneficiarios a actividades';
 COMMENT ON TABLE Reports IS 'Reportes disciplinarios o incidencias sobre beneficiarios';
-COMMENT ON TABLE Tasks IS 'Tareas asignadas a usuarios dentro de subprogramas';
-COMMENT ON COLUMN Tasks.IdAssignedTo IS 'Usuario responsable de ejecutar la tarea';
 COMMENT ON TABLE Activities_tracking IS 'Seguimiento semanal de actividades: registra ejecución, asistencia real vs proyectada, y avance de actividades planificadas vs ejecutadas.';
 COMMENT ON TABLE DocumentTypes IS 'Tipos de documentos de identificación (Cédula, Tarjeta de Identidad, etc.)';
 

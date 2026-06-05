@@ -1,5 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { FlatList, View, Text, StyleSheet, Image, ActivityIndicator } from 'react-native';
+import {
+  FlatList,
+  View,
+  Text,
+  StyleSheet,
+  Image,
+  ActivityIndicator,
+  Alert,
+} from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import Svg, { Circle } from 'react-native-svg';
 import { BarChart } from 'react-native-chart-kit';
 
@@ -38,26 +47,48 @@ const ProgressRing = ({ progress, color, strokeWidth = 6 }) => {
 
 const IndicatorsScreen = () => {
   const [isLoading, setIsLoading] = useState(true);
-  const [data, setData] = useState(null);
+  const [data, setData] = useState({
+    progress: { currentMonth: 0, lastMonth: 0, semester: 0 },
+    performance: [],
+    budget: [],
+  });
 
   useEffect(() => {
-    // Simulación de llamada a la API
-    setTimeout(() => {
-      setData({
-        progress: {
-          currentMonth: 0.64,
-          lastMonth: 0.4,
-          semester: 0.9,
-        },
-        performance: [20, 45, 28, 80, 99, 43],
-        budget: [
-          { id: '1', name: 'Vivian Melissa', amount: 1300.5, image: 'https://via.placeholder.com/50' },
-          { id: '2', name: 'Fraiber Melo', amount: 720.25, image: 'https://via.placeholder.com/50' },
-          { id: '3', name: 'Erika Fonseca', amount: 420.83, image: 'https://via.placeholder.com/50' },
-        ],
-      });
-      setIsLoading(false);
-    }, 2000);
+    const fetchData = async () => {
+      try {
+        const apiUrl = `${process.env.EXPO_PUBLIC_API_URL}dashboard/indicators`;
+        const response = await fetch(apiUrl, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.message || 'Error en la respuesta del servidor');
+        }
+
+        const result = await response.json();
+
+        if (result.code === 1 && result.content) {
+          setData({
+            progress: result.content.progress || { currentMonth: 0, lastMonth: 0, semester: 0 },
+            performance: result.content.performance || [],
+            budget: result.content.budget || [],
+          });
+        } else {
+          throw new Error(result.message || 'Error al cargar los indicadores');
+        }
+      } catch (error) {
+        console.error('Error fetching data:', error);
+        Alert.alert('Error', `No se pudo cargar los indicadores: ${error.message}`);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchData();
   }, []);
 
   if (isLoading) {
@@ -86,18 +117,15 @@ const IndicatorsScreen = () => {
       keyExtractor={(item) => item.id}
       ListHeaderComponent={
         <View>
-          {/* Título Principal */}
           <Text style={styles.title}>Indicadores</Text>
           <Text style={styles.sectionTitle}>Avances Actividades</Text>
 
-          {/* Contenedor de Progresos */}
           <View style={styles.progressContainer}>
             {renderProgressCircle(data.progress.currentMonth, '#4caf50', 'Mes Actual')}
             {renderProgressCircle(data.progress.lastMonth, '#f44336', 'Mes Pasado')}
             {renderProgressCircle(data.progress.semester, '#2196f3', 'Semestre')}
           </View>
 
-          {/* Gráfica de Rendimiento */}
           <Text style={styles.sectionTitle}>Rendimiento</Text>
           <BarChart
             data={{

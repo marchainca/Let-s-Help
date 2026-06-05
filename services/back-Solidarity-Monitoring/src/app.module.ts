@@ -13,6 +13,7 @@ import { ActivitiesModule } from './activities/activities.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigService } from '@nestjs/config';
 import { RecognitionModule } from './recognition/recognition.module';
+import { DashboardModule } from './dashboard/dashboard.module';
 
 @Module({
   imports: [
@@ -50,7 +51,8 @@ import { RecognitionModule } from './recognition/recognition.module';
     SchedulerModule,
     RecognitionModule,
     ReportsModule,
-    ActivitiesModule
+    ActivitiesModule,
+    DashboardModule,
   ],
   controllers: [AppController, ],
   providers: [AppService, FirestoreConnectionService],

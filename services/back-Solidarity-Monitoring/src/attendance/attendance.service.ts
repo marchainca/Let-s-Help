@@ -120,7 +120,7 @@ export class AttendanceService {
             const attendanceDate = new Date(today.getFullYear(), today.getMonth(), today.getDate());
 
             const IdBeneficiary = integrant.idBeneficiary;
-            const IdActivity = activityRecord.IdTask;
+            const IdActivity = activityRecord.IdActivity;
             const programId = programRecord ? programRecord.IdProgram : null;
 
             // Verificar si ya existe un registro para este beneficiario, actividad y fecha
@@ -182,7 +182,7 @@ export class AttendanceService {
             }
 
             // Crear un nuevo registro de inasistencia
-            await this.dataBaseServiceAttendance.registerAbsence(integrant.idBeneficiary, activity.IdTask, motivo, fecha);
+            await this.dataBaseServiceAttendance.registerAbsence(integrant.idBeneficiary, activity.IdActivity, motivo, fecha);
 
             return {message: `Inasistencia registrada exitosamente para el integrante ${identificacion}`};
         } catch (error) {

@@ -5,7 +5,6 @@ import { In, Repository } from 'typeorm';
 import { Attendance } from './entities/attendance.entity';
 import { Activity } from 'src/activities/entities/activity.entity';
 import { Absence } from 'src/users/entities/absence.entity';
-import { Task } from 'src/activities/entities/task.entity';
 
 
 @Injectable()
@@ -15,8 +14,8 @@ export class DataBaseServiceAttendance {
         private readonly beneficiaryRepository: Repository<Beneficiary>,
         @InjectRepository(Attendance)
         private readonly attendanceRepository: Repository<Attendance>,
-        @InjectRepository(Task)
-        private readonly activityRepository: Repository<Task>,
+        @InjectRepository(Activity)
+        private readonly activityRepository: Repository<Activity>,
         @InjectRepository(Absence)
         private readonly absenceRepository: Repository<Absence>,
     ){}
@@ -198,7 +197,7 @@ export class DataBaseServiceAttendance {
         try {
             //cambiar al repositorio Tasks para buscar por nombre de actividad
             const activity = await this.activityRepository.findOne({
-                where: { NameTask: activityName },
+                where: { NameActivity: activityName },
                 order: { CreatedAt: 'DESC' }, // Si hay varias con el mismo nombre, tomar la más reciente
             });
             return activity;

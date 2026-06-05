@@ -5,16 +5,16 @@ import { DataBaseServiceAttendance } from './data-base-attendance.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Beneficiary } from 'src/recognition/entities/beneficiary.entity';
 import { Attendance } from './entities/attendance.entity';
-import { Task } from 'src/activities/entities/task.entity';
 import { Absence } from 'src/users/entities/absence.entity';
+import { Activity } from 'src/activities/entities/activity.entity';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([
       Beneficiary,
       Attendance,
-      Task,
-      Absence
+      Absence,
+      Activity
     ])
   ],
   providers: [AttendanceService, DataBaseServiceAttendance],

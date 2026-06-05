@@ -25,7 +25,7 @@ export class ActivitiesService {
           for (const sub of program.subPrograms) {
             result[sub.NameSubProgram] = sub.activities.map(t => t.NameActivity);
           }
-        
+
           return result;
         });
         //console.log('Datos estructurados:', structuredData);
@@ -61,8 +61,9 @@ export class ActivitiesService {
       try {
 
             const programByName = await this.databaseService.getProgramActivities(programName);
+
             const structuredData = programByName.subPrograms.reduce((acc, subProgram) => {
-              acc[subProgram.NameSubProgram] = subProgram.tasks.map(t => t.NameTask);
+              acc[subProgram.NameSubProgram] = subProgram.activities.map(t => t.NameActivity);
               return acc;
             }, {});
             //console.log('Datos estructurados:', structuredData);
@@ -80,10 +81,10 @@ export class ActivitiesService {
 
   async createProgram(body: any): Promise<string>{
     try {
-      
+
       const user = await this.databaseService.findUserByIdentification(body['responsible']);
       const newProgram = await this.databaseService.createProgram(body, user.IdUser);
-      
+
       return newProgram
 
     } catch (error) {
@@ -95,7 +96,7 @@ export class ActivitiesService {
 
   async createSubprogram(body: any): Promise<string>{
     try {
-      
+
       const subprogram = await this.databaseService.createSubprogram(body);
       return subprogram;
 
@@ -119,7 +120,7 @@ export class ActivitiesService {
         body['activityData'].weekNumber = week;
         await this.databaseService.createActivityTracking(body, newActivity, user.IdUser);
       }
-      
+
 
       return 'Activity created successfully';
     } catch (error) {
@@ -177,7 +178,7 @@ export class ActivitiesService {
 
       if (activities.length == 0) {
         console.log(`No se encontraron actividades para el subprograma: ${subprogramId}`);
-        return [];        
+        return [];
       }
 
       //transfrormar la estructura de datos obtenida de la base de datos relacional para que coincida con la estructura esperada por el controlador y el frontend
@@ -207,7 +208,7 @@ export class ActivitiesService {
    * @returns Mensaje de éxito si la actualización es exitosa.
    */
   async updateActivityWeek(updateActivityDto: UpdateActivityDto): Promise<string> {
-   
+
     try {
       const {
         programId,

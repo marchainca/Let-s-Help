@@ -25,12 +25,12 @@ export class DataBaseService {
 
     async getAllProgramsWithActivities(): Promise<Program[]> {
         try{
-        
+
             const activities = await this.programRepository
             .createQueryBuilder('p')
             .leftJoinAndSelect('p.subPrograms', 'sp')
-            .leftJoinAndSelect('sp.activities', 'a')  
-            .select(['p.NameProgram', 'sp.NameSubProgram', 'a.NameActivity']) 
+            .leftJoinAndSelect('sp.activities', 'a')
+            .select(['p.NameProgram', 'sp.NameSubProgram', 'a.NameActivity'])
             .orderBy('p.NameProgram', 'ASC')
             .addOrderBy('sp.NameSubProgram', 'ASC')
             .addOrderBy('a.NameActivity', 'ASC')
@@ -56,7 +56,7 @@ export class DataBaseService {
         try {
             const programByName = await this.programRepository.findOne({
                 where: { NameProgram: programName },
-                relations: ['subPrograms', 'subPrograms.tasks'],
+                relations: ['subPrograms', 'subPrograms.activities'],
             });
             //console.log('Program activities fetched for:', programName, programByName);
             return programByName;
@@ -111,12 +111,12 @@ export class DataBaseService {
             console.error('Error finding user by identification:', identification, error.message || error);
             throw error;
         }
-        
+
     }
 
     async findProgramById(programId: number): Promise<any> {
         try {
-            const programById = await this.programRepository.findOne({ where: { IdProgram: programId } });  
+            const programById = await this.programRepository.findOne({ where: { IdProgram: programId } });
             if (!programById) {
                 throw new Error(`No se encontró un programa con el ID: ${programId}`);
             }
@@ -148,10 +148,10 @@ export class DataBaseService {
             throw error;
         }
     }
-    
+
     async findSubprogramById(subprogramId: number): Promise<any> {
         try {
-            const subprogramById = await this.subProgramRepository.findOne({ where: { IdSubProgram: subprogramId } });  
+            const subprogramById = await this.subProgramRepository.findOne({ where: { IdSubProgram: subprogramId } });
             if (!subprogramById) {
                 throw new Error(`No se encontró un subprograma con el ID: ${subprogramId}`);
             }
@@ -159,7 +159,7 @@ export class DataBaseService {
         } catch (error) {
             console.error('Error finding subprogram by ID:', subprogramId, error.message || error);
             throw error;
-        }   
+        }
     }
 
     async createActivity(body: object, userId: number): Promise<number> {
@@ -180,7 +180,7 @@ export class DataBaseService {
 
     async createActivityTracking(body: object, activityId: number, userId: number): Promise<string> {
         try {
-            
+
             const newActivityTracking = new ActivityTracking;
 
             newActivityTracking.IdActivity = activityId;
@@ -210,13 +210,13 @@ export class DataBaseService {
                 .orderBy('act.IdActivity', 'ASC')
                 .addOrderBy('track.WeekNumber', 'ASC')
                 .getMany();
-            
+
             return activities;
         } catch (error) {
             console.error(`Error al obtener actividades para el subprograma ID: ${subProgramId}`, error.message || error);
-            throw error;            
+            throw error;
         }
-        
+
     }
 
     // Verificar que la actividad existe y pertenece al subprograma y programa indicados
@@ -231,10 +231,10 @@ export class DataBaseService {
             });
 
             return activity;
-            
+
         } catch (error) {
             console.error(`Error al encontrar actividad con ID: ${actId} para el programa ID: ${progId}`, error.message || error);
-            throw error;    
+            throw error;
         }
     }
 
@@ -250,7 +250,7 @@ export class DataBaseService {
             return activityTracking;
         } catch (error) {
             console.error(`Error al encontrar tracking para actividad ID: ${actId} y semana: ${weekNumber}`, error.message || error);
-            throw error;    
+            throw error;
         }
     }
 
@@ -259,7 +259,7 @@ export class DataBaseService {
             await this.activityTrackingRepository.save(activityTracking);
         } catch (error) {
             console.error(`Error al actualizar tracking para actividad ID: ${activityTracking.IdActivity} y semana: ${activityTracking.WeekNumber}`, error.message || error);
-            throw error;    
+            throw error;
         }
     }
 }

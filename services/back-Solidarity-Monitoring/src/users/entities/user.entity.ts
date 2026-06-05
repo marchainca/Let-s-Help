@@ -1,7 +1,6 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, ManyToOne, OneToMany, JoinColumn } from 'typeorm';
 import { Role } from './role.entity';
 import { Program } from '../../activities/entities/program.entity';
-import { Task } from '../../activities/entities/task.entity';
 import { Activity } from '../../activities/entities/activity.entity';
 import { Absence } from './absence.entity';
 import { Report } from './report.entity';
@@ -45,9 +44,6 @@ export class User {
 
   @OneToMany(() => Program, program => program.leadUser)
   programs: Program[];
-
-  @OneToMany(() => Task, task => task.assignedTo)
-  tasks: Task[];
 
   @OneToMany(() => Activity, activity => activity.user)
   activities: Activity[];

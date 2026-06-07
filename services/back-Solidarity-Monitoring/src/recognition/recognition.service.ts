@@ -3,10 +3,7 @@ import * as faceapi from 'face-api.js';
 import * as canvas from 'canvas';
 import { loadFaceApiModels } from './face-api-loader';
 import { Firestore } from '@google-cloud/firestore';
-import { Person } from '../interfaces/interfaces'
-import { errorResponse, saveImageLocally, uploadImageToCloudStorage } from 'src/tools/function.tools';
-import { firebaseStorage } from '../firebase/firebase.config';
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { errorResponse, saveImageLocally } from 'src/tools/function.tools';
 import { Storage } from '@google-cloud/storage';
 import { DataBaseRecognitionService } from './data-base-recognition.service';
 import { Beneficiary } from './entities/beneficiary.entity';

@@ -23,6 +23,8 @@ DROP TABLE IF EXISTS Cities CASCADE;
 DROP TABLE IF EXISTS States CASCADE;
 DROP TABLE IF EXISTS Users CASCADE;
 DROP TABLE IF EXISTS Roles CASCADE;
+DROP TABLE IF EXISTS "DocumentTypes" CASCADE;
+DROP TABLE IF EXISTS Languages CASCADE;
 
 -- =============================================
 -- 1. Roles
@@ -140,7 +142,7 @@ CREATE TABLE Sub_Programs (
 );
 
 -- =============================================
--- 12. Activities
+-- 11. Activities
 -- =============================================
 CREATE TABLE Activities (
     IdActivity   SERIAL PRIMARY KEY,
@@ -152,7 +154,7 @@ CREATE TABLE Activities (
 );
 
 -- =============================================
--- 13. Absences
+-- 12. Absences
 -- =============================================
 CREATE TABLE Absences (
     IdAbsence           SERIAL PRIMARY KEY,
@@ -164,7 +166,7 @@ CREATE TABLE Absences (
 );
 
 -- =============================================
--- 14. Reports
+-- 13. Reports
 -- =============================================
 CREATE TABLE Reports (
     IdReport          SERIAL PRIMARY KEY,
@@ -177,7 +179,7 @@ CREATE TABLE Reports (
     según el manual disciplinario
 */
 -- =============================================
--- 15. ActivitiesTracking
+-- 14. ActivitiesTracking
 -- =============================================
 CREATE TABLE "Activities_tracking" (
     "IdTracking"          SERIAL PRIMARY KEY,
@@ -192,7 +194,7 @@ CREATE TABLE "Activities_tracking" (
 );
 
 -- =============================================
--- 16. DocumentTypes
+-- 15. DocumentTypes
 -- =============================================
 CREATE TABLE "DocumentTypes" (
     "IdDocumentType" SERIAL PRIMARY KEY,
@@ -202,7 +204,7 @@ CREATE TABLE "DocumentTypes" (
 );
 
 -- =============================================
--- 17. Attendances
+-- 16. Attendances
 -- =============================================
 
 CREATE TABLE "Attendances" (
@@ -218,6 +220,81 @@ CREATE TABLE "Attendances" (
     "UpdatedAt"         TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT "UQ_Attendance_Unique" UNIQUE ("IdBeneficiary", "IdActivity", "AttendanceDate")
 );
+
+-- =============================================
+-- 17. Languages para la internacionalización
+-- =============================================
+
+CREATE TABLE Languages (
+    IdLanguage SERIAL PRIMARY KEY,
+    Code VARCHAR(2) NOT NULL UNIQUE,   -- 'es', 'en'
+    Name VARCHAR(50) NOT NULL
+);
+
+-- =============================================
+-- 18. RolesTranslations para la internacionalización de los roles
+-- =============================================
+
+CREATE TABLE RolesTranslations (
+    IdTranslation SERIAL PRIMARY KEY,
+    IdRole INTEGER NOT NULL REFERENCES "Roles"("IdRole") ON DELETE CASCADE,
+    IdLanguage INTEGER NOT NULL REFERENCES Languages(IdLanguage) ON DELETE CASCADE,
+    NameRole VARCHAR(100) NOT NULL,
+    Description VARCHAR(250) NOT NULL,
+    UNIQUE (IdRole, IdLanguage)
+);
+
+-- =============================================
+-- 19. ProgramsTranslations para la internacionalización de los programas
+-- =============================================
+
+CREATE TABLE ProgramsTranslations (
+    IdTranslation SERIAL PRIMARY KEY,
+    IdProgram INTEGER NOT NULL REFERENCES "Programs"("IdProgram") ON DELETE CASCADE,
+    IdLanguage INTEGER NOT NULL REFERENCES Languages(IdLanguage) ON DELETE CASCADE,
+    NameProgram VARCHAR(100) NOT NULL,
+    DescriptionProgram TEXT,
+    UNIQUE (IdProgram, IdLanguage)
+);
+
+-- =============================================
+-- 20. SubProgramsTranslations para la internacionalización de los subprogramas
+-- =============================================
+
+CREATE TABLE SubProgramsTranslations (
+    IdTranslation SERIAL PRIMARY KEY,
+    IdSubProgram INTEGER NOT NULL REFERENCES "Sub_Programs"("IdSubProgram") ON DELETE CASCADE,
+    IdLanguage INTEGER NOT NULL REFERENCES Languages(IdLanguage) ON DELETE CASCADE,
+    NameSubProgram VARCHAR(100) NOT NULL,
+    DescriptionSubProgram TEXT,
+    UNIQUE (IdSubProgram, IdLanguage)
+);
+
+-- =============================================
+-- 21. ActivitiesTranslations para la internacionalización de las actividades
+-- =============================================
+
+CREATE TABLE ActivitiesTranslations (
+    IdTranslation SERIAL PRIMARY KEY,
+    IdActivity INTEGER NOT NULL REFERENCES "Activities"("IdActivity") ON DELETE CASCADE,
+    IdLanguage INTEGER NOT NULL REFERENCES Languages(IdLanguage) ON DELETE CASCADE,
+    NameActivity VARCHAR(250) NOT NULL,
+    UNIQUE (IdActivity, IdLanguage)
+);
+
+-- =============================================
+-- 22. AbsencesTranslations para la internacionalización de las inasistencias
+-- =============================================
+
+CREATE TABLE AbsencesTranslations (
+    IdTranslation SERIAL PRIMARY KEY,
+    IdAbsence INTEGER NOT NULL REFERENCES "Absences"("IdAbsence") ON DELETE CASCADE,
+    IdLanguage INTEGER NOT NULL REFERENCES Languages(IdLanguage) ON DELETE CASCADE,
+    DescriptionAbsence TEXT,
+    UNIQUE (IdAbsence, IdLanguage)
+);
+
+
 
 -- =============================================
 -- ÍNDICES RECOMENDADOS

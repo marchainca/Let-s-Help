@@ -1,5 +1,4 @@
 import { Body, Controller, Delete, Get, HttpException, HttpStatus, Param, Patch, Post, UseGuards } from '@nestjs/common';
-import { FirebaseService } from 'src/firebase/firebase.service';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dtos/create-user.dto';
 import { UpdateUserDto } from './dtos/update-user.dto';
@@ -62,25 +61,6 @@ export class UsersController {
           console.log("contenido de userId: ", userId)
             await this.usersService.updateUser(userId, updateData);
             return `User with ID ${userId} updated successfully.`;
-        } catch (error) {
-            throw new HttpException(
-                {
-                  code: error.code,
-                  message: error.message,
-                  attribute: error.attribute,
-                  statusCode: error.statusCode,
-                },
-                HttpStatus.BAD_REQUEST,
-              );
-        }
-    }
-
-    // Ruta para eliminar un usuario por ID
-    @Delete(':id')
-    async deleteUser(@Param('id') userId: string): Promise<string> {
-       try {
-            await this.usersService.deleteUser(userId);
-            return `User with ID ${userId} deleted successfully.`;
         } catch (error) {
             throw new HttpException(
                 {

@@ -396,3 +396,39 @@ SELECT sp."IdSubProgram", 'Seguimiento técnicas empleadas en sus emociones', NO
 FROM "Sub_Programs" sp
 JOIN "Programs" p ON sp."IdProgram" = p."IdProgram"
 WHERE p."NameProgram" = 'gestión de emociones' AND sp."NameSubProgram" = 'Gestión de emociones';
+
+---- Migrar Roles
+
+INSERT INTO RolesTranslations (IdRole, IdLanguage, NameRole, Description)
+SELECT "IdRole", 1, "NameRole", "Description" FROM "Roles";
+
+-- Migrar Programs
+INSERT INTO ProgramsTranslations (IdProgram, IdLanguage, NameProgram, DescriptionProgram)
+SELECT "IdProgram", 1, "NameProgram", "DescriptionProgram" FROM "Programs";
+
+-- Migrar Sub_Programs
+INSERT INTO SubProgramsTranslations (IdSubProgram, IdLanguage, NameSubProgram, DescriptionSubProgram)
+SELECT "IdSubProgram", 1, "NameSubProgram", "DescriptionSubProgram" FROM "Sub_Programs";
+
+-- Migrar Activities
+INSERT INTO ActivitiesTranslations (IdActivity, IdLanguage, NameActivity)
+SELECT "IdActivity", 1, "NameActivity" FROM "Activities";
+
+-- Migrar Absences
+INSERT INTO AbsencesTranslations (IdAbsence, IdLanguage, DescriptionAbsence)
+SELECT "IdAbsence", 1, "DescriptionAbsence" FROM "Absences";
+
+-- Roles
+ALTER TABLE "Roles" DROP COLUMN "NameRole", DROP COLUMN "Description";
+
+-- Programs
+ALTER TABLE "Programs" DROP COLUMN "NameProgram", DROP COLUMN "DescriptionProgram";
+
+-- Sub_Programs
+ALTER TABLE "Sub_Programs" DROP COLUMN "NameSubProgram", DROP COLUMN "DescriptionSubProgram";
+
+-- Activities
+ALTER TABLE "Activities" DROP COLUMN "NameActivity";
+
+-- Absences
+ALTER TABLE "Absences" DROP COLUMN "DescriptionAbsence";

@@ -1,7 +1,6 @@
 import { Module } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { UsersController } from './users.controller';
-import { FirebaseService } from 'src/firebase/firebase.service';
 import { UsersDataBaseService } from './users-data-base.service';
 import { User } from './entities/user.entity';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -12,7 +11,6 @@ import { TypeOrmModule } from '@nestjs/typeorm';
   ],
   providers: [
     UsersService,
-    FirebaseService,
     UsersDataBaseService
   ],
   controllers: [UsersController],

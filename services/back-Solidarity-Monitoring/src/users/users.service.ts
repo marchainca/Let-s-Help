@@ -1,6 +1,4 @@
 import { Injectable } from '@nestjs/common';
-import * as argon2 from 'argon2';
-import { FirebaseService } from 'src/firebase/firebase.service';
 import { errorResponse } from 'src/tools/function.tools';
 import { UsersDataBaseService } from './users-data-base.service';
 
@@ -9,7 +7,6 @@ export class UsersService {
     private collectionName = 'users';
 
     constructor(
-        private readonly firebaseService: FirebaseService,
         private readonly dataBaseService: UsersDataBaseService,
     ) {}
 
@@ -111,12 +108,6 @@ export class UsersService {
 
         await this.dataBaseService.updateUser(user[0]);
 
-    }
-
-    // Eliminar un usuario por ID
-    async deleteUser(userId: string): Promise<void> {
-        // Llama al método genérico para eliminar un documento
-        return await this.firebaseService.deleteDocument(this.collectionName, userId);
     }
 
 }

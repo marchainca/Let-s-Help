@@ -1,7 +1,6 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as argon2 from 'argon2';
-import { FirebaseService } from 'src/firebase/firebase.service';
 import { errorResponse } from 'src/tools/function.tools';
 import { UsersDataBaseService } from 'src/users/users-data-base.service';
 import { UsersService } from 'src/users/users.service';
@@ -11,7 +10,6 @@ export class AuthService {
     private collectionName = 'users';
     constructor(
         private readonly jwtService: JwtService,
-        private readonly firebaseService: FirebaseService,
         private readonly usersDatabaseService: UsersDataBaseService,
     ) {}
 

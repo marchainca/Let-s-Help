@@ -6,25 +6,24 @@ import { PassportModule } from '@nestjs/passport';
 import { JwtModule } from '@nestjs/jwt';
 import { JwtStrategy } from '../common/strategies/jwt-strategy';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { FirebaseService } from 'src/firebase/firebase.service';
 import { AttendanceModule } from 'src/attendance/attendance.module';
 
 @Module({
   imports: [
     ConfigModule,
     AttendanceModule,
-    UsersModule, 
+    UsersModule,
     PassportModule,
     JwtModule.registerAsync({
       imports: [ConfigModule,], // Importar el módulo de configuración
       inject: [ConfigService],
       useFactory: async (configService: ConfigService) => ({
-        secret: configService.get<string>('SECRET_KEY'), 
+        secret: configService.get<string>('SECRET_KEY'),
         //signOptions: { expiresIn: '1h' },
       }),
     }),
   ],
-  providers: [AuthService, FirebaseService, JwtStrategy],
+  providers: [AuthService, JwtStrategy],
   controllers: [AuthController]
 })
 export class AuthModule {}

@@ -4,6 +4,7 @@ import { Absence } from '../../users/entities/absence.entity';
 import { ActivityTracking } from './activity-tracking.entity';
 import { SubProgram } from './sub-program.entity';
 import { Attendance } from 'src/attendance/entities/attendance.entity';
+import { ActivitiesTranslation } from 'src/common/translation/entities/activities-translation.entity';
 
 @Entity('Activities')
 export class Activity {
@@ -38,4 +39,7 @@ export class Activity {
 
   @OneToMany(() => Attendance, attendance => attendance.activity)
   attendances: Attendance[];
+
+  @OneToMany(() => ActivitiesTranslation, translation => translation.activity)
+  translations: ActivitiesTranslation[];
 }

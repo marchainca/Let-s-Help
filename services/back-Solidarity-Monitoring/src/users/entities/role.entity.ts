@@ -1,5 +1,6 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, OneToMany } from 'typeorm';
 import { User } from '../entities/user.entity';
+import { RolesTranslation } from 'src/common/translation/entities/roles-translation.entity';
 
 @Entity('Roles')
 export class Role {
@@ -17,4 +18,12 @@ export class Role {
 
   @OneToMany(() => User, user => user.role)
   users: User[];
+
+  @OneToMany(() => RolesTranslation, translation => translation.role)
+  translations: RolesTranslation[];
+
+  // Método para obtener la traducción de un rol en un idioma específico
+  getTranslation(languageCode: string = 'es'): RolesTranslation | undefined {
+    return this.translations?.find(t => t.language?.Code === languageCode);
+  }
 }

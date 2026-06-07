@@ -3,6 +3,7 @@ import { User } from './user.entity';
 import { Beneficiary } from '../../recognition/entities/beneficiary.entity';
 import { Activity } from '../../activities/entities/activity.entity';
 import { Attendance } from 'src/attendance/entities/attendance.entity';
+import { AbsencesTranslation } from 'src/common/translation/entities/absences-translation.entity';
 
 @Entity('Absences')
 export class Absence {
@@ -38,4 +39,7 @@ export class Absence {
 
   @OneToMany(() => Attendance, attendance => attendance.absence)
   attendances: Attendance[];
+
+  @OneToMany(() => AbsencesTranslation, translation => translation.absence)
+  translations: AbsencesTranslation[];
 }

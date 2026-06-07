@@ -5,13 +5,13 @@ import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
 import { ConfigModule } from '@nestjs/config';
 import { AttendanceModule } from './attendance/attendance.module';
-import { SchedulerModule } from './scheduler/scheduler.module';
 import { ReportsModule } from './reports/reports.module';
 import { ActivitiesModule } from './activities/activities.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigService } from '@nestjs/config';
 import { RecognitionModule } from './recognition/recognition.module';
 import { DashboardModule } from './dashboard/dashboard.module';
+import { TranslationModule } from './common/translation/translation.module';
 
 @Module({
   imports: [
@@ -45,11 +45,11 @@ import { DashboardModule } from './dashboard/dashboard.module';
     AuthModule,
     UsersModule,
     AttendanceModule,
-    SchedulerModule,
     RecognitionModule,
     ReportsModule,
     ActivitiesModule,
     DashboardModule,
+    TranslationModule,
   ],
   controllers: [AppController, ],
   providers: [AppService],

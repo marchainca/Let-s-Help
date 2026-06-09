@@ -399,24 +399,49 @@ WHERE p."NameProgram" = 'gestión de emociones' AND sp."NameSubProgram" = 'Gesti
 
 ---- Migrar Roles
 
-INSERT INTO RolesTranslations (IdRole, IdLanguage, NameRole, Description)
-SELECT "IdRole", 1, "NameRole", "Description" FROM "Roles";
+INSERT INTO "RolesTranslations" (IdRole, IdLanguage, NameRole, Description)
+SELECT IdRole, 1, NameRole, Description FROM RolesTranslations;
 
 -- Migrar Programs
-INSERT INTO ProgramsTranslations (IdProgram, IdLanguage, NameProgram, DescriptionProgram)
-SELECT "IdProgram", 1, "NameProgram", "DescriptionProgram" FROM "Programs";
+INSERT INTO "ProgramsTranslations" (IdProgram, IdLanguage, NameProgram, DescriptionProgram)
+SELECT IdProgram, 1, NameProgram, DescriptionProgram FROM ProgramsTranslations;
 
 -- Migrar Sub_Programs
-INSERT INTO SubProgramsTranslations (IdSubProgram, IdLanguage, NameSubProgram, DescriptionSubProgram)
-SELECT "IdSubProgram", 1, "NameSubProgram", "DescriptionSubProgram" FROM "Sub_Programs";
+INSERT INTO "SubProgramsTranslations" (IdSubProgram, IdLanguage, NameSubProgram, DescriptionSubProgram)
+SELECT IdSubProgram, 1, NameSubProgram, DescriptionSubProgram FROM SubProgramsTranslations;
 
 -- Migrar Activities
-INSERT INTO ActivitiesTranslations (IdActivity, IdLanguage, NameActivity)
-SELECT "IdActivity", 1, "NameActivity" FROM "Activities";
+INSERT INTO "ActivitiesTranslations" (IdActivity, IdLanguage, NameActivity)
+SELECT IdActivity, 1, NameActivity FROM ActivitiesTranslations;
 
 -- Migrar Absences
-INSERT INTO AbsencesTranslations (IdAbsence, IdLanguage, DescriptionAbsence)
-SELECT "IdAbsence", 1, "DescriptionAbsence" FROM "Absences";
+INSERT INTO "AbsencesTranslations" (IdAbsence, IdLanguage, DescriptionAbsence)
+SELECT IdAbsence, 1, DescriptionAbsence FROM AbsencesTranslations;
+
+-- alter tables para cambiar nombres de columnas para que queden con notacion pascal case
+-- RolesTranslations
+ALTER TABLE "RolesTranslations" RENAME COLUMN NameRole TO "NameRole";
+ALTER TABLE "RolesTranslations" RENAME COLUMN Description TO "Description";
+ALTER TABLE "RolesTranslations" RENAME COLUMN IdRole TO "IdRole"
+ALTER TABLE "RolesTranslations" RENAME COLUMN IdLanguage TO "IdLanguage";
+
+-- Sub_ProgramsTranslations
+ALTER TABLE "SubProgramsTranslations" RENAME COLUMN NameSubProgram TO "NameSubProgram";
+ALTER TABLE "SubProgramsTranslations" RENAME COLUMN DescriptionSubProgram TO "DescriptionSubProgram";
+ALTER TABLE "SubProgramsTranslations" RENAME COLUMN IdSubProgram TO "IdSubProgram";
+ALTER TABLE "SubProgramsTranslations" RENAME COLUMN IdLanguage TO "IdLanguage";
+
+-- ActivitiesTranslations
+ALTER TABLE "ActivitiesTranslations" RENAME COLUMN NameActivity TO "NameActivity";
+ALTER TABLE "ActivitiesTranslations" RENAME COLUMN IdActivity TO "IdActivity";
+ALTER TABLE "ActivitiesTranslations" RENAME COLUMN IdLanguage TO "IdLanguage";
+
+-- AbsencesTranslations
+ALTER TABLE "AbsencesTranslations" RENAME COLUMN DescriptionAbsence TO "DescriptionAbsence";
+ALTER TABLE "AbsencesTranslations" RENAME COLUMN IdAbsence TO "IdAbsence";
+ALTER TABLE "AbsencesTranslations" RENAME COLUMN IdLanguage TO "IdLanguage";
+
+
 
 -- Roles
 ALTER TABLE "Roles" DROP COLUMN "NameRole", DROP COLUMN "Description";

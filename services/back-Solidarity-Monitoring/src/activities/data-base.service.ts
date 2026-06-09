@@ -23,20 +23,28 @@ export class DataBaseService {
 
     ) {}
 
-    async getAllProgramsWithActivities(): Promise<Program[]> {
+    async getAllProgramsWithActivities(lang: string = 'es'): Promise<Program[]> {
         try{
 
-            const activities = await this.programRepository
+            const langId = lang === 'en' ? 2 : 1;
+
+            // Consulta optimizada para obtener solo los campos necesarios segun la internacionalización
+            const programsAndActivities = await this.programRepository
             .createQueryBuilder('p')
             .leftJoinAndSelect('p.subPrograms', 'sp')
             .leftJoinAndSelect('sp.activities', 'a')
-            .select(['p.NameProgram', 'sp.NameSubProgram', 'a.NameActivity'])
-            .orderBy('p.NameProgram', 'ASC')
-            .addOrderBy('sp.NameSubProgram', 'ASC')
-            .addOrderBy('a.NameActivity', 'ASC')
+            .leftJoinAndSelect('p.translations', 'pt', 'pt.IdLanguage = :langId', { langId })
+            .leftJoinAndSelect('sp.translations', 'spt', 'spt.IdLanguage = :langId', { langId })
+            .leftJoinAndSelect('a.translations', 'at', 'at.IdLanguage = :langId', { langId })
+            .select(['p.IdProgram', 'pt.NameProgram', 'pt.DescriptionProgram',
+                    'sp.IdSubProgram', 'spt.NameSubProgram', 'spt.DescriptionSubProgram',
+                    'a.IdActivity', 'at.NameActivity'])
+            .orderBy('pt.NameProgram', 'ASC')
+            .addOrderBy('spt.NameSubProgram', 'ASC')
+            .addOrderBy('at.NameActivity', 'ASC')
             .getMany();
-            //console.log('Fetched programs with activities:', activities);
-            return activities;
+                        
+            return programsAndActivities;
         }catch(error){
             console.error('Error fetching programs with activities:', error);
             throw error;

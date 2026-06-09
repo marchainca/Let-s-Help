@@ -1,4 +1,4 @@
-import { Body, Controller, Get, HttpException, HttpStatus, Param, Patch, Post, Query, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Headers, HttpException, HttpStatus, Param, Patch, Post, Query, UseGuards } from '@nestjs/common';
 import { ActivitiesService } from './activities.service';
 import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 import { sendResponse } from 'src/tools/function.tools';
@@ -18,10 +18,14 @@ export class ActivitiesController {
      * @returns Lista de actividades con sus
      * correspondientes programas y subprogramas.
     */
+   
     @Get('/getAllActivities')
-    async getActivities(): Promise<CustomResponse> {
+    async getActivities(@Headers() headers: Record<string, string>): Promise<CustomResponse> {
         try {
-            const allActivities = await this.activitiesService.getProgramsWithSubprogramsAndTasks();
+            // capturar  config.headers['Accept-Language']
+            const language = headers['accept-language'] || 'es';
+
+            const allActivities = await this.activitiesService.getProgramsWithSubprogramsAndTasks(language);
             return await sendResponse(true, params.ResponseMessages.MESSAGE_SUCCESS, allActivities );
         } catch (error) {
             throw new HttpException(

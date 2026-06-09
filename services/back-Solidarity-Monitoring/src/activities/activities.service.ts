@@ -16,17 +16,16 @@ export class ActivitiesService {
      * Obtiene la lista de todas las actividades.
      * @returns Lista de actividades.
      */
-    async getProgramsWithSubprogramsAndTasks(): Promise<any[]> {
+    async getProgramsWithSubprogramsAndTasks(language?:string): Promise<any[]> {
       try {
-        const programsAndActivities = await this.databaseService.getAllProgramsWithActivities();
+        const programsAndActivities = await this.databaseService.getAllProgramsWithActivities(language);
 
-        const structuredData = programsAndActivities.map(program => {
-          const result: any = { id: program.NameProgram };
-          for (const sub of program.subPrograms) {
-            result[sub.NameSubProgram] = sub.activities.map(t => t.NameActivity);
-          }
-
-          return result;
+       const structuredData = programsAndActivities.map(program => {
+            const result: any = { id: program.translations[0]?.NameProgram || program.NameProgram };
+            for (const sub of program.subPrograms) {
+                result[sub.translations[0]?.NameSubProgram || sub.NameSubProgram] = sub.activities.map(t => t.translations[0]?.NameActivity || t.NameActivity);
+            }
+            return result;
         });
         //console.log('Datos estructurados:', structuredData);
         return structuredData;

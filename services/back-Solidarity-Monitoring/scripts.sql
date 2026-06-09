@@ -225,7 +225,7 @@ CREATE TABLE "Attendances" (
 -- 17. Languages para la internacionalización
 -- =============================================
 
-CREATE TABLE Languages (
+CREATE TABLE "Languages" (
     IdLanguage SERIAL PRIMARY KEY,
     Code VARCHAR(2) NOT NULL UNIQUE,   -- 'es', 'en'
     Name VARCHAR(50) NOT NULL
@@ -235,7 +235,7 @@ CREATE TABLE Languages (
 -- 18. RolesTranslations para la internacionalización de los roles
 -- =============================================
 
-CREATE TABLE RolesTranslations (
+CREATE TABLE "RolesTranslations" (
     IdTranslation SERIAL PRIMARY KEY,
     IdRole INTEGER NOT NULL REFERENCES "Roles"("IdRole") ON DELETE CASCADE,
     IdLanguage INTEGER NOT NULL REFERENCES Languages(IdLanguage) ON DELETE CASCADE,
@@ -248,7 +248,7 @@ CREATE TABLE RolesTranslations (
 -- 19. ProgramsTranslations para la internacionalización de los programas
 -- =============================================
 
-CREATE TABLE ProgramsTranslations (
+CREATE TABLE "ProgramsTranslations" (
     IdTranslation SERIAL PRIMARY KEY,
     IdProgram INTEGER NOT NULL REFERENCES "Programs"("IdProgram") ON DELETE CASCADE,
     IdLanguage INTEGER NOT NULL REFERENCES Languages(IdLanguage) ON DELETE CASCADE,
@@ -261,7 +261,7 @@ CREATE TABLE ProgramsTranslations (
 -- 20. SubProgramsTranslations para la internacionalización de los subprogramas
 -- =============================================
 
-CREATE TABLE SubProgramsTranslations (
+CREATE TABLE "SubProgramsTranslations" (
     IdTranslation SERIAL PRIMARY KEY,
     IdSubProgram INTEGER NOT NULL REFERENCES "Sub_Programs"("IdSubProgram") ON DELETE CASCADE,
     IdLanguage INTEGER NOT NULL REFERENCES Languages(IdLanguage) ON DELETE CASCADE,
@@ -274,7 +274,7 @@ CREATE TABLE SubProgramsTranslations (
 -- 21. ActivitiesTranslations para la internacionalización de las actividades
 -- =============================================
 
-CREATE TABLE ActivitiesTranslations (
+CREATE TABLE "ActivitiesTranslations" (
     IdTranslation SERIAL PRIMARY KEY,
     IdActivity INTEGER NOT NULL REFERENCES "Activities"("IdActivity") ON DELETE CASCADE,
     IdLanguage INTEGER NOT NULL REFERENCES Languages(IdLanguage) ON DELETE CASCADE,
@@ -286,15 +286,13 @@ CREATE TABLE ActivitiesTranslations (
 -- 22. AbsencesTranslations para la internacionalización de las inasistencias
 -- =============================================
 
-CREATE TABLE AbsencesTranslations (
+CREATE TABLE "AbsencesTranslations" (
     IdTranslation SERIAL PRIMARY KEY,
     IdAbsence INTEGER NOT NULL REFERENCES "Absences"("IdAbsence") ON DELETE CASCADE,
     IdLanguage INTEGER NOT NULL REFERENCES Languages(IdLanguage) ON DELETE CASCADE,
     DescriptionAbsence TEXT,
     UNIQUE (IdAbsence, IdLanguage)
 );
-
-
 
 -- =============================================
 -- ÍNDICES RECOMENDADOS

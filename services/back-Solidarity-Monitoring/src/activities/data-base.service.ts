@@ -43,7 +43,7 @@ export class DataBaseService {
             .addOrderBy('spt.NameSubProgram', 'ASC')
             .addOrderBy('at.NameActivity', 'ASC')
             .getMany();
-                        
+
             return programsAndActivities;
         }catch(error){
             console.error('Error fetching programs with activities:', error);
@@ -51,11 +51,21 @@ export class DataBaseService {
         }
     }
 
-    async getProgramNames(): Promise<string[]> {
+    async getProgramNames(language?: string): Promise<string[]> {
         try {
-            const programNames = await this.programRepository.find();
+            //const programNames = await this.programRepository.find();
             //console.log('Program names fetched:', programNames);
-            return programNames.map(program => program.NameProgram) || [];
+            //return programNames.map(program => program.NameProgram) || [];
+            const langId = language === 'en' ? 2 : 1;
+            // Consulta optimizada para obtener solo los nombres de los programas segun la internacionalización
+            const programNames = await this.programRepository
+                .createQueryBuilder('p')
+                .leftJoinAndSelect('p.translations', 'pt', 'pt.IdLanguage = :langId', { langId })
+                .select(['p.IdProgram', 'pt.NameProgram'])
+                .orderBy('pt.NameProgram', 'ASC')
+                .getMany();
+            //console.log('Program names fetched with translations:', programNames);
+            return programNames.map(program => program.translations[0]?.NameProgram || 'Nombre no disponible') || [];
         } catch (error) {
             throw error;
         }

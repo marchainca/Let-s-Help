@@ -40,9 +40,9 @@ export class ActivitiesService {
      * Obtiene la lista de los nombres de los programas.
      * @returns Lista con los nombres de los programas.
      */
-    async getProgramNames(): Promise<string[]> {
+    async getProgramNames(language: string): Promise<string[]> {
         try {
-          const programNames = await this.databaseService.getProgramNames();
+          const programNames = await this.databaseService.getProgramNames(language);
 
           return programNames;
         } catch (error) {

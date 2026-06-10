@@ -46,9 +46,10 @@ export class ActivitiesController {
      * @returns Lista de nombres de programas.
     */
     @Get('/programs')
-        async getProgramNames(): Promise<CustomResponse> {
+        async getProgramNames(@Headers() headers: Record<string, string>): Promise<CustomResponse> {
         try {
-            const getPrograms = await this.activitiesService.getProgramNames();
+            const language = headers['accept-language'] || 'es';
+            const getPrograms = await this.activitiesService.getProgramNames(language);
             return await sendResponse(true, params.ResponseMessages.MESSAGE_SUCCESS, {getPrograms} );
         } catch (error) {
             throw new HttpException(

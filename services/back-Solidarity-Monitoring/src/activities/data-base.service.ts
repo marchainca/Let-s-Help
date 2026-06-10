@@ -23,10 +23,8 @@ export class DataBaseService {
 
     ) {}
 
-    async getAllProgramsWithActivities(lang: string = 'es'): Promise<Program[]> {
+    async getAllProgramsWithActivities(langId: number): Promise<Program[]> {
         try{
-
-            const langId = lang === 'en' ? 2 : 1;
 
             // Consulta optimizada para obtener solo los campos necesarios segun la internacionalización
             const programsAndActivities = await this.programRepository
@@ -51,12 +49,12 @@ export class DataBaseService {
         }
     }
 
-    async getProgramNames(language?: string): Promise<string[]> {
+    async getProgramNames(langId?: number): Promise<string[]> {
         try {
             //const programNames = await this.programRepository.find();
             //console.log('Program names fetched:', programNames);
             //return programNames.map(program => program.NameProgram) || [];
-            const langId = language === 'en' ? 2 : 1;
+            
             // Consulta optimizada para obtener solo los nombres de los programas segun la internacionalización
             const programNames = await this.programRepository
                 .createQueryBuilder('p')
@@ -70,14 +68,38 @@ export class DataBaseService {
             throw error;
         }
     }
-    async getProgramActivities(programName: string): Promise<Program | null> {
+    async getProgramActivities(programName: string, langId?: number): Promise<any> {
         try {
-            const programByName = await this.programRepository.findOne({
-                where: { NameProgram: programName },
-                relations: ['subPrograms', 'subPrograms.activities'],
-            });
-            //console.log('Program activities fetched for:', programName, programByName);
-            return programByName;
+            // Consulta optimizada para obtener las actividades de un programa específico segun la internacionalización
+            const results = await this.programRepository
+                .createQueryBuilder('p')
+                .innerJoin('ProgramsTranslations', 'pt', 'pt.IdProgram = p.IdProgram AND pt.IdLanguage = :langId AND pt.NameProgram = :programName', { langId, programName })
+                .leftJoin('p.subPrograms', 'sp')
+                .leftJoin('SubProgramsTranslations', 'spt', 'spt.IdSubProgram = sp.IdSubProgram AND spt.IdLanguage = :langId')
+                .leftJoin('sp.activities', 'a')
+                .leftJoin('ActivitiesTranslations', 'at', 'at.IdActivity = a.IdActivity AND at.IdLanguage = :langId')
+                .select([
+                'spt.NameSubProgram as subprogramname',   // alias en minúsculas
+                'at.NameActivity as activityname'         // alias en minúsculas
+                ])
+                .orderBy('spt.NameSubProgram', 'ASC')
+                .addOrderBy('at.NameActivity', 'ASC')
+                .getRawMany();
+
+            const output: Record<string, string[]> = {};
+            for (const row of results) {
+                const subName = row.subprogramname;   // usar minúsculas
+                const actName = row.activityname;     // usar minúsculas
+                if (!subName) continue;
+                if (!output[subName]) {
+                output[subName] = [];
+                }
+                // Evitar duplicados (opcional)
+                if (actName && !output[subName].includes(actName)) {
+                output[subName].push(actName);
+                }
+            }
+            return output;
         } catch (error) {
             throw error;
         }

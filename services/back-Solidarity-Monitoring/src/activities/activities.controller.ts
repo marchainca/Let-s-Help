@@ -5,6 +5,7 @@ import { sendResponse } from 'src/tools/function.tools';
 import params from 'src/tools/params';
 import { CustomResponse } from 'src/interfaces/interfaces';
 import { UpdateActivityDto } from './dtos/update-activity.dto';
+import { Language } from 'src/common/decorators/language.decorator';
 
 @Controller('letsHelp/Colombia/activities')
 @UseGuards(JwtAuthGuard)
@@ -20,12 +21,9 @@ export class ActivitiesController {
     */
    
     @Get('/getAllActivities')
-    async getActivities(@Headers() headers: Record<string, string>): Promise<CustomResponse> {
+    async getActivities(@Language() lang: number): Promise<CustomResponse> {
         try {
-            // capturar  config.headers['Accept-Language']
-            const language = headers['accept-language'] || 'es';
-
-            const allActivities = await this.activitiesService.getProgramsWithSubprogramsAndTasks(language);
+            const allActivities = await this.activitiesService.getProgramsWithSubprogramsAndTasks(lang);
             return await sendResponse(true, params.ResponseMessages.MESSAGE_SUCCESS, allActivities );
         } catch (error) {
             throw new HttpException(
@@ -46,10 +44,9 @@ export class ActivitiesController {
      * @returns Lista de nombres de programas.
     */
     @Get('/programs')
-        async getProgramNames(@Headers() headers: Record<string, string>): Promise<CustomResponse> {
+        async getProgramNames(@Language() lang: number): Promise<CustomResponse> {
         try {
-            const language = headers['accept-language'] || 'es';
-            const getPrograms = await this.activitiesService.getProgramNames(language);
+            const getPrograms = await this.activitiesService.getProgramNames(lang);
             return await sendResponse(true, params.ResponseMessages.MESSAGE_SUCCESS, {getPrograms} );
         } catch (error) {
             throw new HttpException(
@@ -70,9 +67,9 @@ export class ActivitiesController {
      * @returns Actividades asociadas al programa.
     */
     @Get('/:programName')
-    async getProgramActivities(@Param('programName') programName: string): Promise<CustomResponse> {
+    async getProgramActivities(@Param('programName') programName: string, @Language() lang: number): Promise<CustomResponse> {
         try {
-            const activities = await this.activitiesService.getProgramActivities(programName);
+            const activities = await this.activitiesService.getProgramActivities(programName, lang);
 
 
             return await sendResponse(true, params.ResponseMessages.MESSAGE_SUCCESS, activities );

@@ -14,4 +14,15 @@ export default{
         NOT_FOUND: 'Consulta sin resultados',
         CREATED: 'Creado'
     },
+
+    languages: {
+        ES: {
+                name: 'es',
+                code: 1
+            },
+        EN: {
+                name: 'en',
+                code: 2
+        }
+    },
 }

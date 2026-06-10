@@ -16,7 +16,7 @@ export class ActivitiesService {
      * Obtiene la lista de todas las actividades.
      * @returns Lista de actividades.
      */
-    async getProgramsWithSubprogramsAndTasks(language?:string): Promise<any[]> {
+    async getProgramsWithSubprogramsAndTasks(language?:number): Promise<any[]> {
       try {
         const programsAndActivities = await this.databaseService.getAllProgramsWithActivities(language);
 
@@ -40,7 +40,7 @@ export class ActivitiesService {
      * Obtiene la lista de los nombres de los programas.
      * @returns Lista con los nombres de los programas.
      */
-    async getProgramNames(language: string): Promise<string[]> {
+    async getProgramNames(language: number): Promise<string[]> {
         try {
           const programNames = await this.databaseService.getProgramNames(language);
 
@@ -56,19 +56,15 @@ export class ActivitiesService {
    * @param programName Nombre del programa.
    * @returns Las actividades del programa solicitado.
    */
-  async getProgramActivities(programName: string): Promise<any> {
+  async getProgramActivities(programName: string, langId: number): Promise<any> {
       try {
 
-            const programByName = await this.databaseService.getProgramActivities(programName);
+            const programByName = await this.databaseService.getProgramActivities(programName, langId);
 
-            const structuredData = programByName.subPrograms.reduce((acc, subProgram) => {
-              acc[subProgram.NameSubProgram] = subProgram.activities.map(t => t.NameActivity);
-              return acc;
-            }, {});
-            //console.log('Datos estructurados:', structuredData);
-
-          // Retornar las actividades del programa
-          return structuredData;
+           // Reconstruir la estructura {nameSubProgram: [nameActivity, nameActivity, ...], nameSubProgram: [nameActivity, nameActivity, ...]}
+           
+           
+          return programByName;
       } catch (error) {
           console.error('Error al obtener las actividades del programa:', error);
           throw error;

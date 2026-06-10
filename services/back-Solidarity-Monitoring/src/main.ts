@@ -1,12 +1,12 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
-//import morgan, * as logger from 'morgan';
 import logger from 'morgan';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import * as bodyParser from 'body-parser';
 import * as express from 'express';
 import { join } from 'path';
+import { LanguageInterceptor } from './common/interceptors/language.interceptor';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {cors: true});
@@ -19,6 +19,7 @@ async function bootstrap() {
   app.useGlobalPipes(
     new ValidationPipe({ whitelist: true }),
   );
+  app.useGlobalInterceptors(new LanguageInterceptor());
   app.use(logger('dev'))
   await app.listen(4000);
 }

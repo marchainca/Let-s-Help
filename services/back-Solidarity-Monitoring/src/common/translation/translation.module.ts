@@ -13,6 +13,7 @@ import { ActivitiesTranslation } from './entities/activities-translation.entity'
       ActivitiesTranslation
     ]),
   ],
-  providers: [TranslationService]
+  providers: [TranslationService],
+  exports: [TranslationService],
 })
 export class TranslationModule {}

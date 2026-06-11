@@ -6,6 +6,9 @@ import { Repository } from 'typeorm';
 import { User } from 'src/users/entities/user.entity';
 import { SubProgram } from './entities/sub-program.entity';
 import { ActivityTracking } from './entities/activity-tracking.entity';
+import { ProgramsTranslation } from 'src/common/translation/entities/programs-translation.entity';
+import { TranslationService } from 'src/common/translation/translation.service';
+import params from 'src/tools/params';
 
 @Injectable()
 export class DataBaseService {
@@ -20,6 +23,9 @@ export class DataBaseService {
         private readonly subProgramRepository:Repository<SubProgram>,
         @InjectRepository(User)
         private readonly userRepository:Repository<User>,
+        @InjectRepository(ProgramsTranslation)
+        private programsTranslationRepository: Repository<ProgramsTranslation>,
+        private readonly translationService: TranslationService,
 
     ) {}
 
@@ -86,20 +92,7 @@ export class DataBaseService {
                 .addOrderBy('at.NameActivity', 'ASC')
                 .getRawMany();
 
-            const output: Record<string, string[]> = {};
-            for (const row of results) {
-                const subName = row.subprogramname;   // usar minúsculas
-                const actName = row.activityname;     // usar minúsculas
-                if (!subName) continue;
-                if (!output[subName]) {
-                output[subName] = [];
-                }
-                // Evitar duplicados (opcional)
-                if (actName && !output[subName].includes(actName)) {
-                output[subName].push(actName);
-                }
-            }
-            return output;
+            return results;
         } catch (error) {
             throw error;
         }
@@ -125,16 +118,55 @@ export class DataBaseService {
         }
     }
 
-    async createProgram(body: object, idUser): Promise<string> {
+    async createProgram(body: any, idUser: number, langId: number): Promise<string> {
         try {
-            const newProgram = new Program();
-            newProgram.NameProgram = body['name'];
-            newProgram.DescriptionProgram = body['description'];
-            newProgram.IdLeadUser = idUser;
+            const originalName = body['name'];
+            const originalDescription = body['description'] || '';
 
+            // Crear y guardar el programa sin campos textuales
+            const newProgram = new Program();
+            newProgram.IdLeadUser = idUser;
             const savedProgram = await this.programRepository.save(newProgram);
+
+            // Guardar la traducción en el idioma original
+            const originalTranslation = new ProgramsTranslation();
+            originalTranslation.IdProgram = savedProgram.IdProgram;
+            originalTranslation.IdLanguage = langId;
+            originalTranslation.NameProgram = originalName;
+            originalTranslation.DescriptionProgram = originalDescription;
+            await this.programsTranslationRepository.save(originalTranslation);
+
+            // Traducir al otro idioma (el que no es langId)
+            const spanishLangId = params.languages.ES.code;
+            const targetLangId = langId === spanishLangId ? 2 : 1;
+            let translatedName = originalName;
+            let translatedDescription = originalDescription;
+
+            // Usar el servicio de traducción (requiere código de idioma: 'es' o 'en')
+            const sourceLangCode = langId === spanishLangId ? 'es' : 'en';
+            const targetLangCode = targetLangId === spanishLangId ? 'es' : 'en-US';
+
+            try {
+                translatedName = await this.translationService.translate(originalName, targetLangCode, sourceLangCode);
+                if (originalDescription) {
+                    translatedDescription = await this.translationService.translate(originalDescription, targetLangCode, sourceLangCode);
+                }
+            } catch (error) {
+                console.error('Error al traducir el programa:', error);
+                // Si falla la traducción, guardamos el mismo texto original
+            }
+
+            // Guardar la traducción en el idioma destino
+            const targetTranslation = new ProgramsTranslation();
+            targetTranslation.IdProgram = savedProgram.IdProgram;
+            targetTranslation.IdLanguage = targetLangId;
+            targetTranslation.NameProgram = translatedName;
+            targetTranslation.DescriptionProgram = translatedDescription;
+            await this.programsTranslationRepository.save(targetTranslation);
+
             return savedProgram.IdProgram.toString();
         } catch (error) {
+            console.error('Error al crear el programa:', error.message || error);
             throw error;
         }
     }

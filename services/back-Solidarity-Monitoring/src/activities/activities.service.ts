@@ -21,7 +21,7 @@ export class ActivitiesService {
         const programsAndActivities = await this.databaseService.getAllProgramsWithActivities(language);
 
        const structuredData = programsAndActivities.map(program => {
-            const result: any = { id: program.translations[0]?.NameProgram || program.NameProgram };
+            const result: any = { id: program.translations[0]?.NameProgram };
             for (const sub of program.subPrograms) {
                 result[sub.translations[0]?.NameSubProgram || sub.NameSubProgram] = sub.activities.map(t => t.translations[0]?.NameActivity || t.NameActivity);
             }
@@ -58,13 +58,21 @@ export class ActivitiesService {
    */
   async getProgramActivities(programName: string, langId: number): Promise<any> {
       try {
+        const programByName = await this.databaseService.getProgramActivities(programName, langId);
 
-            const programByName = await this.databaseService.getProgramActivities(programName, langId);
-
-           // Reconstruir la estructura {nameSubProgram: [nameActivity, nameActivity, ...], nameSubProgram: [nameActivity, nameActivity, ...]}
-           
-           
-          return programByName;
+        const output: Record<string, string[]> = {};
+        for (const row of programByName) {
+          const subName = row.subprogramname;   // usar minúsculas
+          const actName = row.activityname;     // usar minúsculas
+          if (!subName) continue;
+          if (!output[subName]) {
+          output[subName] = [];
+          }
+          if (actName && !output[subName].includes(actName)) {
+            output[subName].push(actName);
+          }
+        }
+        return output;
       } catch (error) {
           console.error('Error al obtener las actividades del programa:', error);
           throw error;
@@ -74,11 +82,12 @@ export class ActivitiesService {
 
   // reestructuración de las colecciones y los documentos para los programas, subprogramas y actividades
 
-  async createProgram(body: any): Promise<string>{
+  async createProgram(body: any, lang?: number): Promise<string>{
     try {
 
       const user = await this.databaseService.findUserByIdentification(body['responsible']);
-      const newProgram = await this.databaseService.createProgram(body, user.IdUser);
+      
+      const newProgram = await this.databaseService.createProgram(body, user.IdUser, lang);
 
       return newProgram
 
@@ -139,8 +148,8 @@ export class ActivitiesService {
       // replicar la estructura de datos obtenida en firestore para no afectar el controlador ni el frontend
       const structuredData = programs.map(program => ({
         id: program.IdProgram.toString(),
-        name: program.NameProgram,
-        description: program.DescriptionProgram ?? '',
+        //name: program.NameProgram,
+        //description: program.DescriptionProgram ?? '',
         responsible: program.leadUser?.Identification ?? '',
         subprograms: (program.subPrograms || []).map(sub => ({
           id: sub.IdSubProgram.toString(),

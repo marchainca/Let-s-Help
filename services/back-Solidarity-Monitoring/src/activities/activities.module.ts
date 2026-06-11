@@ -11,14 +11,14 @@ import { ActivityTracking } from './entities/activity-tracking.entity';
 import { ProgramsTranslation } from 'src/common/translation/entities/programs-translation.entity';
 import { SubProgramsTranslation } from 'src/common/translation/entities/subprograms-translation.entity';
 import { ActivitiesTranslation } from 'src/common/translation/entities/activities-translation.entity';
+import { TranslationService } from 'src/common/translation/translation.service';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([Activity, Program, SubProgram,
       User, ActivityTracking, ProgramsTranslation, SubProgramsTranslation, ActivitiesTranslation]),
   ],
-  providers: [ActivitiesService, DataBaseService],
+  providers: [ActivitiesService, DataBaseService, TranslationService],
   controllers: [ActivitiesController],
-  //exports: [Task],
 })
 export class ActivitiesModule {}

@@ -11,12 +11,6 @@ export class Program {
   @Column({ type: 'int' })
   IdLeadUser: number;
 
-  @Column({ type: 'varchar', length: 100 })
-  NameProgram: string;
-
-  @Column({ type: 'text', nullable: true })
-  DescriptionProgram: string;
-
   @CreateDateColumn({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   CreatedAt: Date;
 

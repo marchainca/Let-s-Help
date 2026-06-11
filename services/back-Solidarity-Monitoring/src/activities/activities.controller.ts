@@ -92,10 +92,10 @@ export class ActivitiesController {
      * @returns Id del programa.
     */
     @Post('/createProgram')
-    async createProgram(@Body() body: JSON): Promise<CustomResponse> {
+    async createProgram(@Body() body: JSON, @Language() lang: number): Promise<CustomResponse> {
         try {
             //console.log("que llega en createProgram", body)
-            const createProgram = await this.activitiesService.createProgram(body);
+            const createProgram = await this.activitiesService.createProgram(body, lang);
             return await sendResponse(true, params.ResponseMessages.MESSAGE_SUCCESS, createProgram );
         } catch (error) {
             throw new HttpException(

@@ -10,6 +10,7 @@ import { ProgramsTranslation } from 'src/common/translation/entities/programs-tr
 import { TranslationService } from 'src/common/translation/translation.service';
 import params from 'src/tools/params';
 import { SubProgramsTranslation } from 'src/common/translation/entities/subprograms-translation.entity';
+import { ActivitiesTranslation } from 'src/common/translation/entities/activities-translation.entity';
 
 @Injectable()
 export class DataBaseService {
@@ -28,7 +29,10 @@ export class DataBaseService {
         private programsTranslationRepository: Repository<ProgramsTranslation>,
         @InjectRepository(SubProgramsTranslation)
         private subProgramsTranslationRepository: Repository<SubProgramsTranslation>,
+        @InjectRepository(ActivitiesTranslation)
+        private activitiesTranslationRepository: Repository<ActivitiesTranslation>,
         private readonly translationService: TranslationService,
+
 
     ) {}
 
@@ -231,7 +235,7 @@ export class DataBaseService {
             await this.subProgramsTranslationRepository.save(originalTranslation);
 
             //  Obtener el idioma
-            const targetLangId = langId === 1 ? 2 : 1;
+            const targetLangId = langId === params.languages.ES.code ? params.languages.EN.code : params.languages.ES.code;
             let translatedName = name;
             let translatedDescription = description;
 
@@ -239,8 +243,8 @@ export class DataBaseService {
             if (name || description) {
                 try {
                     // Mapear IdLanguage a código de idioma para DeepL (1: español -> 'es', 2: inglés -> 'en')
-                    const sourceLangCode = langId === 1 ? 'es' : 'en';
-                    const targetLangCode = langId === 1 ? 'en-US' : 'es';
+                    const sourceLangCode = langId === params.languages.ES.code ? 'es' : 'en';
+                    const targetLangCode = langId === params.languages.ES.code ? 'en-US' : 'es';
 
                     if (name) {
                         translatedName = await this.translationService.translate(name, targetLangCode, sourceLangCode);
@@ -283,16 +287,54 @@ export class DataBaseService {
         }
     }
 
-    async createActivity(body: object, userId: number): Promise<number> {
+    async createActivity(body: object, userId: number, langId: number): Promise<number> {
         try {
+            const programId = body['programId'];
+            const subprogramId = body['subprogramId'];
+            const activityTitle = body['activityData']?.title;
+            if (!activityTitle) {
+            throw new Error('El título de la actividad es obligatorio');
+            }
+
+            // Crear la entidad base de la actividad
             const newActivity = new Activity();
             newActivity.IdUser = userId;
-            newActivity.IdProgram = body['programId'];
-            newActivity.subProgram = body['subprogramId'];
-            newActivity.NameActivity = body['activityData'].title;
+            newActivity.IdProgram = programId;
+            newActivity.subProgram = subprogramId;
+            const savedActivity = await this.activityRepository.save(newActivity);
+            const activityId = savedActivity.IdActivity;
 
-            const saveActivity = await this.activityRepository.save(newActivity);
-            return saveActivity.IdActivity;
+            // Guardar traducción en el idioma original
+            const originalTranslation = this.activitiesTranslationRepository.create({
+            IdActivity: activityId,
+            IdLanguage: langId,
+            NameActivity: activityTitle,
+            });
+            await this.activitiesTranslationRepository.save(originalTranslation);
+
+            // Obtener el idioma destino 1 -> 2, 2 -> 1
+            const targetLangId = langId === params.languages.ES.code ? params.languages.EN.code : params.languages.ES.code;
+            let translatedTitle = activityTitle;
+
+            // Traducir título al idioma destino
+            try {
+                const sourceLangCode = langId === params.languages.ES.code ? 'es' : 'en';
+                const targetLangCode = langId === params.languages.ES.code ? 'en-US' : 'es';
+                translatedTitle = await this.translationService.translate(activityTitle, targetLangCode, sourceLangCode);
+            } catch (err) {
+                console.error('Error al traducir el título de la actividad:', err);
+                // Si falla la traducción, se guarda el título original para no bloquear la creación
+            }
+
+            // Guardar traducción en el idioma destino
+            const targetTranslation = this.activitiesTranslationRepository.create({
+            IdActivity: activityId,
+            IdLanguage: targetLangId,
+            NameActivity: translatedTitle,
+            });
+            await this.activitiesTranslationRepository.save(targetTranslation);
+
+            return activityId;
         } catch (error) {
             console.error('Error creating activity:', error.message || error);
             throw error;

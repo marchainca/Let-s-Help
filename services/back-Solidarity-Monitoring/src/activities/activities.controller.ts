@@ -143,10 +143,10 @@ export class ActivitiesController {
      * @returns Id de la actividad.
     */
     @Post('/createActivity')
-    async createActivity(@Body() body: JSON): Promise<CustomResponse> {
+    async createActivity(@Body() body: JSON, @Language() langId: number): Promise<CustomResponse> {
         try {
             //console.log("Que se recibe en createActivity", body);
-            const createActivity = await this.activitiesService.createActivity(body);
+            const createActivity = await this.activitiesService.createActivity(body, langId);
 
             return await sendResponse(true, params.ResponseMessages.MESSAGE_SUCCESS, createActivity );
         } catch (error) {

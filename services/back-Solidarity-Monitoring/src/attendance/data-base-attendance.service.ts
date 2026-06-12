@@ -197,7 +197,7 @@ export class DataBaseServiceAttendance {
         try {
             //cambiar al repositorio Tasks para buscar por nombre de actividad
             const activity = await this.activityRepository.findOne({
-                where: { NameActivity: activityName },
+                //where: { NameActivity: activityName },
                 order: { CreatedAt: 'DESC' }, // Si hay varias con el mismo nombre, tomar la más reciente
             });
             return activity;

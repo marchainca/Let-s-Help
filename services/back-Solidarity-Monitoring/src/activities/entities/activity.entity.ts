@@ -17,9 +17,6 @@ export class Activity {
   @Column({ type: 'int' })
   IdProgram: number;
 
-  @Column({ type: 'varchar', length: 250 })
-  NameActivity: string;
-
   @CreateDateColumn({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   CreatedAt: Date;
 

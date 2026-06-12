@@ -23,7 +23,7 @@ export class ActivitiesService {
        const structuredData = programsAndActivities.map(program => {
             const result: any = { id: program.translations[0]?.NameProgram };
             for (const sub of program.subPrograms) {
-                result[sub.translations[0]?.NameSubProgram ] = sub.activities.map(t => t.translations[0]?.NameActivity || t.NameActivity);
+                result[sub.translations[0]?.NameSubProgram ] = sub.activities.map(t => t.translations[0]?.NameActivity);
             }
             return result;
         });
@@ -111,7 +111,7 @@ export class ActivitiesService {
 
   }
 
-  async createActivity(body: any): Promise<string> {
+  async createActivity(body: any, langId: number): Promise<string> {
     try {
       //Buscar si el programa y subprograma existe
       await this.databaseService.findProgramById(body.programId);
@@ -119,19 +119,18 @@ export class ActivitiesService {
 
       const user = await this.databaseService.findUserByIdentification(body.activityData.responsible);
 
-      const newActivity = await this.databaseService.createActivity(body, user.IdUser);
+      const newActivity = await this.databaseService.createActivity(body, user.IdUser, langId);
       for( let week = 1; week <= 4; week++) {
         body['activityData'].weekNumber = week;
         await this.databaseService.createActivityTracking(body, newActivity, user.IdUser);
       }
-
 
       return 'Activity created successfully';
     } catch (error) {
         console.error('Error al crear la actividad:', error);
         throw error;
     }
-}
+  }
 
 
   /**
@@ -188,7 +187,7 @@ export class ActivitiesService {
       //transfrormar la estructura de datos obtenida de la base de datos relacional para que coincida con la estructura esperada por el controlador y el frontend
       const structuredActivities = activities.map(activity => ({
         id: activity.IdActivity.toString(),
-        title: activity.NameActivity,
+        //title: activity.NameActivity,
         activities: (activity.activityTrackings || []).map(tracking => ({
           weekNumber: tracking.WeekNumber,
           projectedActivities: tracking.PlannedActivities ?? 0,

@@ -105,22 +105,54 @@ export class DataBaseService {
         }
     }
 
-    async getPrograms(id: string): Promise<Program[]> {
-        try{
-            /* const program = await this.programRepository.find({ where: { IdLeadUser: parseInt(id) },
-                relations: ['subPrograms', 'subPrograms.activities'] });
-            console.log('Program fetched for user ID:', id, program); */
-            const programs = await this.programRepository.find({
-                where: { IdLeadUser: parseInt(id) },
-                relations: ['subPrograms', 'leadUser']
-            });
+    async getPrograms(userId: number, langId: number): Promise<any[]> {
+        try {
 
-            if (!programs) {
-                throw new Error(`No se encontró un programa con el ID: ${id}`);
+            const rawData = await this.programRepository
+            .createQueryBuilder('p')
+            .leftJoin('p.translations', 'pt', 'pt.IdLanguage = :langId', { langId })
+            .leftJoinAndSelect('p.leadUser', 'leadUser')
+            .leftJoin('p.subPrograms', 'sp')
+            .leftJoin('sp.translations', 'spt', 'spt.IdLanguage = :langId', { langId })
+            .where('p.IdLeadUser = :userId', { userId })
+            .select([
+                'p.IdProgram',
+                'pt.NameProgram AS programName',
+                'pt.DescriptionProgram AS programDescription',
+                'p.IdLeadUser',
+                'leadUser.Identification',
+                'sp.IdSubProgram',
+                'spt.NameSubProgram AS subProgramName'
+            ])
+            .getRawMany();
+
+            //console.log('Raw data fetched for user programs:', rawData);
+
+            // Reconstruir programa con sus subprogramas
+            const programsMap = new Map();
+            for (const row of rawData) {
+            const progId = row.p_IdProgram;
+            if (!programsMap.has(progId)) {
+                programsMap.set(progId, {
+                IdProgram: progId,
+                NameProgram: row.programname,
+                DescriptionProgram: row.programdescription,
+                IdLeadUser: row.p_IdLeadUser,
+                leadUser: { Identification: row.leadUser_Identification },
+                subPrograms: []
+                });
             }
-            return programs;
-        }catch (error) {
-            console.error(`Error al obtener el programa para el id: ${id}` , error);
+            const program = programsMap.get(progId);
+            if (row.sp_IdSubProgram) {
+                program.subPrograms.push({
+                IdSubProgram: row.sp_IdSubProgram,
+                NameSubProgram: row.subprogramname
+                });
+            }
+            }
+            return Array.from(programsMap.values());
+        } catch (error) {
+            console.error(`Error al obtener programas para usuario ${userId}:`, error);
             throw error;
         }
     }
@@ -362,24 +394,61 @@ export class DataBaseService {
         }
     }
 
-    async getActivitiesWithTrackingsBySubProgram(subProgramId: number): Promise<Activity[]> {
+    async getActivitiesWithTrackingsBySubProgram(subProgramId: number, langId: number): Promise<any[]> {
         try {
-            // Obtenemos las actividades del subprograma, con sus trackings y el usuario responsable
-            const activities = await this.activityRepository
-                .createQueryBuilder('act')
-                .leftJoinAndSelect('act.activityTrackings', 'track')
-                .leftJoinAndSelect('act.user', 'user')   // para obtener la identificación del responsable
-                .where('act.IdSubProgram = :subProgramId', { subProgramId })
-                .orderBy('act.IdActivity', 'ASC')
-                .addOrderBy('track.WeekNumber', 'ASC')
-                .getMany();
+            // Consulta con joins a las tablas de traducción, tracking y usuario
+            console.log(`Fetching activities with trackings for SubProgram ID: ${subProgramId} and Language ID: ${langId}`);
+            const rawResults = await this.activityRepository
+            .createQueryBuilder('act')
+            .leftJoin('act.translations', 'at', 'at.IdLanguage = :langId', { langId })
+            .leftJoin('act.activityTrackings', 'track')
+            .leftJoin('act.user', 'user')
+            .where('act.IdSubProgram = :subProgramId', { subProgramId })
+            .select([
+                'act.IdActivity AS id',
+                'at.NameActivity AS title',
+                'track.IdTracking AS trackingId',
+                'track.WeekNumber AS weekNumber',
+                'track.PlannedActivities AS plannedActivities',
+                'track.ExecutedActivities AS executedActivities',
+                'track.ProjectedAttendees AS projectedAttendees',
+                'track.ActualAttendees AS actualAttendees',
+                'user.Identification AS responsible'
+            ])
+            .orderBy('act.IdActivity', 'ASC')
+            .addOrderBy('track.WeekNumber', 'ASC')
+            .getRawMany();
 
-            return activities;
+            //console.log('Raw results for activities with trackings:', rawResults);
+
+            // Reconstruir la estructura anidada
+            const activitiesMap = new Map();
+            for (const row of rawResults) {
+                const activityId = row.id;
+                if (!activitiesMap.has(activityId)) {
+                    activitiesMap.set(activityId, {
+                    IdActivity: activityId,
+                    NameActivity: row.title,
+                    user: { Identification: row.responsible },
+                    activityTrackings: []
+                    });
+                }
+                const activity = activitiesMap.get(activityId);
+                if (row.trackingid) {
+                    activity.activityTrackings.push({
+                    WeekNumber: row.weeknumber,
+                    PlannedActivities: row.plannedactivities,
+                    ExecutedActivities: row.executedactivities,
+                    ProjectedAttendees: row.projectedattendees,
+                    ActualAttendees: row.actualattendees
+                    });
+                }
+            }
+            return Array.from(activitiesMap.values());
         } catch (error) {
             console.error(`Error al obtener actividades para el subprograma ID: ${subProgramId}`, error.message || error);
             throw error;
         }
-
     }
 
     // Verificar que la actividad existe y pertenece al subprograma y programa indicados

@@ -61,6 +61,36 @@ export class ActivitiesController {
         }
     }
 
+     /**
+     * Endpoint para obtener actividades de un subprograma dentro de un programa específico.
+     * @param programId ID del programa.
+     * @param subprogramId ID del subprograma.
+     * @returns Lista de actividades del subprograma solicitado.
+     */
+    @Get('/activities-by-subprogram')
+    async getActivitiesBySubprogram(@Query('programId') programId: string, 
+        @Query('subprogramId') subprogramId: string, 
+        @Language() langId: number): Promise<CustomResponse> {
+        try {
+            //console.log(`Received request for activities by subprogram with programId`);
+            const activities = await this.activitiesService.getActivitiesBySubprogram(programId, subprogramId, langId);
+            return await sendResponse(true, params.ResponseMessages.MESSAGE_SUCCESS, activities );
+        } catch (error) {
+            throw new HttpException(
+                {
+                    code: error.code,
+                    message: error.message,
+                    attribute: error.attribute,
+                    statusCode: error.statusCode,
+                },
+                HttpStatus.BAD_REQUEST,
+            );
+
+        }
+
+    }
+
+
     /**
      * Endpoint para obtener las actividades de un programa específico.
      * @param programName Nombre del programa.
@@ -169,10 +199,10 @@ export class ActivitiesController {
      * @returns Programa vinculado al usuario.
     */
     @Post('/getPrograms/:id')
-    async getPrograms(@Param('id') id: string): Promise<CustomResponse> {
+    async getPrograms(@Param('id') id: string, @Language() lang: number): Promise<CustomResponse> {
         try {
 
-            const getPrograms = await this.activitiesService.getPrograms(id);
+            const getPrograms = await this.activitiesService.getPrograms(id, lang);
 
             return await sendResponse(true, params.ResponseMessages.MESSAGE_SUCCESS, getPrograms );
         } catch (error) {
@@ -189,32 +219,7 @@ export class ActivitiesController {
 
     }
 
-    /**
-     * Endpoint para obtener actividades de un subprograma dentro de un programa específico.
-     * @param programId ID del programa.
-     * @param subprogramId ID del subprograma.
-     * @returns Lista de actividades del subprograma solicitado.
-     */
-    @Get('/activities-by-subprogram')
-    async getActivitiesBySubprogram(@Query('programId') programId: string, @Query('subprogramId') subprogramId: string): Promise<CustomResponse> {
-        try {
-           const activities = await this.activitiesService.getActivitiesBySubprogram(programId, subprogramId);
-            return await sendResponse(true, params.ResponseMessages.MESSAGE_SUCCESS, activities );
-        } catch (error) {
-            throw new HttpException(
-                {
-                    code: error.code,
-                    message: error.message,
-                    attribute: error.attribute,
-                    statusCode: error.statusCode,
-                },
-                HttpStatus.BAD_REQUEST,
-            );
-
-        }
-
-    }
-
+   
     /**
      * Endpoint para actualizar una actividad en Firestore.
      * @param updateActivityDto Objeto con la información de la actualización.

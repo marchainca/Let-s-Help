@@ -138,28 +138,25 @@ export class ActivitiesService {
    * @param id identificación del usuario.
    * @returns el programa del usuario.
    */
-  async getPrograms(id: string): Promise<any> {
+  async getPrograms(id: string, lang: number): Promise<any> {
     try {
-      // Se cambia la busqueda a la base de datos relacional
       const leadUser = await this.databaseService.findUserByIdentification(id);
-      const programs = await this.databaseService.getPrograms(leadUser.IdUser);
+      const programs = await this.databaseService.getPrograms(leadUser.IdUser, lang);
 
-      // replicar la estructura de datos obtenida en firestore para no afectar el controlador ni el frontend
       const structuredData = programs.map(program => ({
         id: program.IdProgram.toString(),
-        //name: program.NameProgram,
-        //description: program.DescriptionProgram ?? '',
+        name: program.NameProgram,
+        description: program.DescriptionProgram ?? '',
         responsible: program.leadUser?.Identification ?? '',
         subprograms: (program.subPrograms || []).map(sub => ({
           id: sub.IdSubProgram.toString(),
-         // name: sub.NameSubProgram
+          name: sub.NameSubProgram
         }))
       }));
-      //console.log('Datos estructurados:', structuredData);
 
       return structuredData;
     } catch (error) {
-      console.error(`Error al obtener el programa para el id: ${id}`, error);
+      console.error(`Error al obtener programas para el id: ${id}`, error);
       throw error;
     }
   }
@@ -170,31 +167,31 @@ export class ActivitiesService {
    * @param subprogramId ID del subprograma.
    * @returns Lista de actividades del subprograma solicitado.
    */
-   async getActivitiesBySubprogram(programId: string, subprogramId: string): Promise<any[]> {
+   async getActivitiesBySubprogram(programId: string, subprogramId: string, langId: number): Promise<any[]> {
     if (!programId || !subprogramId) {
       throw await errorResponse(`Error: You must provide a valid applet ID`, 'getActivitiesBySubprogram');
     }
 
     try {
+      // Obtener actividades con sus trackings y nombre traducido
+      const activities = await this.databaseService.getActivitiesWithTrackingsBySubProgram(parseInt(subprogramId), langId);
 
-      const activities = await this.databaseService.getActivitiesWithTrackingsBySubProgram(parseInt(subprogramId));
-
-      if (activities.length == 0) {
+      if (activities.length === 0) {
         console.log(`No se encontraron actividades para el subprograma: ${subprogramId}`);
         return [];
       }
 
-      //transfrormar la estructura de datos obtenida de la base de datos relacional para que coincida con la estructura esperada por el controlador y el frontend
+      // Transformar al formato final esperado por el frontend
       const structuredActivities = activities.map(activity => ({
         id: activity.IdActivity.toString(),
-        //title: activity.NameActivity,
+        title: activity.NameActivity,
         activities: (activity.activityTrackings || []).map(tracking => ({
           weekNumber: tracking.WeekNumber,
           projectedActivities: tracking.PlannedActivities ?? 0,
           executedActivities: tracking.ExecutedActivities ?? 0,
           projectedAttendees: tracking.ProjectedAttendees ?? 0,
           actualAttendees: tracking.ActualAttendees ?? 0,
-          responsible: activity.user?.Identification ?? ''   // identificación del responsable de la actividad
+          responsible: activity.user?.Identification ?? ''
         }))
       }));
 

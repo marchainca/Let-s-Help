@@ -23,7 +23,7 @@ export class ActivitiesService {
        const structuredData = programsAndActivities.map(program => {
             const result: any = { id: program.translations[0]?.NameProgram };
             for (const sub of program.subPrograms) {
-                result[sub.translations[0]?.NameSubProgram || sub.NameSubProgram] = sub.activities.map(t => t.translations[0]?.NameActivity || t.NameActivity);
+                result[sub.translations[0]?.NameSubProgram ] = sub.activities.map(t => t.translations[0]?.NameActivity || t.NameActivity);
             }
             return result;
         });
@@ -98,10 +98,10 @@ export class ActivitiesService {
 
   }
 
-  async createSubprogram(body: any): Promise<string>{
+  async createSubprogram(body: any, langId:number): Promise<string>{
     try {
 
-      const subprogram = await this.databaseService.createSubprogram(body);
+      const subprogram = await this.databaseService.createSubprogram(body, langId);
       return subprogram;
 
     } catch (error) {
@@ -153,7 +153,7 @@ export class ActivitiesService {
         responsible: program.leadUser?.Identification ?? '',
         subprograms: (program.subPrograms || []).map(sub => ({
           id: sub.IdSubProgram.toString(),
-          name: sub.NameSubProgram
+         // name: sub.NameSubProgram
         }))
       }));
       //console.log('Datos estructurados:', structuredData);

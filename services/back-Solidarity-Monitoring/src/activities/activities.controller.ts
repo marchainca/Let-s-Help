@@ -117,9 +117,9 @@ export class ActivitiesController {
      * @returns Id del subPrograma.
     */
     @Post('/createSubprogram')
-    async createSubprogram(@Body() body: JSON): Promise<CustomResponse> {
+    async createSubprogram(@Body() body: JSON, @Language() langId: number): Promise<CustomResponse> {
         try {
-            const createSubprogram = await this.activitiesService.createSubprogram(body);
+            const createSubprogram = await this.activitiesService.createSubprogram(body, langId);
 
             return await sendResponse(true, params.ResponseMessages.MESSAGE_SUCCESS, createSubprogram );
         } catch (error) {

@@ -11,12 +11,6 @@ export class SubProgram {
   @Column({ type: 'int' })
   IdProgram: number;
 
-  @Column({ type: 'varchar', length: 100 })
-  NameSubProgram: string;
-
-  @Column({ type: 'text', nullable: true })
-  DescriptionSubProgram: string;
-
   @CreateDateColumn({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   CreatedAt: Date;
 

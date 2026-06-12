@@ -9,6 +9,7 @@ import { ActivityTracking } from './entities/activity-tracking.entity';
 import { ProgramsTranslation } from 'src/common/translation/entities/programs-translation.entity';
 import { TranslationService } from 'src/common/translation/translation.service';
 import params from 'src/tools/params';
+import { SubProgramsTranslation } from 'src/common/translation/entities/subprograms-translation.entity';
 
 @Injectable()
 export class DataBaseService {
@@ -25,6 +26,8 @@ export class DataBaseService {
         private readonly userRepository:Repository<User>,
         @InjectRepository(ProgramsTranslation)
         private programsTranslationRepository: Repository<ProgramsTranslation>,
+        @InjectRepository(SubProgramsTranslation)
+        private subProgramsTranslationRepository: Repository<SubProgramsTranslation>,
         private readonly translationService: TranslationService,
 
     ) {}
@@ -199,27 +202,73 @@ export class DataBaseService {
         }
     }
 
-    async createSubprogram(body: object): Promise<string> {
+    async createSubprogram(body: object, langId: number): Promise<string> {
         try {
-            const program = await this.programRepository.findOne({ where: { IdProgram: body['programId'] } });
+            const programId = body['programId'];
+            const name = body['name'];
+            const description = body['description'] || '';
 
+            // Verificar que el programa exista
+            const program = await this.programRepository.findOne({ where: { IdProgram: programId } });
             if (!program) {
-                throw new Error(`No se encontró un programa con el ID: ${body['programId']}`);
+            throw new Error(`No se encontró un programa con el ID: ${programId}`);
             }
 
-            const createSubprogram = new SubProgram();
-            createSubprogram.IdProgram =program.IdProgram;
-            createSubprogram.NameSubProgram = body['name'];
-            createSubprogram.DescriptionSubProgram = body['description'];
-
-            const newSubprogram = this.subProgramRepository.create(createSubprogram);
+            // Crear la entidad base del subprograma
+            const newSubprogram = this.subProgramRepository.create({
+            IdProgram: program.IdProgram,
+            });
             const savedSubprogram = await this.subProgramRepository.save(newSubprogram);
-            return savedSubprogram.IdSubProgram.toString();
-        }catch (error) {
+            const subprogramId = savedSubprogram.IdSubProgram;
+
+            // Guardar la traducción en el idioma original
+            const originalTranslation = this.subProgramsTranslationRepository.create({
+            IdSubProgram: subprogramId,
+            IdLanguage: langId,
+            NameSubProgram: name,
+            DescriptionSubProgram: description,
+            });
+            await this.subProgramsTranslationRepository.save(originalTranslation);
+
+            //  Obtener el idioma
+            const targetLangId = langId === 1 ? 2 : 1;
+            let translatedName = name;
+            let translatedDescription = description;
+
+            // Traducir solo si el texto no está vacío y se requiere el otro idioma
+            if (name || description) {
+                try {
+                    // Mapear IdLanguage a código de idioma para DeepL (1: español -> 'es', 2: inglés -> 'en')
+                    const sourceLangCode = langId === 1 ? 'es' : 'en';
+                    const targetLangCode = langId === 1 ? 'en-US' : 'es';
+
+                    if (name) {
+                        translatedName = await this.translationService.translate(name, targetLangCode, sourceLangCode);
+                    }
+                    if (description) {
+                        translatedDescription = await this.translationService.translate(description, targetLangCode, sourceLangCode);
+                    }
+                } catch (translationError) {
+                    console.error('Error al traducir subprograma:', translationError);
+                    // Si falla la traducción, se guarda el texto original (o vacío) para no bloquear la creación
+                }
+            }
+
+            // Guardar la traducción en el idioma destino
+            const targetTranslation = this.subProgramsTranslationRepository.create({
+            IdSubProgram: subprogramId,
+            IdLanguage: targetLangId,
+            NameSubProgram: translatedName,
+            DescriptionSubProgram: translatedDescription,
+            });
+            await this.subProgramsTranslationRepository.save(targetTranslation);
+
+            return subprogramId.toString();
+        } catch (error) {
             console.error('Error creating subprogram:', error.message || error);
             throw error;
         }
-    }
+}
 
     async findSubprogramById(subprogramId: number): Promise<any> {
         try {

@@ -5,6 +5,7 @@ import params from 'src/tools/params';
 import { CustomResponse } from 'src/interfaces/interfaces';
 import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 import { CreateAttendanceDto } from './dtos/create-attendance.dto';
+import { Language } from 'src/common/decorators/language.decorator';
 
 @Controller('letsHelp/Colombia/attendance/')
 @UseGuards(JwtAuthGuard)
@@ -78,9 +79,9 @@ export class AttendanceController {
 
     // Ruta para registrar asistencia
     @Post('register')
-    async registerAttendance(@Body() data: CreateAttendanceDto): Promise<CustomResponse> {
+    async registerAttendance(@Body() data: CreateAttendanceDto, langId: number): Promise<CustomResponse> {
         try {
-             const record = await this.attendanceService.registerAttendance(data);
+             const record = await this.attendanceService.registerAttendance(data, langId);
              return await sendResponse(true, params.ResponseMessages.SUCCESS, record);
         } catch (error) {
             throw new HttpException(
@@ -103,13 +104,14 @@ export class AttendanceController {
         @Body('actividad') actividad: string,
         @Body('motivo') motivo: string,
         @Body('fecha') fecha: string,
+        @Language() langId: number,
     ): Promise<object> {
         try {
             if (!identificacion || !actividad || !motivo) {
                 throw new BadRequestException('Todos los campos (identificacion, actividad, motivo) son obligatorios.');
             }
             console.log("Llega al controlador:", identificacion, actividad, motivo, fecha);
-            const absence = await this.attendanceService.registerAbsence(identificacion, actividad, motivo, fecha);
+            const absence = await this.attendanceService.registerAbsence(identificacion, actividad, motivo, fecha, langId);
             return await sendResponse(true, params.ResponseMessages.SUCCESS, absence);
         } catch (error) {
             throw new HttpException(

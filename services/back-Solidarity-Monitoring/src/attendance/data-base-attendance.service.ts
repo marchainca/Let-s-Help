@@ -5,6 +5,9 @@ import { In, Repository } from 'typeorm';
 import { Attendance } from './entities/attendance.entity';
 import { Activity } from 'src/activities/entities/activity.entity';
 import { Absence } from 'src/users/entities/absence.entity';
+import { AbsencesTranslation } from 'src/common/translation/entities/absences-translation.entity';
+import { TranslationService } from 'src/common/translation/translation.service';
+import params from 'src/tools/params';
 
 
 @Injectable()
@@ -18,6 +21,9 @@ export class DataBaseServiceAttendance {
         private readonly activityRepository: Repository<Activity>,
         @InjectRepository(Absence)
         private readonly absenceRepository: Repository<Absence>,
+        @InjectRepository(AbsencesTranslation)
+        private readonly absencesTranslationRepository: Repository<AbsencesTranslation>,
+        private readonly translationService: TranslationService
     ){}
 
     async getBeneficiaryByIdentification(identification: string): Promise<any> {
@@ -175,31 +181,33 @@ export class DataBaseServiceAttendance {
         }
     }
 
-    async isDuplicateAbsence(identificacion: string, actividad: string, fecha: string): Promise<boolean> {
+    async isDuplicateAbsence(identificacion: string, actividad: string, fecha: string, langId: number): Promise<boolean> {
         try {
-            const existingAbsence = await this.attendanceRepository.createQueryBuilder('att')
-                .leftJoin('att.beneficiary', 'ben')
-                .leftJoin('att.activity', 'act')
-                .where('ben.Identification = :identificacion', { identificacion })
-                .andWhere('act.NameActivity = :actividad', { actividad })
-                .andWhere('att.AttendanceDate = :fecha', { fecha })
-                .andWhere('att.Status = :status', { status: 'absent' })
-                .getOne();
+            const existingAbsence = await this.attendanceRepository
+            .createQueryBuilder('att')
+            .leftJoin('att.beneficiary', 'ben')
+            .leftJoin('att.activity', 'act')
+            .leftJoin('act.translations', 'at', 'at.IdLanguage = :langId', { langId })
+            .where('ben.Identification = :identificacion', { identificacion })
+            .andWhere('at.NameActivity = :actividad', { actividad })
+            .andWhere('att.AttendanceDate = :fecha', { fecha })
+            .andWhere('att.Status = :status', { status: 'absent' })
+            .getOne();
             return !!existingAbsence;
-        }catch (error) {
+        } catch (error) {
             console.error('Error al verificar ausencia duplicada:', error);
             throw error;
         }
     }
 
     //Buscar actividad por nombre
-    async findActivityByName(activityName: string): Promise<any> {
+    async findActivityByName(activityName: string, langId: number): Promise<any> {
         try {
-            //cambiar al repositorio Tasks para buscar por nombre de actividad
-            const activity = await this.activityRepository.findOne({
-                //where: { NameActivity: activityName },
-                order: { CreatedAt: 'DESC' }, // Si hay varias con el mismo nombre, tomar la más reciente
-            });
+            const activity = await this.activityRepository
+            .createQueryBuilder('act')
+            .innerJoin('act.translations', 'at', 'at.IdLanguage = :langId AND at.NameActivity = :activityName', { langId, activityName })
+            .select(['act.IdActivity', 'act.IdProgram', 'act.IdSubProgram', 'act.IdUser'])
+            .getOne();
             return activity;
         } catch (error) {
             console.error('Error al buscar actividad por nombre:', error);
@@ -208,31 +216,66 @@ export class DataBaseServiceAttendance {
     }
 
     //Crear el registro en Absences y luego en Attendances con status 'absent' y el IdAbsence correspondiente
-    async registerAbsence(IdBeneficiary: number, IdActivity: number, motivo: string, fecha: string): Promise<object> {
-        try {
-            const newAbsence = this.absenceRepository.create({
-                IdUser: 1, //se deja hardcodeado por ahora, luego se debe obtener el Id del usuario autenticado que registra la ausencia
-                IdBeneficiary,
-                IdActivity,
-                DescriptionAbsence: motivo,
-            });
-            const savedAbsence = await this.absenceRepository.save(newAbsence);
-            const newAttendance: Partial<Attendance> = {
-                IdBeneficiary,
-                IdActivity,
-                AttendanceDate: new Date(fecha),
-                Status: 'absent',
-                IdAbsence: savedAbsence.IdAbsence,
-                CreatedAt: new Date(),
-                UpdatedAt: new Date(),
-            };
-            await this.attendanceRepository.save(newAttendance);
-            return {message: `Inasistencia registrada exitosamente para el beneficiario con ID ${IdBeneficiary} en la actividad con ID ${IdActivity}`};
-        } catch (error) {
-            console.error('Error al registrar inasistencia:', error);
-            throw error;
-        }
+    async registerAbsence(IdBeneficiary: number, IdActivity: number, motivo: string, fecha: string, langId: number): Promise<object> {
+    try {
+      // 1. Crear la ausencia base (sin DescriptionAbsence)
+      const newAbsence = this.absenceRepository.create({
+        IdUser: 1, // temporal, luego obtener del token
+        IdBeneficiary,
+        IdActivity,
+      });
+      const savedAbsence = await this.absenceRepository.save(newAbsence);
+      const absenceId = savedAbsence.IdAbsence;
+
+      // 2. Guardar traducción en idioma original (langId)
+      const originalTranslation = this.absencesTranslationRepository.create({
+        IdAbsence: absenceId,
+        IdLanguage: langId,
+        DescriptionAbsence: motivo,
+      });
+
+      await this.absencesTranslationRepository.save(originalTranslation);
+
+      // 3. Traducir al idioma opuesto (1 <-> 2)
+      const targetLangId = langId === params.languages.ES.code ? 2 : 1;
+      let translatedMotivo = motivo;
+      try {
+        const sourceLangCode = langId === params.languages.ES.code ? 'es' : 'en';
+        const targetLangCode = langId === params.languages.ES.code ? 'en-US' : 'es';
+        translatedMotivo = await this.translationService.translate(motivo, targetLangCode, sourceLangCode);
+      } catch (err) {
+        console.error('Error al traducir motivo de ausencia:', err);
+        // Si falla, se guarda el motivo original
+      }
+
+      // 4. Guardar traducción en idioma destino
+      const targetTranslation = this.absencesTranslationRepository.create({
+        IdAbsence: absenceId,
+        IdLanguage: targetLangId,
+        DescriptionAbsence: translatedMotivo,
+      });
+      await this.absencesTranslationRepository.save(targetTranslation);
+
+      // 5. Crear el registro de asistencia (Attendances) – sin cambios
+      const newAttendance: Partial<Attendance> = {
+        IdBeneficiary,
+        IdActivity,
+        AttendanceDate: new Date(fecha),
+        Status: 'absent',
+        IdAbsence: absenceId,
+        CreatedAt: new Date(),
+        UpdatedAt: new Date(),
+      };
+
+      console.log("Registro de inasistencia a crear: ", newAttendance);
+      await this.attendanceRepository.save(newAttendance);
+
+      return { message: `Inasistencia registrada exitosamente para el beneficiario con ID ${IdBeneficiary} en la actividad con ID ${IdActivity}` };
+    } catch (error) {
+      console.error('Error al registrar inasistencia:', error);
+      throw error;
     }
+  }
 
     async findProgramByName(programName: string): Promise<any> {
         try {

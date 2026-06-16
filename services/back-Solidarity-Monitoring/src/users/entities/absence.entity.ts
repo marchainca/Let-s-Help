@@ -19,9 +19,6 @@ export class Absence {
   @Column({ type: 'int' })
   IdActivity: number;
 
-  @Column({ type: 'text', nullable: true })
-  DescriptionAbsence: string;
-
   @CreateDateColumn({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   CreatedAt: Date;
 

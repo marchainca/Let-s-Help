@@ -88,13 +88,13 @@ export class AttendanceService {
  * @param status - Estado de la asistencia ('present', 'absent', 'justified', 'late')
  * @returns mensaje de éxito o error
  */
-    async registerAttendance(data: CreateAttendanceDto): Promise<object> {
+    async registerAttendance(data: CreateAttendanceDto, langId: number): Promise<object> {
         try {
 
             const { activity, documentNumber, program } = data;
 
             //consultar actividad por nombre para obtener su ID
-            const activityRecord = await this.dataBaseServiceAttendance.findActivityByName(activity.toString());
+            const activityRecord = await this.dataBaseServiceAttendance.findActivityByName(activity.toString(), langId);
             if (!activityRecord) {
                 throw new NotFoundException(`No se encontró una actividad con el nombre ${activity}.`);
             }
@@ -159,36 +159,34 @@ export class AttendanceService {
     }
 
     // Registrar inasistencia
-    async registerAbsence(identificacion: string, actividad: string, motivo: string, fecha: string ): Promise<object> {
+    async registerAbsence(identificacion: string, actividad: string, motivo: string, fecha: string, langId: number): Promise<object> {
         try {
             // Validar que el integrante existe
-
             const integrant = await this.dataBaseServiceAttendance.getBeneficiaryByIdentification(identificacion);
             if (!integrant) {
-                throw new NotFoundException(`No se encontró un integrante con el ID ${identificacion}.`);
+            throw new NotFoundException(`No se encontró un integrante con el ID ${identificacion}.`);
             }
-            //buscar actividad por nombre
-            const activity = await this.dataBaseServiceAttendance.findActivityByName(actividad);
+
+            // Buscar actividad por nombre (con traducción)
+            const activity = await this.dataBaseServiceAttendance.findActivityByName(actividad, langId);
             console.log("Actividad encontrada: ", activity);
             if (!activity) {
-                throw new NotFoundException(`No se encontró una actividad con el nombre ${actividad}.`);
+            throw new NotFoundException(`No se encontró una actividad con el nombre ${actividad}.`);
             }
 
             // Verificar si ya existe una ausencia registrada para el mismo integrante, actividad y fecha
-            const isDuplicate = await this.dataBaseServiceAttendance.isDuplicateAbsence(identificacion, actividad, fecha);
-
+            const isDuplicate = await this.dataBaseServiceAttendance.isDuplicateAbsence(identificacion, actividad, fecha, langId);
             if (isDuplicate) {
-                throw new BadRequestException(`Ya existe una ausencia registrada para el integrante ${identificacion} en la actividad ${actividad} para la fecha ${fecha}.`);
+            throw new BadRequestException(`Ya existe una ausencia registrada para el integrante ${identificacion} en la actividad ${actividad} para la fecha ${fecha}.`);
             }
 
             // Crear un nuevo registro de inasistencia
-            await this.dataBaseServiceAttendance.registerAbsence(integrant.idBeneficiary, activity.IdActivity, motivo, fecha);
+            await this.dataBaseServiceAttendance.registerAbsence(integrant.idBeneficiary, activity.IdActivity, motivo, fecha, langId);
 
-            return {message: `Inasistencia registrada exitosamente para el integrante ${identificacion}`};
+            return { message: `Inasistencia registrada exitosamente para el integrante ${identificacion}` };
         } catch (error) {
-            console.log("Error in registerAbsence: ", error)
+            console.log("Error in registerAbsence: ", error);
             throw error;
         }
-
     }
 }

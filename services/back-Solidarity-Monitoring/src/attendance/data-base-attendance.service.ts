@@ -202,12 +202,14 @@ export class DataBaseServiceAttendance {
 
     //Buscar actividad por nombre
     async findActivityByName(activityName: string, langId: number): Promise<any> {
+        console.log('Buscando actividad por nombre:', activityName, 'en idioma ID:', langId);
         try {
             const activity = await this.activityRepository
             .createQueryBuilder('act')
             .innerJoin('act.translations', 'at', 'at.IdLanguage = :langId AND at.NameActivity = :activityName', { langId, activityName })
             .select(['act.IdActivity', 'act.IdProgram', 'act.IdSubProgram', 'act.IdUser'])
             .getOne();
+            console.log('Actividad encontrada por nombre:', activity);
             return activity;
         } catch (error) {
             console.error('Error al buscar actividad por nombre:', error);
@@ -277,11 +279,20 @@ export class DataBaseServiceAttendance {
     }
   }
 
-    async findProgramByName(programName: string): Promise<any> {
+    async findProgramByName(programName: string, langId: number): Promise<any> {
         try {
-            const program = await this.activityRepository.manager.getRepository('Program').findOne({
-                where: { NameProgram: programName },
-            });
+            // Buscar el programa cuyo nombre traducido coincida en el idioma solicitado
+            const program = await this.activityRepository.manager
+            .getRepository('Program')
+            .createQueryBuilder('p')
+            .innerJoin(
+                'ProgramsTranslations',
+                'pt',
+                'pt.IdProgram = p.IdProgram AND pt.IdLanguage = :langId AND pt.NameProgram = :programName',
+                { langId, programName }
+            )
+            .getOne();
+
             return program;
         } catch (error) {
             console.error('Error al buscar programa por nombre:', error);

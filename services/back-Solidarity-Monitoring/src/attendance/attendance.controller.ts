@@ -79,7 +79,7 @@ export class AttendanceController {
 
     // Ruta para registrar asistencia
     @Post('register')
-    async registerAttendance(@Body() data: CreateAttendanceDto, langId: number): Promise<CustomResponse> {
+    async registerAttendance(@Body() data: CreateAttendanceDto, @Language() langId: number): Promise<CustomResponse> {
         try {
              const record = await this.attendanceService.registerAttendance(data, langId);
              return await sendResponse(true, params.ResponseMessages.SUCCESS, record);

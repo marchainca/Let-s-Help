@@ -91,6 +91,8 @@ export class AttendanceService {
     async registerAttendance(data: CreateAttendanceDto, langId: number): Promise<object> {
         try {
 
+            console.log("lenguaje recibido: ", langId);
+
             const { activity, documentNumber, program } = data;
 
             //consultar actividad por nombre para obtener su ID
@@ -100,7 +102,7 @@ export class AttendanceService {
             }
 
             //consultar programa por nombre para obtener su ID
-            const programRecord = await this.dataBaseServiceAttendance.findProgramByName(program);
+            const programRecord = await this.dataBaseServiceAttendance.findProgramByName(program, langId);
             const status = 'present'; // Por defecto, se registra como presente
 
             // Validar que el beneficiario existe

@@ -140,28 +140,30 @@ export class DataBaseServiceAttendance {
         }
     }
 
-    async getAttendances(filters?: any, page: number = 1, limit: number = 10): Promise<any> {
+    async getAttendances(langId: number, filters?: any, page: number = 1, limit: number = 10): Promise<any> {
+
         try {
             // Construir query base con relaciones
             const qb = this.attendanceRepository
             .createQueryBuilder('att')
             .leftJoin('att.beneficiary', 'ben')
             .leftJoin('att.activity', 'act')
+            .leftJoin('act.translations', 'at', 'at.IdLanguage = :langId', { langId }) // Unir traducciones
             .addSelect('ben.Identification', 'identificacion')
-            .addSelect('act.NameActivity', 'actividad')
+            .addSelect('at.NameActivity', 'actividad') // Usar nombre traducido
             .addSelect('att.AttendanceDate', 'fecha')
             .addSelect('att.IdAttendance', 'id');
 
             // Aplicar filtros
             if (filters?.identificacion) {
-                qb.andWhere('ben.Identification = :identificacion', { identificacion: filters.identificacion });
+            qb.andWhere('ben.Identification = :identificacion', { identificacion: filters.identificacion });
             }
             if (filters?.actividad) {
-                qb.andWhere('act.NameActivity ILIKE :actividad', { actividad: `%${filters.actividad}%` });
+            // Buscar en el nombre traducido
+            qb.andWhere('at.NameActivity ILIKE :actividad', { actividad: `%${filters.actividad}%` });
             }
             if (filters?.fecha) {
-                // La fecha se guarda como DATE en PostgreSQL, comparamos como string en formato YYYY-MM-DD
-                qb.andWhere('att.AttendanceDate = :fecha', { fecha: filters.fecha });
+            qb.andWhere('att.AttendanceDate = :fecha', { fecha: filters.fecha });
             }
 
             // Obtener total de registros (sin paginación)
@@ -174,7 +176,7 @@ export class DataBaseServiceAttendance {
             // Ejecutar consulta y obtener resultados planos
             const rawResults = await qb.getRawMany();
 
-            return {rawResults, total}
+            return { rawResults, total };
         } catch (error) {
             console.error('Error al obtener asistencias:', error);
             throw error;

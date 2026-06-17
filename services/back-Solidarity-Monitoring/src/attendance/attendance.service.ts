@@ -17,12 +17,12 @@ export class AttendanceService {
     }
 
     // Listar asistencias con filtros opcionales
-    async listAttendances(filters?: { identificacion?: string; actividad?: string; fecha?: string },
+    async listAttendances(langId: number,filters?: { identificacion?: string; actividad?: string; fecha?: string },
         page: number = 1,
         limit: number = 10,
     ): Promise<{data: any[]; total: number; page: number; limit: number }> {
         try {
-            const rawData = await this.dataBaseServiceAttendance.getAttendances(filters, page, limit);
+            const rawData = await this.dataBaseServiceAttendance.getAttendances(langId, filters, page, limit);
 
             const { rawResults, total } = rawData;
 
@@ -129,25 +129,25 @@ export class AttendanceService {
             const existing = await this.dataBaseServiceAttendance.findExistingAttendance(IdBeneficiary, IdActivity, attendanceDate);
 
             if (existing) {
-            // Si ya existe, se puede actualizar el estado (opcional)
-            existing.Status = status;
-            existing.UpdatedAt = new Date();
-            await this.dataBaseServiceAttendance.registerAttendance(existing);
+                // Si ya existe, se puede actualizar el estado (opcional)
+                existing.Status = status;
+                existing.UpdatedAt = new Date();
+                await this.dataBaseServiceAttendance.registerAttendance(existing);
 
-            return {
-                message: `Asistencia actualizada correctamente para el beneficiario ${IdBeneficiary} en la actividad ${IdActivity}`,
-                attendance: existing,
-            };
+                return {
+                    message: `Asistencia actualizada correctamente para el beneficiario ${IdBeneficiary} en la actividad ${IdActivity}`,
+                    attendance: existing,
+                };
             }
 
             // Crear nuevo registro
             const newAttendance: Partial<Attendance> = {
-            IdBeneficiary: IdBeneficiary,
-            IdActivity: IdActivity,
-            AttendanceDate: attendanceDate,
-            Status: status,
-            CreatedAt: new Date(),
-            UpdatedAt: new Date(),
+                IdBeneficiary: IdBeneficiary,
+                IdActivity: IdActivity,
+                AttendanceDate: attendanceDate,
+                Status: status,
+                CreatedAt: new Date(),
+                UpdatedAt: new Date(),
             };
             console.log("Registro de asistencia a crear: ", newAttendance);
            await this.dataBaseServiceAttendance.registerAttendance(newAttendance);

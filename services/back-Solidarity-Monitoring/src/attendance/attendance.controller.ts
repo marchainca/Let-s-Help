@@ -15,6 +15,7 @@ export class AttendanceController {
     // Endpoint para listar asistencias con filtros opcionales
     @Get('list')
     async listAttendances(
+        @Language() langId: number,
         @Query('identificacion') identificacion?: string,
         @Query('actividad') actividad?: string,
         @Query('fecha') fecha?: string,
@@ -35,7 +36,7 @@ export class AttendanceController {
             }
 
             const filters = { identificacion, actividad, fecha };
-            const response =  await this.attendanceService.listAttendances(filters, pageNumber, limitNumber);
+            const response =  await this.attendanceService.listAttendances(langId, filters, pageNumber, limitNumber);
             return await sendResponse(true, params.ResponseMessages.SUCCESS, response);
         } catch (error) {
             throw new HttpException(

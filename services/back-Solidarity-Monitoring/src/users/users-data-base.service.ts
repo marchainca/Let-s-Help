@@ -35,11 +35,11 @@ export class UsersDataBaseService {
             const userByEmail = await this.userRepository.find({ where: { Email: email },
                 relations: ['role'] });
 
-            //console.log('User found by email:', email, userByEmail);
+            console.log('User found by email:', email, userByEmail);
 
-            if (!userByEmail || userByEmail.length === 0) {
+            /* if (!userByEmail || userByEmail.length === 0) {
                 throw new NotFoundException(`Usuario con email ${email} no encontrado`);
-            }
+            } */
 
             return userByEmail;
         } catch (error) {
@@ -56,9 +56,9 @@ export class UsersDataBaseService {
             relations: ['role', 'role.translations'],
             });
 
-            if (!users || users.length === 0) {
+            /* if (!users || users.length === 0) {
             throw new NotFoundException(`Usuario con identificación ${idNumber} no encontrado`);
-            }
+            } */
 
             // Asignar el nombre traducido a cada rol
             for (const user of users) {
@@ -87,7 +87,7 @@ export class UsersDataBaseService {
             const users = await this.userRepository.find({
                 relations: ['role'],
             });
-            console.log('Users retrieved:', users);
+            //console.log('Users retrieved:', users);
             return users;
         } catch (error) {
             console.error('Error retrieving users:', error.message || error);

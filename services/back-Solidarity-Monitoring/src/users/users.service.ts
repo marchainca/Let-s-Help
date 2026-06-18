@@ -75,6 +75,10 @@ export class UsersService {
         } */
         // Buscar el usuario por identificación
         const user  = await this.dataBaseService.getUserByIdNumber(userId, langId);
+        
+        if (!user || user.length === 0) {
+            throw await errorResponse(`Usuario con ID ${userId} no encontrado`, 'updateUser');
+        }
         // Actualizar nombre (dividir en FirstName y LastName)
         if (data.name !== undefined) {
             const nameParts = data.name.trim().split(' ');

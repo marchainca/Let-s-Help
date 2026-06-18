@@ -48,16 +48,34 @@ export class UsersDataBaseService {
         }
     }
 
-    async getUserByIdNumber(idNumber: string): Promise<User[]> {
+    async getUserByIdNumber(idNumber: string, langId: number): Promise<User[]> {
         try {
-            const userByIdNumber = await this.userRepository.find({ where: { Identification: idNumber },
-                relations: ['role'] });
+            // Cargar usuario con su rol y las traducciones del rol
+            const users = await this.userRepository.find({
+            where: { Identification: idNumber },
+            relations: ['role', 'role.translations'],
+            });
 
-            if (!userByIdNumber) {
-                throw new NotFoundException(`Usuario con identificación ${idNumber} no encontrado`);
+            if (!users || users.length === 0) {
+            throw new NotFoundException(`Usuario con identificación ${idNumber} no encontrado`);
             }
 
-            return userByIdNumber;
+            // Asignar el nombre traducido a cada rol
+            for (const user of users) {
+            if (user.role && user.role.translations) {
+                const translation = user.role.translations.find(t => t.IdLanguage === langId);
+                if (translation) {
+                // Asignar el nombre traducido a una propiedad virtual (no mapeada a la BD)
+                (user.role as any).NameRole = translation.NameRole;
+                } else {
+                // Si no hay traducción para el idioma, usar el nombre por defecto (español)
+                const defaultTranslation = user.role.translations.find(t => t.IdLanguage === 1);
+                (user.role as any).NameRole = defaultTranslation.NameRole;
+                }
+            }
+            }
+
+            return users;
         } catch (error) {
             console.error('Error finding user by idNumber:', idNumber, error.message || error);
             throw error;

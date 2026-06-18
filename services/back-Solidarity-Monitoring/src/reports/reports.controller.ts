@@ -5,6 +5,7 @@ import { sendResponse } from 'src/tools/function.tools';
 import params from 'src/tools/params';
 import { CreateReportDto } from './dtos/create-report.dto';
 import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
+import { Language } from 'src/common/decorators/language.decorator';
 
 @Controller('letsHelp/Colombia/reports')
 //@UseGuards(JwtAuthGuard)
@@ -17,9 +18,9 @@ export class ReportsController {
    * @returns ID del reporte creado.
    */
   @Post('/create')
-  async createReport(@Body() report: CreateReportDto): Promise<CustomResponse> {
+  async createReport(@Body() report: CreateReportDto, @Language() langId: number): Promise<CustomResponse> {
     try {
-        const createReport = await this.reportsService.createReport(report);
+        const createReport = await this.reportsService.createReport(report, langId);
         return sendResponse(true, params.ResponseMessages.MESSAGE_SUCCESS, createReport)
     } catch (error) {
         throw new HttpException(
@@ -41,9 +42,9 @@ export class ReportsController {
    * @returns Lista de reportes coincidentes.
    */
   @Get('/search')
-  async findReports(@Query('term') searchTerm: string): Promise<CustomResponse> {
+  async findReports(@Query('term') searchTerm: string, @Language() langId:number): Promise<CustomResponse> {
     try {
-        const findReport = await this.reportsService.findReports(searchTerm);
+        const findReport = await this.reportsService.findReports(searchTerm, langId);
         return sendResponse(true, params.ResponseMessages.MESSAGE_SUCCESS, findReport)
     } catch (error) {
         throw new HttpException(
@@ -65,9 +66,9 @@ export class ReportsController {
  * @returns Lista de los últimos 10 reportes.
  */
 @Get('/recent')
-async listRecentReports(): Promise<CustomResponse> {
+async listRecentReports(@Language() langId: number): Promise<CustomResponse> {
     try {
-        const listReport = await this.reportsService.listRecentReports();
+        const listReport = await this.reportsService.listRecentReports(langId);
         return sendResponse(true, params.ResponseMessages.MESSAGE_SUCCESS, listReport)
     } catch (error) {
         throw new HttpException(

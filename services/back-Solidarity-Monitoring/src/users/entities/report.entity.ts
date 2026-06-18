@@ -1,6 +1,7 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, ManyToOne, JoinColumn } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, ManyToOne, JoinColumn, OneToMany } from 'typeorm';
 import { User } from './user.entity';
 import { Beneficiary } from '../../recognition/entities/beneficiary.entity';
+import { ReportsTranslation } from 'src/common/translation/entities/reports-translation.entity';
 
 @Entity('Reports')
 export class Report {
@@ -13,9 +14,6 @@ export class Report {
   @Column({ type: 'int' })
   IdBeneficiary: number;
 
-  @Column({ type: 'text' })
-  DescriptionReport: string;
-
   @CreateDateColumn({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   CreatedAt: Date;
 
@@ -26,4 +24,7 @@ export class Report {
   @ManyToOne(() => Beneficiary, beneficiary => beneficiary.reports)
   @JoinColumn({ name: 'IdBeneficiary' })
   beneficiary: Beneficiary;
+
+  @OneToMany(() => ReportsTranslation, translation => translation.report)
+  translations: ReportsTranslation[];
 }

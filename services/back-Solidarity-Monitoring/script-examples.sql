@@ -457,3 +457,10 @@ ALTER TABLE "Activities" DROP COLUMN "NameActivity";
 
 -- Absences
 ALTER TABLE "Absences" DROP COLUMN "DescriptionAbsence";
+
+-- Reports
+ALTER TABLE "Reports" DROP COLUMN "DescriptionReport";
+
+-- insert para 
+INSERT INTO "Languages" ("Code", "Name") VALUES (1, 'spanish' );
+INSERT INTO "Languages" ("Code", "Name") VALUES (2, 'english' );

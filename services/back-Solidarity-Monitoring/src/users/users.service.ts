@@ -14,7 +14,7 @@ export class UsersService {
      * Crear usuarios en Firestore
      * @param data Datos del usuario
      */
-    async createUser(data: any): Promise<object> {
+    async createUser(data: any, langId: number): Promise<object> {
         try {
             const userByEmail = await this.dataBaseService.getUserByEmail(data.email);
             console.log("Consulta de usuario por email:", userByEmail.length > 0 ? "Usuario encontrado" : "No se encontró usuario");
@@ -23,7 +23,7 @@ export class UsersService {
                 throw await errorResponse(`Error: user is already registered with the email ${data.email}`, "createUser");
             }
 
-            const userByIdNumber = await this.dataBaseService.getUserByIdNumber(data.idNumber);
+            const userByIdNumber = await this.dataBaseService.getUserByIdNumber(data.idNumber,langId );
             console.log("Consulta de usuario por idNumber:", userByIdNumber.length > 0 ? "Usuario encontrado" : "No se encontró usuario");
 
             if (userByIdNumber.length > 0) {
@@ -54,7 +54,7 @@ export class UsersService {
                 password: user.Password,
                 idNumber: user.Identification,
                 name: `${user.FirstName || ''} ${user.LastName || ''}`.trim(),
-                role: user.role?.NameRole,
+                //role: user.role?.NameRole,
                 birthdate: user.Birthdate ? user.Birthdate : '',
                 urlImage: user.UrlImage || '',
             }));
@@ -68,13 +68,13 @@ export class UsersService {
     }
 
     // Actualizar un usuario por ID
-    async updateUser(userId: string, data: any): Promise<void> {
+    async updateUser(userId: string, data: any, langId: number): Promise<void> {
         /* if ( await isBase64(data.urlImage) ) {
             console.log("Entro al if del base64")
            data.urlImage= await uploadImageToCloudStorage(data.urlImage, `images/${data.idNumber}-${Date.now()}.jpg`)
         } */
         // Buscar el usuario por identificación
-        const user  = await this.dataBaseService.getUserByIdNumber(userId);
+        const user  = await this.dataBaseService.getUserByIdNumber(userId, langId);
         // Actualizar nombre (dividir en FirstName y LastName)
         if (data.name !== undefined) {
             const nameParts = data.name.trim().split(' ');

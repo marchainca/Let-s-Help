@@ -25,7 +25,7 @@ export class AuthService {
             if (user[0].Password != password) {
                 throw await errorResponse("Error: Invalid pass", "validateUser");
             }
-            return { id: user[0].IdUser, idNumber: user[0].Identification, email: user[0].Email, name: user[0].FirstName, role: user[0].role?.NameRole, urlImage: user[0].UrlImage, birthdate: user[0].Birthdate};
+            return { id: user[0].IdUser, idNumber: user[0].Identification, email: user[0].Email, name: user[0].FirstName, role: user[0].role[0]?.NameRole, urlImage: user[0].UrlImage, birthdate: user[0].Birthdate};
         } catch (error) {
             console.log("Error validateUser", error)
             throw error;

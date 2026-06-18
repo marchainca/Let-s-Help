@@ -295,6 +295,17 @@ CREATE TABLE "AbsencesTranslations" (
 );
 
 -- =============================================
+-- 23. ReportsTranslations para la internacionalización de los reportes
+-- =============================================
+CREATE TABLE "ReportsTranslations" (
+    "IdTranslation" SERIAL PRIMARY KEY,
+    "IdReport" INTEGER NOT NULL REFERENCES "Reports"("IdReport") ON DELETE CASCADE,
+    "IdLanguage" INTEGER NOT NULL REFERENCES "Languages"("IdLanguage") ON DELETE CASCADE,
+    "DescriptionReport" TEXT NOT NULL,
+    UNIQUE ("IdReport", "IdLanguage")
+);
+
+-- =============================================
 -- ÍNDICES RECOMENDADOS
 -- =============================================
 CREATE INDEX idx_users_idrole ON Users(IdRole);
@@ -320,6 +331,8 @@ CREATE INDEX idx_attendances_activity ON "Attendances"("IdActivity");
 CREATE INDEX idx_attendances_date ON "Attendances"("AttendanceDate");
 CREATE INDEX idx_attendances_status ON "Attendances"("Status");
 CREATE INDEX idx_attendances_idabsence ON "Attendances"("IdAbsence");
+CREATE INDEX idx_reports_translations_idreport ON "ReportsTranslations"("IdReport");
+CREATE INDEX idx_reports_translations_idlanguage ON "ReportsTranslations"("IdLanguage");
 
 -- =============================================
 -- COMENTARIOS
@@ -329,6 +342,14 @@ COMMENT ON TABLE Absences IS 'Registro de inasistencias de beneficiarios a activ
 COMMENT ON TABLE Reports IS 'Reportes disciplinarios o incidencias sobre beneficiarios';
 COMMENT ON TABLE Activities_tracking IS 'Seguimiento semanal de actividades: registra ejecución, asistencia real vs proyectada, y avance de actividades planificadas vs ejecutadas.';
 COMMENT ON TABLE DocumentTypes IS 'Tipos de documentos de identificación (Cédula, Tarjeta de Identidad, etc.)';
+COMMENT ON TABLE Attendances IS 'Registro de asistencias de beneficiarios a actividades, con estado (presente, ausente, justificado, tarde) y hora de ingreso.';
+COMMENT ON TABLE Languages IS 'Idiomas disponibles para la internacionalización de la aplicación';
+COMMENT ON TABLE RolesTranslations IS 'Traducciones de los roles para la internacionalización';
+COMMENT ON TABLE ProgramsTranslations IS 'Traducciones de los programas para la internacionalización';
+COMMENT ON TABLE SubProgramsTranslations IS 'Traducciones de los subprogramas para la internacionalización';
+COMMENT ON TABLE ActivitiesTranslations IS 'Traducciones de las actividades para la internacionalización';
+COMMENT ON TABLE AbsencesTranslations IS 'Traducciones de las inasistencias para la internacionalización';
+COMMENT ON TABLE ReportsTranslations IS 'Traducciones de los reportes para la internacionalización';
 
 -- =============================================
 -- ALTERACIONES POSTERIORES
@@ -350,3 +371,7 @@ ADD COLUMN "IdNeighborhood" INTEGER REFERENCES "Neighborhoods"("IdNeighborhood")
 -- Modificar la columna CheckInTime en la tabla Attendances para que tenga un valor por defecto de la hora actual, lo que facilitará el registro de asistencias sin necesidad de proporcionar explícitamente la hora de ingreso, y asegurará que siempre se registre un valor válido para esta columna.
 
 ALTER TABLE "Attendances" ALTER COLUMN "CheckInTime" SET DEFAULT CURRENT_TIME;
+
+-- Modificar nombre de la
+ALTER TABLE "Languages" RENAME COLUMN name TO "Name";
+

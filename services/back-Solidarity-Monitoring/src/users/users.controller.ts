@@ -8,6 +8,7 @@ import { CustomResponse } from 'src/interfaces/interfaces';
 import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 import { RolesGuard } from 'src/common/guards/roles.guard';
 import { Roles } from 'src/common/decorators/roles.decorator';
+import { Language } from 'src/common/decorators/language.decorator';
 
 @Controller('letsHelp/Colombia/users/')
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -16,10 +17,10 @@ export class UsersController {
 
     @Post()
     @Roles('Admin')
-    async createUser(@Body() userData: CreateUserDto): Promise<CustomResponse> {
+    async createUser(@Body() userData: CreateUserDto, @Language() langId:number): Promise<CustomResponse> {
         try {
           console.log("depués del try")
-            const id = await this.usersService.createUser(userData);
+            const id = await this.usersService.createUser(userData, langId);
 
             return await sendResponse(true, params.ResponseMessages.CREATED, {id} )
         } catch (error) {
@@ -56,10 +57,10 @@ export class UsersController {
 
     // Ruta para actualizar un usuario por ID
     @Patch(':id')
-    async updateUser(@Param('id') userId: string, @Body() updateData: UpdateUserDto): Promise<string> {
+    async updateUser(@Param('id') userId: string, @Body() updateData: UpdateUserDto, @Language() langId: number): Promise<string> {
         try {
           console.log("contenido de userId: ", userId)
-            await this.usersService.updateUser(userId, updateData);
+            await this.usersService.updateUser(userId, updateData, langId);
             return `User with ID ${userId} updated successfully.`;
         } catch (error) {
             throw new HttpException(

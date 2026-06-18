@@ -23,7 +23,7 @@ export class ReportsService {
    * @param report Datos del reporte a crear.
    * @returns ID del reporte creado.
   */
-  async createReport(report: CreateReportDto): Promise<Object> {
+  async createReport(report: CreateReportDto, langId: number): Promise<Object> {
       try {
           const { identificacion, nombresApellidos, reporte, createdBy } = report;
 
@@ -40,7 +40,7 @@ export class ReportsService {
           }
 
           // Buscar el usuario que crea el reporte por identificación
-          const user = await this.usersDataBaseService.getUserByIdNumber(createdBy);
+          const user = await this.usersDataBaseService.getUserByIdNumber(createdBy, langId);
           if (!user || user.length === 0) {
             throw await errorResponse(`Error: User with identification ${createdBy} not found`, "createReport");
           }
@@ -50,6 +50,8 @@ export class ReportsService {
             IdUser: user[0].IdUser,
             IdBeneficiary: beneficiary.IdBeneficiary,
             DescriptionReport: reporte,
+            langId: langId,
+
           });
           return {id: newReport.IdReport.toString()} ; // Retorna el ID del reporte creado
       } catch (error) {
@@ -64,26 +66,23 @@ export class ReportsService {
    * @param searchTerm Término de búsqueda.
    * @returns Lista de reportes coincidentes.
   */
-  async findReports(searchTerm: string): Promise<any> {
+  async findReports(searchTerm: string, langId: number): Promise<any> {
       try {
         if (!searchTerm) {
           throw await errorResponse('Error: You must provide a search term.', 'findReports');
         }
-        // Buscar reportes utilizando el servicio de base de datos de reportes
-        const reports = await this.dataBaseReportsService.findReports(searchTerm);
-        //console.log('Reports found:', reports);
+        const reports = await this.dataBaseReportsService.findReports(searchTerm, langId);
 
-        // Formatear la fecha (similar al formato original)
         const formatResult = reports.map((row: any) => ({
-        id: row.idreport,
-        identificacion: row.identificationbeneficiary,
-        nombresApellidos: row.nombresapellidos,
-        reporte: row.descriptionreport,
-        createdBy: row.identification,
-        createdAt: row.createdat ? this.formatDate(row.createdat) : null,
-      }));
+          id: row.idreport,
+          identificacion: row.identificationbeneficiary,
+          nombresApellidos: row.nombresapellidos,
+          reporte: row.descriptionreport,
+          createdBy: row.identification,
+          createdAt: row.createdat ? this.formatDate(row.createdat) : null,
+        }));
 
-      return formatResult;
+        return formatResult;
       } catch (error) {
         throw error;
       }
@@ -93,23 +92,23 @@ export class ReportsService {
    * Lista los últimos 10 reportes creados, ordenados por fecha de creación (descendente).
    * @returns Lista de los últimos 10 reportes.
    */
-  async listRecentReports(): Promise<Report[]> {
+  async listRecentReports(langId: number): Promise<any[]> {
       try {
-        const results = await this.dataBaseReportsService.listRecentReports();
+        const results = await this.dataBaseReportsService.listRecentReports(langId);
 
         const formattedResults = results.map((row: any) => ({
           id: row.id,
           identificacion: row.identificacion,
-          nombresApellidos: row.nombresapellidos,
+          nombresApellidos: row.nombresApellidos,
           reporte: row.reporte,
-          createdBy: row.createdby,
-          createdAt: row.createdat ? this.formatDate(row.createdat) : null,
+          createdBy: row.createdBy,
+          createdAt: row.createdAt ? this.formatDate(row.createdAt) : null,
         }));
 
         return formattedResults;
       } catch (error) {
-          console.error('Error al listar los reportes recientes:', error);
-          throw error;
+        console.error('Error al listar los reportes recientes:', error);
+        throw error;
       }
   }
 

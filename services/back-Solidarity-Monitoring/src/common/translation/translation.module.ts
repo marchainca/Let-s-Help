@@ -4,13 +4,15 @@ import { ProgramsTranslation } from './entities/programs-translation.entity';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { SubProgramsTranslation } from './entities/subprograms-translation.entity';
 import { ActivitiesTranslation } from './entities/activities-translation.entity';
+import { ReportsTranslation } from './entities/reports-translation.entity';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([
       ProgramsTranslation,
       SubProgramsTranslation,
-      ActivitiesTranslation
+      ActivitiesTranslation,
+      ReportsTranslation
     ]),
   ],
   providers: [TranslationService],

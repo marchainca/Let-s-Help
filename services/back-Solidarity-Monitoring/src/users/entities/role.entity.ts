@@ -5,13 +5,7 @@ import { RolesTranslation } from 'src/common/translation/entities/roles-translat
 @Entity('Roles')
 export class Role {
   @PrimaryGeneratedColumn()
-  IdRole: number;
-
-  @Column({ type: 'varchar', length: 100 })
-  NameRole: string;
-
-  @Column({ type: 'varchar', length: 250 })
-  Description: string;
+  IdRole: number; 
 
   @CreateDateColumn({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   CreatedAt: Date;

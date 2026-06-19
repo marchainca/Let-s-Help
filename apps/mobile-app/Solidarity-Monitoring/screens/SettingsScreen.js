@@ -1,23 +1,26 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { useTranslation } from 'react-i18next';
 
 const SettingsScreen = ({ navigation }) => {
+  const { t } = useTranslation();
+
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Crear Usuarios y/o Integrantes</Text>
+      <Text style={styles.title}>{t('settings.title')}</Text>
 
       <TouchableOpacity
         style={styles.button}
         onPress={() => navigation.navigate('NewMemberScreen')}
       >
-        <Text style={styles.buttonText}>Integrantes</Text>
+        <Text style={styles.buttonText}>{t('settings.members')}</Text>
       </TouchableOpacity>
 
       <TouchableOpacity
         style={styles.button}
         onPress={() => navigation.navigate('UserManagementScreen')}
       >
-        <Text style={styles.buttonText}>Usuarios</Text>
+        <Text style={styles.buttonText}>{t('settings.users')}</Text>
       </TouchableOpacity>
     </View>
   );

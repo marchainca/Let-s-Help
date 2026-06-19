@@ -12,30 +12,28 @@ import {
 import { DateTimePickerAndroid } from '@react-native-community/datetimepicker';
 import * as ImagePicker from 'expo-image-picker';
 import CryptoJS from 'crypto-js';
+import { useTranslation } from 'react-i18next';
 import { UserContext } from '../context/UserContext';
 
 const EditProfileScreen = () => {
-  // Función para convertir la fecha de "DD/MM/YYYY" a "YYYY-MM-DD"
+  const { t } = useTranslation();
+
   const parseDate = (dateString) => {
-    if (!dateString) return new Date(); // Si no hay fecha, usar la fecha actual
-  
-    // Si el valor es un objeto Date válido, devuélvelo tal cual
+    if (!dateString) return new Date();
+
     if (dateString instanceof Date && !isNaN(dateString)) {
       return dateString;
     }
-  
-    // Si es un string, intentar convertirlo a Date
+
     try {
       const date = new Date(dateString);
       if (!isNaN(date)) return date;
     } catch (error) {
       console.error('Error al convertir la fecha:', error);
     }
-  
-    // Como último recurso, devuelve la fecha actual
+
     return new Date();
   };
-  
 
   const { user, updateUser } = useContext(UserContext);
   const [profileImage, setProfileImage] = useState(user?.profileImageUrl || '');
@@ -45,49 +43,43 @@ const EditProfileScreen = () => {
   const [birthdate, setBirthdate] = useState(parseDate(user?.birthdate));
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  //console.log("User->", user)
+
   const handleDateChange = (event, selectedDate) => {
     if (selectedDate) setBirthdate(selectedDate);
   };
 
-   // Cambiar imagen de perfil
-   const handleChangeImage = async () => {
+  const handleChangeImage = async () => {
     try {
-      // Pedir permisos para acceder a la galería
       const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
       if (!permissionResult.granted) {
-        Alert.alert('Permiso denegado', 'Es necesario otorgar permisos para cambiar la imagen.');
+        Alert.alert(t('common.permissionDenied'), t('editProfile.imagePermissionRequired'));
         return;
       }
 
-      // Abrir la galería para seleccionar una imagen
       const pickerResult = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes:  ['images'],
+        mediaTypes: ['images'],
         allowsEditing: true,
-        aspect: [1, 1], // Relación de aspecto 1:1 (cuadrada)
-        quality: 0.8, // Calidad de la imagen (80%)
+        aspect: [1, 1],
+        quality: 0.8,
         base64: true,
       });
 
       if (!pickerResult.canceled) {
-        // Actualizar el estado con la nueva imagen
         setProfileImage(`data:image/jpeg;base64,${pickerResult.assets[0].base64}`);
-        Alert.alert('Éxito', 'Imagen de perfil actualizada.');
+        Alert.alert(t('common.success'), t('editProfile.imageUpdated'));
       }
     } catch (error) {
       console.error('Error al cambiar la imagen de perfil:', error);
-      Alert.alert('Error', 'No se pudo cambiar la imagen de perfil.');
+      Alert.alert(t('common.error'), t('editProfile.imageUpdateFailed'));
     }
   };
 
   const handleSaveChanges = async () => {
-    // Verificar que las contraseñas coincidan
     if (password !== confirmPassword) {
-      Alert.alert('Error', 'Las contraseñas no coinciden.');
+      Alert.alert(t('common.error'), t('editProfile.passwordMismatch'));
       return;
     }
 
-    // Solo incluir campos que hayan cambiado
     const updatedData = {};
     if (profileImage !== user?.profileImageUrl) updatedData.urlImage = profileImage;
     if (name !== user?.name) updatedData.name = name;
@@ -98,15 +90,13 @@ const EditProfileScreen = () => {
     }
     if (password) updatedData.password = CryptoJS.SHA256(password).toString();
 
-    // Verificar si hay cambios
     if (Object.keys(updatedData).length === 0) {
-      Alert.alert('Sin cambios', 'No hay cambios para guardar.');
+      Alert.alert(t('common.noChanges'), t('editProfile.noChangesToSave'));
       return;
     }
 
     try {
       const apiUrl = `${process.env.EXPO_PUBLIC_API_URL}users/:id=${user.id}`;
-      console.log("Data enviada actualizar perfil: ", updatedData)
       const response = await fetch(apiUrl, {
         method: 'PATCH',
         headers: {
@@ -117,65 +107,79 @@ const EditProfileScreen = () => {
       });
 
       if (response.ok) {
-        console.log(response);
-        Alert.alert('Éxito', 'Perfil actualizado correctamente.');
-        updateUser(updatedData); // Actualizar el contexto con los nuevos datos
+        Alert.alert(t('common.success'), t('editProfile.profileUpdated'));
+        updateUser(updatedData);
       } else {
         const errorData = await response.json();
-        Alert.alert('Error', `No se pudo actualizar el perfil: ${errorData.message}`);
+        Alert.alert(
+          t('common.error'),
+          t('editProfile.updateFailed', { message: errorData.message })
+        );
       }
     } catch (error) {
       console.error('Error al actualizar el perfil:', error);
-      Alert.alert('Error', 'No se pudo conectar con el servidor.');
+      Alert.alert(t('common.error'), t('common.serverConnectionError'));
     }
   };
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.title}>Editar Perfil</Text>
+      <Text style={styles.title}>{t('editProfile.title')}</Text>
 
-      {/* Cambiar Imagen */}
       <TouchableOpacity onPress={handleChangeImage}>
         <Image source={{ uri: profileImage }} style={styles.profileImage} />
-        <Text style={styles.changeImageText}>Cambiar Imagen</Text>
+        <Text style={styles.changeImageText}>{t('editProfile.changeImage')}</Text>
       </TouchableOpacity>
 
-      {/* Editar Nombre */}
-      <Text style={styles.label}>Nombre</Text>
+      <Text style={styles.label}>{t('common.name')}</Text>
       <TextInput style={styles.input} value={name} onChangeText={setName} />
 
-      {/* Editar Correo */}
-      <Text style={styles.label}>Correo Electrónico</Text>
-      <TextInput style={styles.input} value={email} onChangeText={setEmail} keyboardType="email-address" />
+      <Text style={styles.label}>{t('common.email')}</Text>
+      <TextInput
+        style={styles.input}
+        value={email}
+        onChangeText={setEmail}
+        keyboardType="email-address"
+      />
 
-      {/* Editar Número de Identificación */}
-      <Text style={styles.label}>Número de Identificación</Text>
-      <TextInput style={styles.input} value={idNumber} onChangeText={setIdNumber} keyboardType="numeric" />
+      <Text style={styles.label}>{t('common.identificationNumber')}</Text>
+      <TextInput
+        style={styles.input}
+        value={idNumber}
+        onChangeText={setIdNumber}
+        keyboardType="numeric"
+      />
 
-      {/* Cambiar Fecha de Nacimiento */}
-      <Text style={styles.label}>Fecha de Nacimiento</Text>
+      <Text style={styles.label}>{t('common.birthdate')}</Text>
       <TouchableOpacity
         style={styles.input}
-        onPress={() => DateTimePickerAndroid.open({ value: birthdate, onChange: handleDateChange })}
+        onPress={() =>
+          DateTimePickerAndroid.open({ value: birthdate, onChange: handleDateChange })
+        }
       >
         <Text>
-          {birthdate instanceof Date
-            ? birthdate.toISOString().split('T')[0] // Mostrar fecha en formato YYYY-MM-DD
-            : ''}
+          {birthdate instanceof Date ? birthdate.toISOString().split('T')[0] : ''}
         </Text>
       </TouchableOpacity>
 
-      {/* Cambiar Contraseña */}
-      <Text style={styles.label}>Nueva Contraseña</Text>
-      <TextInput style={styles.input} value={password} onChangeText={setPassword} secureTextEntry />
+      <Text style={styles.label}>{t('editProfile.newPassword')}</Text>
+      <TextInput
+        style={styles.input}
+        value={password}
+        onChangeText={setPassword}
+        secureTextEntry
+      />
 
-      {/* Confirmar Contraseña */}
-      <Text style={styles.label}>Confirmar Contraseña</Text>
-      <TextInput style={styles.input} value={confirmPassword} onChangeText={setConfirmPassword} secureTextEntry />
+      <Text style={styles.label}>{t('editProfile.confirmPassword')}</Text>
+      <TextInput
+        style={styles.input}
+        value={confirmPassword}
+        onChangeText={setConfirmPassword}
+        secureTextEntry
+      />
 
-      {/* Botón para guardar cambios */}
       <TouchableOpacity style={styles.saveButton} onPress={handleSaveChanges}>
-        <Text style={styles.saveButtonText}>Guardar Cambios</Text>
+        <Text style={styles.saveButtonText}>{t('editProfile.saveChanges')}</Text>
       </TouchableOpacity>
     </ScrollView>
   );

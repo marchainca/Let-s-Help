@@ -1,16 +1,26 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
+import { useTranslation } from 'react-i18next';
 
 const ReportDetailScreen = ({ route }) => {
   const { report } = route.params;
-  console.log("Contenido de los reportes: ", report)
+  const { t } = useTranslation();
+
   return (
     <View style={styles.container}>
       <Text style={styles.title}>{report.nombresApellidos}</Text>
-      <Text style={styles.detail}>Número de Indetificación: {report.identificacion}</Text>
-      <Text style={styles.detail}>Creado el: {report.createdAt}</Text>
-      <Text style={styles.detail}>Creado por: {report.createdBy}</Text>
-      <Text style={styles.detail}>Reporte: {report.reporte}</Text>
+      <Text style={styles.detail}>
+        {t('reportDetail.identification')} {report.identificacion}
+      </Text>
+      <Text style={styles.detail}>
+        {t('reportDetail.createdAt')} {report.createdAt}
+      </Text>
+      <Text style={styles.detail}>
+        {t('reportDetail.createdBy')} {report.createdBy}
+      </Text>
+      <Text style={styles.detail}>
+        {t('reportDetail.report')} {report.reporte}
+      </Text>
     </View>
   );
 };

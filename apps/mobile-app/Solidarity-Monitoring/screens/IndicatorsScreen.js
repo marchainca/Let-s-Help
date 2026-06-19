@@ -8,9 +8,9 @@ import {
   ActivityIndicator,
   Alert,
 } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import Svg, { Circle } from 'react-native-svg';
 import { BarChart } from 'react-native-chart-kit';
+import { useTranslation } from 'react-i18next';
 
 const PROGRESS_RING_SIZE = 80;
 
@@ -46,6 +46,7 @@ const ProgressRing = ({ progress, color, strokeWidth = 6 }) => {
 };
 
 const IndicatorsScreen = () => {
+  const { t } = useTranslation();
   const [isLoading, setIsLoading] = useState(true);
   const [data, setData] = useState({
     progress: { currentMonth: 0, lastMonth: 0, semester: 0 },
@@ -66,7 +67,7 @@ const IndicatorsScreen = () => {
 
         if (!response.ok) {
           const errorData = await response.json();
-          throw new Error(errorData.message || 'Error en la respuesta del servidor');
+          throw new Error(errorData.message || t('common.serverResponseError'));
         }
 
         const result = await response.json();
@@ -78,11 +79,14 @@ const IndicatorsScreen = () => {
             budget: result.content.budget || [],
           });
         } else {
-          throw new Error(result.message || 'Error al cargar los indicadores');
+          throw new Error(result.message || t('indicators.loadError'));
         }
       } catch (error) {
         console.error('Error fetching data:', error);
-        Alert.alert('Error', `No se pudo cargar los indicadores: ${error.message}`);
+        Alert.alert(
+          t('common.error'),
+          t('indicators.loadFailed', { message: error.message })
+        );
       } finally {
         setIsLoading(false);
       }
@@ -111,25 +115,46 @@ const IndicatorsScreen = () => {
     </View>
   );
 
+  const monthLabels = [
+    t('indicators.months.jan'),
+    t('indicators.months.feb'),
+    t('indicators.months.mar'),
+    t('indicators.months.apr'),
+    t('indicators.months.may'),
+    t('indicators.months.jun'),
+  ];
+
   return (
     <FlatList
       data={data.budget}
       keyExtractor={(item) => item.id}
       ListHeaderComponent={
         <View>
-          <Text style={styles.title}>Indicadores</Text>
-          <Text style={styles.sectionTitle}>Avances Actividades</Text>
+          <Text style={styles.title}>{t('indicators.title')}</Text>
+          <Text style={styles.sectionTitle}>{t('indicators.activityProgress')}</Text>
 
           <View style={styles.progressContainer}>
-            {renderProgressCircle(data.progress.currentMonth, '#4caf50', 'Mes Actual')}
-            {renderProgressCircle(data.progress.lastMonth, '#f44336', 'Mes Pasado')}
-            {renderProgressCircle(data.progress.semester, '#2196f3', 'Semestre')}
+            {renderProgressCircle(
+              data.progress.currentMonth,
+              '#4caf50',
+              t('indicators.currentMonth')
+            )}
+            {renderProgressCircle(
+              data.progress.lastMonth,
+              '#f44336',
+              t('indicators.lastMonth')
+            )}
+            {renderProgressCircle(
+              data.progress.semester,
+              '#2196f3',
+              t('indicators.semester')
+            )}
           </View>
 
-          <Text style={styles.sectionTitle}>Rendimiento</Text>
+          <Text style={styles.sectionTitle}>{t('indicators.performance')}</Text>
           <BarChart
             data={{
-              labels: ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun'],
+              labels: monthLabels,
               datasets: [{ data: data.performance }],
             }}
             width={350}
@@ -155,7 +180,7 @@ const IndicatorsScreen = () => {
           </View>
         </View>
       )}
-      nestedScrollEnabled={true}
+      nestedScrollEnabled
     />
   );
 };

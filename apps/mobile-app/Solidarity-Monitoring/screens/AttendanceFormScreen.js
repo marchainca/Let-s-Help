@@ -1,4 +1,3 @@
-// AttendanceFormScreen.js
 import React, { useState, useEffect, useContext } from 'react';
 import {
   View,
@@ -11,25 +10,18 @@ import {
 } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import DateTimePicker from '@react-native-community/datetimepicker';
+import { useTranslation } from 'react-i18next';
 import { UserContext } from '../context/UserContext';
 
 const AttendanceFormScreen = ({ navigation }) => {
-  useEffect(() => {
-    navigation.setOptions({
-      headerTitle: 'Registro de Inasistencias',
-    });
-  }, []);
-
+  const { t } = useTranslation();
   const { user } = useContext(UserContext);
-  const [programs, setPrograms] = useState([]); // List of programs
-  const [program, setProgram] = useState(''); // Selected program
-
-  const [subprograms, setSubprograms] = useState([]); // List of subprograms
-  const [subprogram, setSubprogram] = useState(''); // Selected subprogram
-
-  const [activities, setActivities] = useState({}); // Activities mapped to subprograms
-  const [activity, setActivity] = useState(''); // Selected activity
-
+  const [programs, setPrograms] = useState([]);
+  const [program, setProgram] = useState('');
+  const [subprograms, setSubprograms] = useState([]);
+  const [subprogram, setSubprogram] = useState('');
+  const [activities, setActivities] = useState({});
+  const [activity, setActivity] = useState('');
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -39,9 +31,8 @@ const AttendanceFormScreen = ({ navigation }) => {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-
-  const [suggestions, setSuggestions] = useState([]); // Suggestions for names
-  const [loadingSuggestions, setLoadingSuggestions] = useState(false); // Loading state for suggestions
+  const [suggestions, setSuggestions] = useState([]);
+  const [loadingSuggestions, setLoadingSuggestions] = useState(false);
 
   const fetchPrograms = async () => {
     try {
@@ -70,11 +61,11 @@ const AttendanceFormScreen = ({ navigation }) => {
 
       if (response.ok) {
         const data = await response.json();
-        const subprogramsData = Object.keys(data.content || {}); // Extract subprogram names
+        const subprogramsData = Object.keys(data.content || {});
         setSubprograms(subprogramsData);
         setActivities(data.content || {});
-        setActivity(''); // Reset activity selection
-        setSubprogram(''); // Reset subprogram selection
+        setActivity('');
+        setSubprogram('');
       } else {
         console.error('Error fetching subprograms and activities:', await response.text());
       }
@@ -83,10 +74,9 @@ const AttendanceFormScreen = ({ navigation }) => {
     }
   };
 
-  // Fetch suggestions for names from the backend
   const fetchSuggestions = async (query) => {
     if (!query) {
-      setSuggestions([]); // Clear suggestions if query is empty
+      setSuggestions([]);
       return;
     }
 
@@ -99,7 +89,7 @@ const AttendanceFormScreen = ({ navigation }) => {
 
       if (response.ok) {
         const data = await response.json();
-        setSuggestions(data.content || []); // Store suggestions
+        setSuggestions(data.content || []);
       } else {
         console.error('Error fetching suggestions:', await response.text());
       }
@@ -112,12 +102,12 @@ const AttendanceFormScreen = ({ navigation }) => {
 
   const handleProgramChange = (selectedProgram) => {
     setProgram(selectedProgram);
-    fetchSubprogramsAndActivities(selectedProgram); // Fetch subprograms and activities for the selected program
+    fetchSubprogramsAndActivities(selectedProgram);
   };
 
   const handleSubprogramChange = (selectedSubprogram) => {
     setSubprogram(selectedSubprogram);
-    setActivity(''); // Reset activity selection when subprogram changes
+    setActivity('');
   };
 
   const handleSuggestionSelect = (item) => {
@@ -125,15 +115,14 @@ const AttendanceFormScreen = ({ navigation }) => {
       firstName: item.name.trim(),
       lastName: item.lastName.trim(),
       documentNumber: item.documentNumber.toString(),
-      reason: formData.reason, // Keep existing reason
+      reason: formData.reason,
     });
-    setSuggestions([]); // Clear suggestions
+    setSuggestions([]);
   };
 
   const handleInputChange = (field, value) => {
     setFormData({ ...formData, [field]: value });
 
-    // If the "Nombres" field is being edited, trigger name search
     if (field === 'firstName') {
       fetchSuggestions(value);
     }
@@ -147,8 +136,16 @@ const AttendanceFormScreen = ({ navigation }) => {
   };
 
   const handleSubmit = async () => {
-    if (!program || !subprogram || !activity || !formData.firstName || !formData.lastName || !formData.documentNumber || !formData.reason) {
-      Alert.alert('Error', 'Por favor complete todos los campos.');
+    if (
+      !program ||
+      !subprogram ||
+      !activity ||
+      !formData.firstName ||
+      !formData.lastName ||
+      !formData.documentNumber ||
+      !formData.reason
+    ) {
+      Alert.alert(t('common.error'), t('common.completeAllFieldsFormal'));
       return;
     }
 
@@ -174,78 +171,76 @@ const AttendanceFormScreen = ({ navigation }) => {
       });
 
       if (response.ok) {
-        Alert.alert('Éxito', 'Inasistencia registrada correctamente.');
+        Alert.alert(t('common.success'), t('attendanceForm.absenceRegistered'));
         navigation.goBack();
       } else {
         const errorData = await response.json();
-        Alert.alert('Error', `No se pudo registrar la inasistencia: ${errorData.message}`);
+        Alert.alert(
+          t('common.error'),
+          t('attendanceForm.absenceRegisterFailed', { message: errorData.message })
+        );
       }
     } catch (error) {
       console.error('Error al registrar la inasistencia:', error);
-      Alert.alert('Error', 'No se pudo conectar con el servidor.');
+      Alert.alert(t('common.error'), t('common.serverConnectionError'));
     } finally {
       setIsSubmitting(false);
     }
   };
 
   useEffect(() => {
-    fetchPrograms(); // Load programs on mount
+    fetchPrograms();
   }, []);
 
   return (
-    <ScrollView
-      contentContainerStyle={styles.container}
-      keyboardShouldPersistTaps="handled"
-    >
-      <Text style={styles.header}>Formulario de Inasistencias</Text>
+    <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
+      <Text style={styles.header}>{t('attendanceForm.header')}</Text>
 
-      {/* Program Selector */}
       <Picker
         selectedValue={program}
         style={styles.picker}
         onValueChange={(itemValue) => handleProgramChange(itemValue)}
       >
-        <Picker.Item label="Seleccione un programa" value="" />
+        <Picker.Item label={t('attendanceForm.selectProgram')} value="" />
         {programs.map((programName, index) => (
           <Picker.Item key={index} label={programName} value={programName} />
         ))}
       </Picker>
 
-      {/* Subprogram Selector */}
       <Picker
         selectedValue={subprogram}
         style={styles.picker}
         onValueChange={(itemValue) => handleSubprogramChange(itemValue)}
         enabled={!!program}
       >
-        <Picker.Item label="Seleccione un subprograma" value="" />
+        <Picker.Item label={t('attendanceForm.selectSubprogram')} value="" />
         {subprograms.map((subprogramName, index) => (
           <Picker.Item key={index} label={subprogramName} value={subprogramName} />
         ))}
       </Picker>
 
-      {/* Activity Selector */}
       <Picker
         selectedValue={activity}
         style={styles.picker}
         onValueChange={(itemValue) => setActivity(itemValue)}
         enabled={!!subprogram}
       >
-        <Picker.Item label="Seleccione una actividad" value="" />
+        <Picker.Item label={t('attendanceForm.selectActivity')} value="" />
         {(activities[subprogram] || []).map((activityName, index) => (
           <Picker.Item key={index} label={activityName} value={activityName} />
         ))}
       </Picker>
 
-      {/* Form Fields */}
-      <Text style={styles.label}>Nombres:</Text>
+      <Text style={styles.label}>{t('attendanceForm.firstNameLabel')}</Text>
       <TextInput
         style={styles.input}
         value={formData.firstName}
         onChangeText={(text) => handleInputChange('firstName', text)}
-        placeholder="Introduce el nombre"
+        placeholder={t('attendanceForm.namePlaceholder')}
       />
-      {loadingSuggestions && <Text style={styles.loadingText}>Buscando...</Text>}
+      {loadingSuggestions && (
+        <Text style={styles.loadingText}>{t('common.searching')}</Text>
+      )}
       {suggestions.length > 0 && (
         <View style={styles.suggestionsList}>
           {suggestions.map((item) => (
@@ -262,21 +257,26 @@ const AttendanceFormScreen = ({ navigation }) => {
         </View>
       )}
 
-      <Text style={styles.label}>Apellidos:</Text>
+      <Text style={styles.label}>{t('attendanceForm.lastNameLabel')}</Text>
       <TextInput style={styles.input} value={formData.lastName} editable={false} />
 
-      <Text style={styles.label}>N° Documento:</Text>
+      <Text style={styles.label}>{t('attendanceForm.documentLabel')}</Text>
       <TextInput style={styles.input} value={formData.documentNumber} editable={false} />
 
-      <Text style={styles.label}>Fecha:</Text>
+      <Text style={styles.label}>{t('attendanceForm.dateLabel')}</Text>
       <TouchableOpacity style={styles.input} onPress={() => setShowDatePicker(true)}>
         <Text>{selectedDate.toISOString().split('T')[0]}</Text>
       </TouchableOpacity>
       {showDatePicker && (
-        <DateTimePicker value={selectedDate} mode="date" display="default" onChange={handleDateChange} />
+        <DateTimePicker
+          value={selectedDate}
+          mode="date"
+          display="default"
+          onChange={handleDateChange}
+        />
       )}
 
-      <Text style={styles.label}>Motivo de la inasistencia:</Text>
+      <Text style={styles.label}>{t('attendanceForm.reasonLabel')}</Text>
       <TextInput
         style={styles.input}
         value={formData.reason}
@@ -286,7 +286,9 @@ const AttendanceFormScreen = ({ navigation }) => {
       />
 
       <TouchableOpacity style={styles.submitButton} onPress={handleSubmit} disabled={isSubmitting}>
-        <Text style={styles.submitButtonText}>{isSubmitting ? 'Registrando...' : 'Registrar Inasistencia'}</Text>
+        <Text style={styles.submitButtonText}>
+          {isSubmitting ? t('common.registering') : t('attendanceForm.registerAbsence')}
+        </Text>
       </TouchableOpacity>
     </ScrollView>
   );

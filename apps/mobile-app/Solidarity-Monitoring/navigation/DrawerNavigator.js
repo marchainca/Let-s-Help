@@ -1,42 +1,37 @@
 import React, { useContext } from 'react';
-import { View, Text, Image, StyleSheet, Alert,TouchableOpacity } from 'react-native';
+import { View, Text, Image, StyleSheet, Alert, TouchableOpacity } from 'react-native';
 import {
   createDrawerNavigator,
   DrawerContentScrollView,
   DrawerItemList,
   DrawerItem,
 } from '@react-navigation/drawer';
+import { useTranslation } from 'react-i18next';
 import { UserContext } from '../context/UserContext';
 import HomeScreen from '../screens/HomeScreen';
 import IndicatorsScreen from '../screens/IndicatorsScreen';
 import AttendanceScreen from '../screens/AttendanceScreen';
 import SettingsScreen from '../screens/SettingsScreen';
-import ReportsScreen from '../screens/ReportsScreen';
 import EditProfileScreen from '../screens/EditProfileScreen';
-import ReportsHomeScreen from '../screens/ReportsHomeScreen' 
+import ReportsHomeScreen from '../screens/ReportsHomeScreen';
 
 const Drawer = createDrawerNavigator();
 
-// Componente de contenido personalizado para el Drawer
 function CustomDrawerContent(props) {
   const { user, logout } = useContext(UserContext);
+  const { t } = useTranslation();
 
   const handleLogout = () => {
-    Alert.alert(
-      'Cerrar Sesión',
-      '¿Estás seguro de que deseas cerrar sesión?',
-      [
-        { text: 'Cancelar', style: 'cancel' },
-        {
-          text: 'Aceptar',
-          onPress: () => {
-            logout();
-            props.navigation.replace('Login'); // Redirigir al Login después de cerrar sesión
-          },
+    Alert.alert(t('navigation.logout'), t('navigation.logoutConfirm'), [
+      { text: t('common.cancel'), style: 'cancel' },
+      {
+        text: t('common.accept'),
+        onPress: () => {
+          logout();
+          props.navigation.replace('Login');
         },
-      ],
-      { cancelable: true }
-    );
+      },
+    ]);
   };
 
   return (
@@ -47,14 +42,14 @@ function CustomDrawerContent(props) {
         <Text style={styles.profileEmail}>{user?.email}</Text>
         <TouchableOpacity
           style={styles.editProfileButton}
-          onPress={() => props.navigation.navigate('Editar Perfil')}
+          onPress={() => props.navigation.navigate('EditProfile')}
         >
-          <Text style={styles.editProfileText}>Editar Perfil</Text>
+          <Text style={styles.editProfileText}>{t('navigation.editProfile')}</Text>
         </TouchableOpacity>
       </View>
       <DrawerItemList {...props} />
       <DrawerItem
-        label="Cerrar Sesión"
+        label={t('navigation.logout')}
         onPress={handleLogout}
         style={styles.logoutItem}
         labelStyle={styles.logoutLabel}
@@ -64,24 +59,56 @@ function CustomDrawerContent(props) {
 }
 
 export default function DrawerNavigator() {
+  const { t } = useTranslation();
+
   return (
     <Drawer.Navigator
       drawerContent={(props) => <CustomDrawerContent {...props} />}
       screenOptions={{
-        drawerActiveTintColor: '#FF6F61', // Color de la opción activa
-        drawerInactiveTintColor: '#333', // Color de la opción inactiva
+        drawerActiveTintColor: '#FF6F61',
+        drawerInactiveTintColor: '#333',
         drawerLabelStyle: {
           fontSize: 16,
         },
       }}
     >
-      <Drawer.Screen name="Inicio" component={HomeScreen} />
-      <Drawer.Screen name="Indicadores" component={IndicatorsScreen} />
-      <Drawer.Screen name="Asistencias" component={AttendanceScreen} />
-      {/* <Drawer.Screen name="Reportes" component={ReportsScreen} /> */}
-      <Drawer.Screen name="Reportes" component={ReportsHomeScreen} />
-      <Drawer.Screen name="Admin" component={SettingsScreen} />
-      <Drawer.Screen name="Editar Perfil" component={EditProfileScreen} />
+      <Drawer.Screen
+        name="DrawerHome"
+        component={HomeScreen}
+        options={{ title: t('navigation.home'), drawerLabel: t('navigation.home') }}
+      />
+      <Drawer.Screen
+        name="DrawerIndicators"
+        component={IndicatorsScreen}
+        options={{ title: t('navigation.indicators'), drawerLabel: t('navigation.indicators') }}
+      />
+      <Drawer.Screen
+        name="DrawerAttendance"
+        component={AttendanceScreen}
+        options={{ title: t('navigation.attendance'), drawerLabel: t('navigation.attendance') }}
+      />
+      <Drawer.Screen
+        name="DrawerReports"
+        component={ReportsHomeScreen}
+        options={{ title: t('navigation.reports'), drawerLabel: t('navigation.reports') }}
+      />
+      <Drawer.Screen
+        name="DrawerAdmin"
+        component={SettingsScreen}
+        options={{
+          title: t('navigation.administration'),
+          drawerLabel: t('navigation.administration'),
+        }}
+      />
+      <Drawer.Screen
+        name="EditProfile"
+        component={EditProfileScreen}
+        options={{
+          title: t('navigation.editProfile'),
+          drawerLabel: t('navigation.editProfile'),
+          drawerItemStyle: { display: 'none' },
+        }}
+      />
     </Drawer.Navigator>
   );
 }
@@ -120,7 +147,6 @@ const styles = StyleSheet.create({
   },
   logoutItem: {
     marginTop: 20,
-    /* borderTopWidth: 1, */
     borderTopColor: '#ccc',
   },
   logoutLabel: {

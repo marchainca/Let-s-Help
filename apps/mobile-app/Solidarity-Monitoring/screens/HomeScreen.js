@@ -1,36 +1,36 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import { useTranslation } from 'react-i18next';
 
 const HomeScreen = () => {
   const navigation = useNavigation();
+  const { t } = useTranslation();
 
   return (
     <View style={styles.container}>
-      {/* Título */}
-      <Text style={styles.title}>Inicio</Text>
-      
-      {/* Botones de accesos rápidos */}
+      <Text style={styles.title}>{t('home.title')}</Text>
+
       <View style={styles.shortcutsContainer}>
         <TouchableOpacity
           style={styles.button}
           onPress={() => navigation.navigate('Attendance')}
         >
-          <Text style={styles.buttonText}>Registrar Asistencia</Text>
+          <Text style={styles.buttonText}>{t('home.registerAttendance')}</Text>
         </TouchableOpacity>
-        
+
         <TouchableOpacity
           style={styles.button}
           onPress={() => navigation.navigate('ReportsHome')}
         >
-          <Text style={styles.buttonText}>Crear Reporte</Text>
+          <Text style={styles.buttonText}>{t('home.createReport')}</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
           style={styles.button}
           onPress={() => navigation.navigate('Indicators')}
         >
-          <Text style={styles.buttonText}>Ver Indicadores</Text>
+          <Text style={styles.buttonText}>{t('home.viewIndicators')}</Text>
         </TouchableOpacity>
       </View>
     </View>

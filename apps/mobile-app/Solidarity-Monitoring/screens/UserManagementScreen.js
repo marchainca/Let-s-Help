@@ -12,10 +12,12 @@ import {
 import DateTimePicker from '@react-native-community/datetimepicker';
 import CryptoJS from 'crypto-js';
 import { Picker } from '@react-native-picker/picker';
-import { UserContext } from '../context/UserContext'; // Para obtener el token desde el contexto
+import { useTranslation } from 'react-i18next';
+import { UserContext } from '../context/UserContext';
 
-const UserManagementScreen = ({ navigation }) => {
-  const { user } = useContext(UserContext); // Obtener el usuario logueado y su token
+const UserManagementScreen = () => {
+  const { t } = useTranslation();
+  const { user } = useContext(UserContext);
   const [users, setUsers] = useState([]);
   const [email, setEmail] = useState('');
   const [name, setName] = useState('');
@@ -24,12 +26,6 @@ const UserManagementScreen = ({ navigation }) => {
   const [password, setPassword] = useState('');
   const [birthday, setBirthday] = useState('');
   const [showDatePicker, setShowDatePicker] = useState(false);
-
-  useEffect(() => {
-    navigation.setOptions({
-      headerTitle: 'Registrar nuevo usuario',
-    });
-  }, []);
 
   const handleDateChange = (event, selectedDate) => {
     setShowDatePicker(false);
@@ -41,35 +37,32 @@ const UserManagementScreen = ({ navigation }) => {
 
   const registerUser = async () => {
     if (!email || !name || !idNumber || !password || !birthday || !gender) {
-      Alert.alert('Error', 'Todos los campos son obligatorios.');
+      Alert.alert(t('common.error'), t('common.allFieldsRequired'));
       return;
     }
 
     try {
-      console.log("Data User: ", user )
-      const apiUrl = process.env.EXPO_PUBLIC_API_URL + "users";
+      const apiUrl = process.env.EXPO_PUBLIC_API_URL + 'users';
       const response = await fetch(apiUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${user.accessToken}`, // Usar el token del contexto
+          Authorization: `Bearer ${user.accessToken}`,
         },
         body: JSON.stringify({
           name,
           email,
           idNumber,
           birthdate: birthday,
-          urlImage: 'https://storage.googleapis.com/bucket-let-s-help/defaultPerfil.png', // URL por defecto si está vacío
+          urlImage: 'https://storage.googleapis.com/bucket-let-s-help/defaultPerfil.png',
           password: CryptoJS.SHA256(password).toString(),
-          gender: gender,
-          role: "Collaborator"
+          gender,
+          role: 'Collaborator',
         }),
       });
       const dataResponse = await response.json();
-      console.log("Respuesta creacion usuario:");
-      console.log(dataResponse);
       if (response.ok) {
-        Alert.alert('Éxito', 'Usuario registrado correctamente');
+        Alert.alert(t('common.success'), t('userManagement.userRegistered'));
         setUsers([
           ...users,
           {
@@ -89,25 +82,28 @@ const UserManagementScreen = ({ navigation }) => {
         setGender('');
       } else {
         const errorData = await response.json();
-        Alert.alert('Error', errorData.message || 'Ocurrió un error al registrar el usuario');
+        Alert.alert(
+          t('common.error'),
+          errorData.message || t('userManagement.registerFailed')
+        );
       }
     } catch (error) {
       console.error('Error al registrar el usuario:', error);
-      Alert.alert('Error', 'No se pudo conectar con el servidor');
+      Alert.alert(t('common.error'), t('common.serverConnectionErrorShort'));
     }
   };
 
   const removeUser = (id) => {
-    setUsers(users.filter((user) => user.id !== id));
+    setUsers(users.filter((userItem) => userItem.id !== id));
   };
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Gestión de Usuarios</Text>
+      <Text style={styles.title}>{t('userManagement.title')}</Text>
 
       <TextInput
         style={styles.input}
-        placeholder="Número de Identificación"
+        placeholder={t('common.identificationNumber')}
         value={idNumber}
         onChangeText={setIdNumber}
         keyboardType="numeric"
@@ -115,14 +111,14 @@ const UserManagementScreen = ({ navigation }) => {
 
       <TextInput
         style={styles.input}
-        placeholder="Nombres Completos"
+        placeholder={t('userManagement.fullNamePlaceholder')}
         value={name}
         onChangeText={setName}
       />
 
       <TextInput
         style={styles.input}
-        placeholder="Correo Electrónico"
+        placeholder={t('common.email')}
         value={email}
         onChangeText={setEmail}
         keyboardType="email-address"
@@ -133,26 +129,23 @@ const UserManagementScreen = ({ navigation }) => {
         style={styles.picker}
         onValueChange={(itemValue) => setGender(itemValue)}
       >
-        <Picker.Item label="Seleccione el genero" value="" />
-        <Picker.Item label="Masculino" value="M" />
-        <Picker.Item label="Femenino" value="F" />
-        <Picker.Item label="Otro" value="O" />
+        <Picker.Item label={t('userManagement.selectGender')} value="" />
+        <Picker.Item label={t('userManagement.genderMale')} value="M" />
+        <Picker.Item label={t('userManagement.genderFemale')} value="F" />
+        <Picker.Item label={t('userManagement.genderOther')} value="O" />
       </Picker>
 
       <TextInput
         style={styles.input}
-        placeholder="Contraseña"
+        placeholder={t('common.password')}
         value={password}
         onChangeText={setPassword}
-        secureTextEntry={true}
+        secureTextEntry
       />
 
-      <TouchableOpacity
-        style={styles.input}
-        onPress={() => setShowDatePicker(true)}
-      >
+      <TouchableOpacity style={styles.input} onPress={() => setShowDatePicker(true)}>
         <Text style={styles.dateText}>
-          {birthday ? birthday : 'Seleccionar Fecha de Nacimiento'}
+          {birthday ? birthday : t('userManagement.selectBirthdate')}
         </Text>
       </TouchableOpacity>
 
@@ -167,7 +160,7 @@ const UserManagementScreen = ({ navigation }) => {
       )}
 
       <TouchableOpacity style={styles.button} onPress={registerUser}>
-        <Text style={styles.buttonText}>Registrar Usuario</Text>
+        <Text style={styles.buttonText}>{t('userManagement.registerUser')}</Text>
       </TouchableOpacity>
 
       <FlatList
@@ -177,7 +170,7 @@ const UserManagementScreen = ({ navigation }) => {
           <View style={styles.userItem}>
             <Text>{item.email}</Text>
             <TouchableOpacity onPress={() => removeUser(item.id)}>
-              <Text style={styles.removeButton}>Eliminar</Text>
+              <Text style={styles.removeButton}>{t('common.delete')}</Text>
             </TouchableOpacity>
           </View>
         )}

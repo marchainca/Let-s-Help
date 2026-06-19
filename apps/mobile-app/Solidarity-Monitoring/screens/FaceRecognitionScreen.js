@@ -9,47 +9,40 @@ import {
   Alert,
 } from 'react-native';
 import { CameraView } from 'expo-camera';
+import { useTranslation } from 'react-i18next';
 import { CameraPermissionContext } from '../context/CameraPermissionContext';
 import { UserContext } from '../context/UserContext';
 
 const FaceRecognitionScreen = ({ navigation }) => {
-  const [facing, setFacing] = useState('front');
+  const { t } = useTranslation();
+  const [facing] = useState('front');
   const { hasCameraPermission, errorMessage, setErrorMessage } = useContext(CameraPermissionContext);
   const cameraRef = React.useRef(null);
-  const { user } = useContext(UserContext); // Obtener token de usuario
+  const { user } = useContext(UserContext);
   const [isRecognizing, setIsRecognizing] = useState(false);
   const [isCameraVisible, setIsCameraVisible] = useState(false);
 
   useEffect(() => {
-    navigation.setOptions({
-      headerTitle: 'Reconocimiento Facial',
-    });
     if (hasCameraPermission === null || hasCameraPermission === false) {
-      setErrorMessage(
-        'Permiso de cámara no concedido. Verifica en los ajustes.'
-      );
+      setErrorMessage(t('faceRecognition.cameraPermissionDenied'));
     }
-  }, [hasCameraPermission]);
+  }, [hasCameraPermission, setErrorMessage, t]);
 
   const handleFaceRecognition = async () => {
-
     if (!cameraRef.current) {
-      setErrorMessage('Error: Cámara no disponible.');
+      setErrorMessage(t('faceRecognition.cameraNotAvailable'));
       return;
     }
-    //setIsCameraVisible(true);
 
     setIsRecognizing(true);
 
     try {
-      // Capturar la imagen en base64
       const capturedPhoto = await cameraRef.current.takePictureAsync({
         base64: true,
       });
 
       setIsCameraVisible(false);
 
-      // Crear la solicitud al backend
       const requestData = {
         imageBase64: capturedPhoto.base64,
       };
@@ -60,7 +53,7 @@ const FaceRecognitionScreen = ({ navigation }) => {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            Authorization: `Bearer ${user.accessToken}`, // Token del usuario logueado
+            Authorization: `Bearer ${user.accessToken}`,
           },
           body: JSON.stringify(requestData),
         }
@@ -68,15 +61,9 @@ const FaceRecognitionScreen = ({ navigation }) => {
 
       const responseData = await response.json();
 
-      console.log("Respuesta del backen en FaceRecognitionScreen: ", responseData)
-
       if (response.ok) {
-        // Si el reconocimiento facial es exitoso, navegar al formulario con los datos recibidos
-        //console.log("Reconocimiento exitoso", responseData);
-
         if (responseData.code == 1) {
           navigation.navigate('AttendanceFormWithData', {
-            //recognizedData: responseData.content.data, // Datos retornados por el backend
             recognizedData: {
               firstName: responseData.content.data.name,
               lastName: responseData.content.data.lastName,
@@ -91,21 +78,18 @@ const FaceRecognitionScreen = ({ navigation }) => {
             },
           });
         } else {
-          Alert.alert('Error:', responseData.content.message );
-          //setErrorMessage(responseData.message || 'Error en el reconocimiento.');
+          Alert.alert(t('common.error'), responseData.content.message);
         }
-
-
       } else {
-        // Mostrar mensaje de error del backend
-        //const errorData = await response.json();
-        console.log("Else")
-        Alert.alert('Error', `No fué posible registrar el integrante: ${responseData.message}`);
-        setErrorMessage(responseData.message || 'Error en el reconocimiento.');
+        Alert.alert(
+          t('common.error'),
+          t('faceRecognition.registerMemberFailed', { message: responseData.message })
+        );
+        setErrorMessage(responseData.message || t('faceRecognition.recognitionError'));
       }
     } catch (error) {
       console.error('Error en el reconocimiento facial:', error);
-      setErrorMessage('Error inesperado al realizar el reconocimiento.');
+      setErrorMessage(t('faceRecognition.unexpectedError'));
     } finally {
       setIsRecognizing(false);
     }
@@ -114,9 +98,7 @@ const FaceRecognitionScreen = ({ navigation }) => {
   if (hasCameraPermission === false) {
     return (
       <View style={styles.container}>
-        <Text>
-          No se concedió permiso para usar la cámara. Habilítelo en los ajustes.
-        </Text>
+        <Text>{t('faceRecognition.cameraPermissionRequired')}</Text>
       </View>
     );
   }
@@ -127,14 +109,10 @@ const FaceRecognitionScreen = ({ navigation }) => {
         <CameraView style={styles.camera} ref={cameraRef} facing={facing} />
       )}
       {isRecognizing && (
-        <ActivityIndicator
-          size="large"
-          color="#0000ff"
-          style={styles.loadingIndicator}
-        />
+        <ActivityIndicator size="large" color="#0000ff" style={styles.loadingIndicator} />
       )}
       <TouchableOpacity style={styles.button} onPress={handleFaceRecognition}>
-        <Text style={styles.buttonText}>Iniciar Reconocimiento Facial</Text>
+        <Text style={styles.buttonText}>{t('faceRecognition.startRecognition')}</Text>
       </TouchableOpacity>
       <Modal
         visible={isCameraVisible}
@@ -145,11 +123,8 @@ const FaceRecognitionScreen = ({ navigation }) => {
         <View style={styles.modalContainer}>
           <View style={styles.modalContent}>
             <Text style={styles.errorMessage}>{errorMessage}</Text>
-            <TouchableOpacity
-              style={styles.modalButton}
-              onPress={() => setErrorMessage('')}
-            >
-              <Text style={styles.modalButtonText}>Cerrar</Text>
+            <TouchableOpacity style={styles.modalButton} onPress={() => setErrorMessage('')}>
+              <Text style={styles.modalButtonText}>{t('common.close')}</Text>
             </TouchableOpacity>
           </View>
         </View>

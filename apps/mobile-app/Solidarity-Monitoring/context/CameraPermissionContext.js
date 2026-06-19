@@ -1,5 +1,6 @@
 import React, { createContext, useState, useEffect } from 'react';
 import { Camera } from 'expo-camera';
+import i18n from '../i18n';
 
 export const CameraPermissionContext = createContext();
 
@@ -13,7 +14,7 @@ export const CameraPermissionProvider = ({ children }) => {
         const { status } = await Camera.requestCameraPermissionsAsync();
         setHasCameraPermission(status === 'granted');
       } catch (error) {
-        setErrorMessage('Error al solicitar permisos de cámara.');
+        setErrorMessage(i18n.t('camera.permissionRequestError'));
       }
     })();
   }, []);

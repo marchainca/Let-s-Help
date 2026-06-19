@@ -9,13 +9,14 @@ import {
   ActivityIndicator,
   Alert,
 } from 'react-native';
+import { useTranslation } from 'react-i18next';
 
 const ReportsListScreen = ({ navigation }) => {
+  const { t } = useTranslation();
   const [searchTerm, setSearchTerm] = useState('');
-  const [reports, setReports] = useState([]); // Lista de reportes cargados desde el backend
-  const [loading, setLoading] = useState(false); // Indicador de carga
+  const [reports, setReports] = useState([]);
+  const [loading, setLoading] = useState(false);
 
-  // Obtener reportes desde el backend
   const fetchReports = async () => {
     setLoading(true);
     try {
@@ -29,25 +30,26 @@ const ReportsListScreen = ({ navigation }) => {
 
       if (response.ok) {
         const data = await response.json();
-        setReports(data.content || []); // Asignar los reportes obtenidos
+        setReports(data.content || []);
       } else {
         const errorData = await response.json();
-        Alert.alert('Error', `No se pudieron obtener los reportes: ${errorData.message}`);
+        Alert.alert(
+          t('common.error'),
+          t('reportsList.fetchFailed', { message: errorData.message })
+        );
       }
     } catch (error) {
       console.error('Error al obtener reportes:', error);
-      Alert.alert('Error', 'No se pudo conectar con el servidor.');
+      Alert.alert(t('common.error'), t('common.serverConnectionError'));
     } finally {
       setLoading(false);
     }
   };
 
-  // Cargar reportes al montar el componente
   useEffect(() => {
     fetchReports();
   }, []);
 
-  // Filtrar reportes según el término de búsqueda
   const filteredReports = reports.filter((report) =>
     report.nombresApellidos.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -56,7 +58,7 @@ const ReportsListScreen = ({ navigation }) => {
     <View style={styles.container}>
       <TextInput
         style={styles.searchInput}
-        placeholder="Buscar Integrante"
+        placeholder={t('reportsList.searchPlaceholder')}
         value={searchTerm}
         onChangeText={setSearchTerm}
       />

@@ -12,27 +12,23 @@ import {
   Platform,
 } from 'react-native';
 import Toast from 'react-native-toast-message';
+import { useTranslation } from 'react-i18next';
 import { UserContext } from '../context/UserContext';
 
 const ReportsScreen = () => {
+  const { t } = useTranslation();
   const { user } = useContext(UserContext);
 
-  // Estados para el formulario
   const [nameQuery, setNameQuery] = useState('');
   const [id, setId] = useState('');
   const [name, setName] = useState('');
   const [lastName, setLastName] = useState('');
   const [profileImage, setProfileImage] = useState('');
   const [report, setReport] = useState('');
-
-  // Estados para manejar la búsqueda
   const [loadingSuggestions, setLoadingSuggestions] = useState(false);
   const [suggestions, setSuggestions] = useState([]);
-
-  // Estados para el envío del reporte
   const [submittingReport, setSubmittingReport] = useState(false);
 
-  // Consultar al backend para autocompletar nombres
   const fetchSuggestions = async (query) => {
     if (!query) {
       setSuggestions([]);
@@ -62,7 +58,6 @@ const ReportsScreen = () => {
     }
   };
 
-  // Rellenar campos al seleccionar una sugerencia
   const handleSuggestionSelect = (item) => {
     setName(item.name.trim());
     setLastName(item.lastName.trim());
@@ -72,21 +67,15 @@ const ReportsScreen = () => {
     setNameQuery(item.name.trim());
   };
 
-  // Manejar el envío del reporte
   const handleReportSubmit = async () => {
     if (!report) {
-      Alert.alert('Error', 'Por favor escribe el reporte antes de enviarlo.');
+      Alert.alert(t('common.error'), t('reports.writeBeforeSubmit'));
       return;
     }
-    console.log("Datos del reporte a enviar: ", {
-      identificacion: id,
-      nombresApellidos: name + " " + lastName,
-      reporte: report,
-      createdBy: user.idNumber,
-    });
+
     const requestData = {
       identificacion: id,
-      nombresApellidos: name + " " + lastName,
+      nombresApellidos: `${name} ${lastName}`,
       reporte: report,
       createdBy: user.idNumber,
     };
@@ -104,15 +93,14 @@ const ReportsScreen = () => {
       });
 
       if (response.ok) {
-        Alert.alert('Éxito', 'Reporte enviado correctamente.');
+        Alert.alert(t('common.success'), t('reports.reportSent'));
         Toast.show({
           type: 'success',
           text1: `${name} ${lastName}`,
-          text2: 'Ha realizado un reporte.',
+          text2: t('reports.reportToast'),
           visibilityTime: 8000,
         });
 
-        // Limpiar todos los campos del formulario
         setNameQuery('');
         setId('');
         setName('');
@@ -121,11 +109,14 @@ const ReportsScreen = () => {
         setReport('');
       } else {
         const errorData = await response.json();
-        Alert.alert('Error', `No se pudo enviar el reporte: ${errorData.message}`);
+        Alert.alert(
+          t('common.error'),
+          t('reports.sendFailed', { message: errorData.message })
+        );
       }
     } catch (error) {
       console.error('Error al enviar el reporte:', error);
-      Alert.alert('Error', 'No se pudo conectar con el servidor.');
+      Alert.alert(t('common.error'), t('common.serverConnectionError'));
     } finally {
       setSubmittingReport(false);
     }
@@ -136,30 +127,30 @@ const ReportsScreen = () => {
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       style={styles.container}
     >
-      <Text style={styles.title}>Reporte</Text>
+      <Text style={styles.title}>{t('reports.title')}</Text>
 
-      {/* Imagen de perfil */}
       {profileImage ? (
         <Image source={{ uri: profileImage }} style={styles.profileImage} />
       ) : (
         <View style={styles.placeholderImage}>
-          <Text style={styles.placeholderText}>Foto</Text>
+          <Text style={styles.placeholderText}>{t('common.photo')}</Text>
         </View>
       )}
 
-      {/* Campo Nombres */}
       <View style={styles.formGroup}>
-        <Text style={styles.label}>Nombres</Text>
+        <Text style={styles.label}>{t('common.firstName')}</Text>
         <TextInput
           style={styles.input}
-          placeholder="Introduce el nombre"
+          placeholder={t('reports.namePlaceholder')}
           value={nameQuery}
           onChangeText={(text) => {
             setNameQuery(text);
             fetchSuggestions(text);
           }}
         />
-        {loadingSuggestions && <Text style={styles.loadingText}>Buscando...</Text>}
+        {loadingSuggestions && (
+          <Text style={styles.loadingText}>{t('common.searching')}</Text>
+        )}
         {suggestions.length > 0 && (
           <FlatList
             data={suggestions}
@@ -180,55 +171,39 @@ const ReportsScreen = () => {
         )}
       </View>
 
-      {/* Campo Identificación */}
       <View style={styles.formGroup}>
-        <Text style={styles.label}>Identificación</Text>
-        <TextInput
-          style={styles.input}
-          value={id}
-          editable={false}
-        />
+        <Text style={styles.label}>{t('common.identification')}</Text>
+        <TextInput style={styles.input} value={id} editable={false} />
       </View>
 
-      {/* Campo Nombres y Apellidos */}
       <View style={styles.formGroup}>
-        <Text style={styles.label}>Nombres y Apellidos</Text>
-        <TextInput
-          style={styles.input}
-          value={`${name} ${lastName}`}
-          editable={false}
-        />
+        <Text style={styles.label}>{t('common.fullName')}</Text>
+        <TextInput style={styles.input} value={`${name} ${lastName}`} editable={false} />
       </View>
 
-      {/* Campo Reporte */}
       <View style={styles.formGroup}>
-        <Text style={styles.label}>Reporte</Text>
+        <Text style={styles.label}>{t('common.report')}</Text>
         <TextInput
           style={[styles.input, styles.textArea]}
-          multiline={true}
-          placeholder="Escribe el reporte aquí..."
+          multiline
+          placeholder={t('reports.reportPlaceholder')}
           value={report}
           onChangeText={setReport}
         />
       </View>
 
       <View style={styles.formGroup}>
-        <Text style={styles.label}>Reporte creado por</Text>
-        <TextInput
-          style={styles.input}
-          value={`${user?.name}`}
-          editable={false}
-        />
+        <Text style={styles.label}>{t('reports.createdBy')}</Text>
+        <TextInput style={styles.input} value={`${user?.name}`} editable={false} />
       </View>
 
-      {/* Botón para enviar reporte */}
       <TouchableOpacity
         style={styles.submitButton}
         onPress={handleReportSubmit}
         disabled={submittingReport}
       >
         <Text style={styles.buttonText}>
-          {submittingReport ? 'Enviando...' : 'Enviar reporte'}
+          {submittingReport ? t('common.sending') : t('reports.submitReport')}
         </Text>
       </TouchableOpacity>
     </KeyboardAvoidingView>

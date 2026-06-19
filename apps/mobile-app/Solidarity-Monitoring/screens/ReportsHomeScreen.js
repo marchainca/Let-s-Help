@@ -1,31 +1,31 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Image } from 'react-native';
+import { useTranslation } from 'react-i18next';
 
 const ReportsHomeScreen = ({ navigation }) => {
+  const { t } = useTranslation();
+
   return (
     <View style={styles.container}>
-      {/* Logo y Título */}
       <Image source={require('../assets/favicon.png')} style={styles.logo} />
-      <Text style={styles.foundationText}>Gestión de Reportes</Text>
+      <Text style={styles.foundationText}>{t('reportsHome.title')}</Text>
 
-      {/* Botones de opciones */}
       <View style={styles.buttonContainer}>
         <TouchableOpacity
           style={styles.optionButton}
           onPress={() => navigation.navigate('ReportsListScreen')}
         >
-          <Text style={styles.buttonText}>Ver Reportes</Text>
+          <Text style={styles.buttonText}>{t('reportsHome.viewReports')}</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
           style={styles.optionButton}
           onPress={() => navigation.navigate('ReportsScreen')}
         >
-          <Text style={styles.buttonText}>Crear Reportes</Text>
+          <Text style={styles.buttonText}>{t('reportsHome.createReports')}</Text>
         </TouchableOpacity>
       </View>
 
-      {/* Indicador de progreso */}
       <View style={styles.progressContainer}>
         <View style={styles.progressBarYellow} />
         <View style={styles.progressBarBlue} />

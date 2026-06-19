@@ -13,25 +13,22 @@ import {
 import { Picker } from '@react-native-picker/picker';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { CameraView } from 'expo-camera';
+import { useTranslation } from 'react-i18next';
 import { CameraPermissionContext } from '../context/CameraPermissionContext';
 import { UserContext } from '../context/UserContext';
 
-const NewMemberScreen = ({ navigation }) => {
-  
-  useEffect(() => {
-    navigation.setOptions({
-      headerTitle: 'Registro Nuevo Integrante',
-    });
-  }, []);
+const DOC_TYPE_CITIZENSHIP = 'Cédula de ciudadanía';
 
+const NewMemberScreen = () => {
+  const { t } = useTranslation();
   const { user } = useContext(UserContext);
-  const [facing, setFacing] = useState('front');
-  const { hasCameraPermission, errorMessage, setErrorMessage } = useContext(CameraPermissionContext);
+  const [facing] = useState('front');
+  const { hasCameraPermission, setErrorMessage } = useContext(CameraPermissionContext);
   const cameraRef = React.useRef(null);
   const [name, setName] = useState('');
   const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
-  const [docType, setDocType] = useState('Cédula de ciudadanía');
+  const [docType, setDocType] = useState(DOC_TYPE_CITIZENSHIP);
   const [docNumber, setDocNumber] = useState('');
   const [address, setAddress] = useState('');
   const [neighborhood, setNeighborhood] = useState('');
@@ -42,14 +39,18 @@ const NewMemberScreen = ({ navigation }) => {
   const [isCameraVisible, setIsCameraVisible] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [photoBase64, setPhotoBase64] = useState('');
-  
- 
+
+  const docTypes = [
+    { value: 'Tarjeta de identidad', labelKey: 'newMember.docTypeIdentityCard' },
+    { value: DOC_TYPE_CITIZENSHIP, labelKey: 'newMember.docTypeCitizenship' },
+    { value: 'Registro civil', labelKey: 'newMember.docTypeCivilRegistry' },
+  ];
 
   useEffect(() => {
     if (hasCameraPermission === null || hasCameraPermission === false) {
-      setErrorMessage('Permiso de cámara no concedido. Verifica en los ajustes.');
+      setErrorMessage(t('faceRecognition.cameraPermissionDenied'));
     }
-  }, [hasCameraPermission]);
+  }, [hasCameraPermission, setErrorMessage, t]);
 
   const handleFacialTraining = async () => {
     setIsCameraVisible(true);
@@ -58,24 +59,20 @@ const NewMemberScreen = ({ navigation }) => {
   const handleCapture = async () => {
     try {
       if (cameraRef.current) {
-        //photo = await cameraRef.current.takePictureAsync({ base64: true });
         const capturedPhoto = await cameraRef.current.takePictureAsync({ base64: true });
-        
-        setPhotoBase64(capturedPhoto.base64); 
-        console.log('Captura de foto (Base64):', capturedPhoto);
+        setPhotoBase64(capturedPhoto.base64);
         setIsCameraVisible(false);
         setIsUploading(true);
       } else {
-        throw new Error('No se pudo acceder a la cámara.');
+        throw new Error(t('newMember.cameraAccessFailed'));
       }
     } catch (error) {
       console.error(error);
-      Alert.alert('Error', 'No se pudo capturar la imagen.');
+      Alert.alert(t('common.error'), t('newMember.captureFailed'));
     }
   };
 
   const handleSubmit = async () => {
-    // Validar los campos requeridos
     if (
       !name ||
       !lastName ||
@@ -86,48 +83,47 @@ const NewMemberScreen = ({ navigation }) => {
       !policyNumber ||
       !emergencyContact
     ) {
-      Alert.alert('Error', 'Por favor completa todos los campos.');
+      Alert.alert(t('common.error'), t('common.completeAllFields'));
       return;
     }
-  
-    // Crear el JSON con los datos del formulario
+
     const requestData = {
       name,
       lastName,
       email,
       documentType: docType,
       documentNumber: docNumber,
-      birthdate: birthdate.toISOString().split('T')[0], // Fecha en formato YYYY-MM-DD
+      birthdate: birthdate.toISOString().split('T')[0],
       address,
       neighborhood,
       policyNumber,
       emergencyContact,
-      imageBase64: "data:image/jpg;base64," + photoBase64, // Imagen base64 del entrenamiento facial
+      imageBase64: `data:image/jpg;base64,${photoBase64}`,
     };
-  
+
     try {
-      // Enviar los datos al backend
-      const apiUrl = process.env.EXPO_PUBLIC_API_URL + 'recognition/register' ;
-      console.log("Data a enviar", requestData)
+      const apiUrl = process.env.EXPO_PUBLIC_API_URL + 'recognition/register';
       const response = await fetch(apiUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${user.accessToken}`, // Si es necesario un token
+          Authorization: `Bearer ${user.accessToken}`,
         },
         body: JSON.stringify(requestData),
       });
-  
+
       if (response.ok) {
-        Alert.alert('Éxito', 'Integrante registrado correctamente.');
-        // Opcional: limpiar los campos del formulario después de un envío exitoso
+        Alert.alert(t('common.success'), t('newMember.memberRegistered'));
       } else {
         const errorData = await response.json();
-        Alert.alert('Error', `Error al registrar el integrante: ${errorData.message}`);
+        Alert.alert(
+          t('common.error'),
+          t('newMember.registerFailed', { message: errorData.message })
+        );
       }
     } catch (error) {
       console.error('Error al registrar el integrante:', error);
-      Alert.alert('Error', 'No se pudo conectar con el servidor.');
+      Alert.alert(t('common.error'), t('common.serverConnectionError'));
     }
   };
 
@@ -138,56 +134,51 @@ const NewMemberScreen = ({ navigation }) => {
     }
   };
 
-
-
   return (
     <ScrollView contentContainerStyle={styles.scrollContainer}>
       <View style={styles.container}>
-        <Text style={styles.title}>Nuevo Integrante</Text>
+        <Text style={styles.title}>{t('newMember.title')}</Text>
 
-        <Text style={styles.label}>Tipo de Documento</Text>
+        <Text style={styles.label}>{t('common.documentType')}</Text>
         <View style={styles.pickerContainer}>
           <Picker
             selectedValue={docType}
             onValueChange={(itemValue) => setDocType(itemValue)}
             style={styles.picker}
           >
-            <Picker.Item label="Tarjeta de identidad" value="Tarjeta de identidad" />
-            <Picker.Item label="Cédula de ciudadanía" value="Cédula de ciudadanía" />
-            <Picker.Item label="Registro civil" value="Registro civil" />
+            {docTypes.map((type) => (
+              <Picker.Item key={type.value} label={t(type.labelKey)} value={type.value} />
+            ))}
           </Picker>
         </View>
 
-        <Text style={styles.label}>Número de Documento</Text>
+        <Text style={styles.label}>{t('common.documentNumber')}</Text>
         <TextInput
           style={styles.input}
-          placeholder="Número de Documento"
+          placeholder={t('newMember.documentNumberPlaceholder')}
           keyboardType="number-pad"
           value={docNumber}
           onChangeText={setDocNumber}
         />
 
-        <Text style={styles.label}>Nombres</Text>
+        <Text style={styles.label}>{t('common.firstName')}</Text>
         <TextInput
           style={styles.input}
-          placeholder="Nombres"
+          placeholder={t('newMember.firstNamePlaceholder')}
           value={name}
           onChangeText={setName}
         />
 
-        <Text style={styles.label}>Apellidos</Text>
+        <Text style={styles.label}>{t('common.lastNames')}</Text>
         <TextInput
           style={styles.input}
-          placeholder="Apellidos"
+          placeholder={t('newMember.lastNamePlaceholder')}
           value={lastName}
           onChangeText={setLastName}
         />
 
-        <Text style={styles.label}>Fecha de Nacimiento</Text>
-        <TouchableOpacity
-          style={styles.input}
-          onPress={() => setShowDatePicker(true)}
-        >
+        <Text style={styles.label}>{t('common.birthdate')}</Text>
+        <TouchableOpacity style={styles.input} onPress={() => setShowDatePicker(true)}>
           <Text>{birthdate.toISOString().split('T')[0]}</Text>
         </TouchableOpacity>
         {showDatePicker && (
@@ -199,72 +190,74 @@ const NewMemberScreen = ({ navigation }) => {
           />
         )}
 
-        <Text style={styles.label}>Correo Electrónico</Text>
+        <Text style={styles.label}>{t('common.email')}</Text>
         <TextInput
           style={styles.input}
-          placeholder="Correo Electrónico"
+          placeholder={t('newMember.emailPlaceholder')}
           keyboardType="email-address"
           value={email}
           onChangeText={setEmail}
         />
 
-        <Text style={styles.label}>Dirección</Text>
+        <Text style={styles.label}>{t('common.address')}</Text>
         <TextInput
           style={styles.input}
-          placeholder="Dirección"
+          placeholder={t('newMember.addressPlaceholder')}
           value={address}
           onChangeText={setAddress}
         />
 
-        <Text style={styles.label}>Barrio</Text>
+        <Text style={styles.label}>{t('common.neighborhood')}</Text>
         <TextInput
           style={styles.input}
-          placeholder="Barrio"
+          placeholder={t('newMember.neighborhoodPlaceholder')}
           value={neighborhood}
           onChangeText={setNeighborhood}
         />
 
-        <Text style={styles.label}>Número de Póliza</Text>
+        <Text style={styles.label}>{t('newMember.policyNumber')}</Text>
         <TextInput
           style={styles.input}
-          placeholder="Número de Póliza"
+          placeholder={t('newMember.policyNumberPlaceholder')}
           keyboardType="number-pad"
           value={policyNumber}
           onChangeText={setPolicyNumber}
         />
 
-        <Text style={styles.label}>Contacto de Emergencia</Text>
+        <Text style={styles.label}>{t('newMember.emergencyContact')}</Text>
         <TextInput
           style={styles.input}
-          placeholder="Número de Emergencia"
+          placeholder={t('newMember.emergencyContactPlaceholder')}
           keyboardType="number-pad"
           value={emergencyContact}
           onChangeText={setEmergencyContact}
         />
 
         <TouchableOpacity style={styles.button} onPress={handleFacialTraining}>
-          <Text style={styles.buttonText}>Entrenamiento Facial</Text>
+          <Text style={styles.buttonText}>{t('newMember.facialTraining')}</Text>
         </TouchableOpacity>
 
         <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
-          <Text style={styles.buttonText}>Guardar</Text>
+          <Text style={styles.buttonText}>{t('common.save')}</Text>
         </TouchableOpacity>
 
         {isUploading && (
           <ActivityIndicator size="large" color="#0000ff" style={styles.loadingIndicator} />
         )}
 
-        {/* Modal de la cámara */}
         <Modal visible={isCameraVisible} animationType="slide" transparent={false}>
           <View style={styles.modalContainer}>
             <CameraView style={styles.camera} ref={cameraRef} facing={facing}>
               <View style={styles.cameraControls}>
-                <TouchableOpacity style={styles.captureButton} onPress={() => handleCapture()}>
-                  <Text style={styles.captureButtonText}>Capturar</Text>
+                <TouchableOpacity style={styles.captureButton} onPress={handleCapture}>
+                  <Text style={styles.captureButtonText}>{t('newMember.capture')}</Text>
                 </TouchableOpacity>
 
-                <TouchableOpacity style={styles.cancelButton} onPress={() => setIsCameraVisible(false)}>
-                  <Text style={styles.cancelButtonText}>Cancelar</Text>
+                <TouchableOpacity
+                  style={styles.cancelButton}
+                  onPress={() => setIsCameraVisible(false)}
+                >
+                  <Text style={styles.cancelButtonText}>{t('common.cancel')}</Text>
                 </TouchableOpacity>
               </View>
             </CameraView>

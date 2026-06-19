@@ -1,31 +1,31 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Image } from 'react-native';
+import { useTranslation } from 'react-i18next';
 
 const AttendanceScreen = ({ navigation }) => {
+  const { t } = useTranslation();
+
   return (
     <View style={styles.container}>
-      {/* Logo y Título */}
       <Image source={require('../assets/favicon.png')} style={styles.logo} />
-      <Text style={styles.foundationText}>Creando Futuro</Text>
+      <Text style={styles.foundationText}>{t('attendance.foundation')}</Text>
 
-      {/* Botones de opciones */}
       <View style={styles.buttonContainer}>
         <TouchableOpacity
           style={styles.optionButton}
           onPress={() => navigation.navigate('AttendanceForm')}
         >
-          <Text style={styles.buttonText}>Inasistencias</Text>
+          <Text style={styles.buttonText}>{t('attendance.absences')}</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
           style={styles.optionButton}
           onPress={() => navigation.navigate('FaceRecognition')}
         >
-          <Text style={styles.buttonText}>Asistencias</Text>
+          <Text style={styles.buttonText}>{t('attendance.attendance')}</Text>
         </TouchableOpacity>
       </View>
 
-      {/* Indicador de progreso */}
       <View style={styles.progressContainer}>
         <View style={styles.progressBarYellow} />
         <View style={styles.progressBarBlue} />

@@ -1,16 +1,25 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Alert } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TextInput,
+  TouchableOpacity,
+  ScrollView,
+  Alert,
+} from 'react-native';
 import { Picker } from '@react-native-picker/picker';
+import { useTranslation } from 'react-i18next';
 import { UserContext } from '../context/UserContext';
 
 const AttendanceFormWithDataScreen = ({ route, navigation }) => {
+  const { t } = useTranslation();
   const { user } = useContext(UserContext);
   const { recognizedData } = route.params;
 
-  const [programs, setPrograms] = useState([]); // Lista de programas
-  const [subPrograms, setSubPrograms] = useState({}); // Subprogramas y actividades (mapa)
-  const [activities, setActivities] = useState([]); // Lista de actividades del subprograma seleccionado
-
+  const [programs, setPrograms] = useState([]);
+  const [subPrograms, setSubPrograms] = useState({});
+  const [activities, setActivities] = useState([]);
   const [selectedProgram, setSelectedProgram] = useState('');
   const [selectedSubProgram, setSelectedSubProgram] = useState('');
   const [selectedActivity, setSelectedActivity] = useState('');
@@ -27,13 +36,13 @@ const AttendanceFormWithDataScreen = ({ route, navigation }) => {
       });
       if (response.ok) {
         const data = await response.json();
-        setPrograms(data.content.getPrograms || []); // Cargar programas desde la respuesta
+        setPrograms(data.content.getPrograms || []);
       } else {
-        Alert.alert('Error', 'No se pudieron cargar los programas.');
+        Alert.alert(t('common.error'), t('attendanceFormWithData.programsLoadFailed'));
       }
     } catch (error) {
       console.error('Error al cargar programas:', error);
-      Alert.alert('Error', 'Hubo un problema al cargar los programas.');
+      Alert.alert(t('common.error'), t('attendanceFormWithData.programsLoadError'));
     }
   };
 
@@ -45,23 +54,23 @@ const AttendanceFormWithDataScreen = ({ route, navigation }) => {
       });
       if (response.ok) {
         const data = await response.json();
-        setSubPrograms(data.content || {}); // Almacenar subprogramas como un mapa
+        setSubPrograms(data.content || {});
         setSelectedSubProgram('');
-        setActivities([]); // Reiniciar actividades
+        setActivities([]);
         setSelectedActivity('');
       } else {
-        Alert.alert('Error', 'No se pudieron cargar los subprogramas.');
+        Alert.alert(t('common.error'), t('attendanceFormWithData.subprogramsLoadFailed'));
       }
     } catch (error) {
       console.error('Error al cargar subprogramas:', error);
-      Alert.alert('Error', 'Hubo un problema al cargar los subprogramas.');
+      Alert.alert(t('common.error'), t('attendanceFormWithData.subprogramsLoadError'));
     }
   };
 
   const handleProgramChange = (program) => {
     setSelectedProgram(program);
     if (program) {
-      fetchSubPrograms(program); // Cargar subprogramas para el programa seleccionado
+      fetchSubPrograms(program);
     }
   };
 
@@ -69,14 +78,14 @@ const AttendanceFormWithDataScreen = ({ route, navigation }) => {
     setSelectedSubProgram(subProgram);
     if (subProgram) {
       const selectedActivities = subPrograms[subProgram] || [];
-      setActivities(selectedActivities); // Cargar actividades para el subprograma seleccionado
+      setActivities(selectedActivities);
       setSelectedActivity('');
     }
   };
 
   const handleRegisterAttendance = async () => {
     if (!selectedProgram || !selectedSubProgram || !selectedActivity) {
-      Alert.alert('Error', 'Por favor seleccione un programa, subprograma y actividad.');
+      Alert.alert(t('common.error'), t('attendanceFormWithData.selectProgramSubprogramActivity'));
       return;
     }
 
@@ -88,9 +97,8 @@ const AttendanceFormWithDataScreen = ({ route, navigation }) => {
       lastName: recognizedData.lastName,
       documentType: recognizedData.documentType,
       documentNumber: recognizedData.documentNumber,
-      /* age: recognizedData.age, */
     };
-    console.log('Datos de asistencia a registrar:', attendanceData);
+
     try {
       const apiUrl = `${process.env.EXPO_PUBLIC_API_URL}attendance/register`;
       const response = await fetch(apiUrl, {
@@ -103,72 +111,71 @@ const AttendanceFormWithDataScreen = ({ route, navigation }) => {
       });
 
       if (response.ok) {
-        Alert.alert('Éxito', 'Asistencia registrada con éxito.');
+        Alert.alert(t('common.success'), t('attendanceFormWithData.attendanceRegistered'));
         navigation.goBack();
       } else {
         const errorData = await response.json();
-        Alert.alert('Error', `No se pudo registrar la asistencia: ${errorData.message}`);
+        Alert.alert(
+          t('common.error'),
+          t('attendanceFormWithData.attendanceRegisterFailed', { message: errorData.message })
+        );
       }
     } catch (error) {
       console.error('Error al registrar la asistencia:', error);
-      Alert.alert('Error', 'No se pudo conectar con el servidor.');
+      Alert.alert(t('common.error'), t('common.serverConnectionError'));
     }
   };
 
-
   return (
     <ScrollView style={styles.container}>
-      <Text style={styles.title}>Formulario de Asistencia</Text>
+      <Text style={styles.title}>{t('attendanceFormWithData.title')}</Text>
 
-      {/* Selector de programa */}
       <Picker selectedValue={selectedProgram} onValueChange={handleProgramChange}>
-        <Picker.Item label="Seleccione un programa" value="" />
+        <Picker.Item label={t('attendanceFormWithData.selectProgram')} value="" />
         {programs.map((program, index) => (
           <Picker.Item key={index} label={program} value={program} />
         ))}
       </Picker>
 
-      {/* Selector de subprograma */}
       <Picker
         selectedValue={selectedSubProgram}
         onValueChange={handleSubProgramChange}
         enabled={!!selectedProgram}
       >
-        <Picker.Item label="Seleccione un subprograma" value="" />
+        <Picker.Item label={t('attendanceFormWithData.selectSubprogram')} value="" />
         {Object.keys(subPrograms).map((subProgram, index) => (
           <Picker.Item key={index} label={subProgram} value={subProgram} />
         ))}
       </Picker>
 
-      {/* Selector de actividad */}
       <Picker
         selectedValue={selectedActivity}
         onValueChange={(value) => setSelectedActivity(value)}
         enabled={!!selectedSubProgram}
       >
-        <Picker.Item label="Seleccione una actividad" value="" />
+        <Picker.Item label={t('attendanceFormWithData.selectActivity')} value="" />
         {activities.map((activity, index) => (
           <Picker.Item key={index} label={activity} value={activity} />
         ))}
       </Picker>
 
-      <Text style={styles.label}>Nombre</Text>
+      <Text style={styles.label}>{t('common.name')}</Text>
       <TextInput style={styles.input} value={recognizedData.firstName} editable={false} />
 
-      <Text style={styles.label}>Apellido</Text>
+      <Text style={styles.label}>{t('common.lastName')}</Text>
       <TextInput style={styles.input} value={recognizedData.lastName} editable={false} />
 
-      <Text style={styles.label}>Edad</Text>
+      <Text style={styles.label}>{t('common.age')}</Text>
       <TextInput style={styles.input} value={recognizedData.age} editable={false} />
 
-      <Text style={styles.label}>Tipo de Documento</Text>
+      <Text style={styles.label}>{t('common.documentType')}</Text>
       <TextInput style={styles.input} value={recognizedData.documentType} editable={false} />
 
-      <Text style={styles.label}>Número de Documento</Text>
+      <Text style={styles.label}>{t('common.documentNumber')}</Text>
       <TextInput style={styles.input} value={recognizedData.documentNumber} editable={false} />
 
       <TouchableOpacity style={styles.button} onPress={handleRegisterAttendance}>
-        <Text style={styles.buttonText}>Registrar Asistencia</Text>
+        <Text style={styles.buttonText}>{t('attendanceFormWithData.registerAttendance')}</Text>
       </TouchableOpacity>
     </ScrollView>
   );

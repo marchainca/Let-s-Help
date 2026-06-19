@@ -16,10 +16,10 @@ export class UsersController {
     constructor(private readonly usersService: UsersService) {}
 
     @Post()
-    @Roles('Admin')
+    //@Roles('Admin')
     async createUser(@Body() userData: CreateUserDto, @Language() langId:number): Promise<CustomResponse> {
         try {
-          console.log("depués del try")
+          //console.log("depués del try")
             const id = await this.usersService.createUser(userData, langId);
 
             return await sendResponse(true, params.ResponseMessages.CREATED, {id} )

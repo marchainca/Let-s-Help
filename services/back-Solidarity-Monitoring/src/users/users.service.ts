@@ -33,7 +33,7 @@ export class UsersService {
             //data.password = await argon2.hash(data.password);
 
             const newUser = await this.dataBaseService.createUser(data);
-            console.log("Usuario creado en la base de datos:", newUser);
+            //console.log("Usuario creado en la base de datos:", newUser);
             return { id: newUser.Identification };
         } catch (error) {
             console.error("Error al crear usuario:", error);

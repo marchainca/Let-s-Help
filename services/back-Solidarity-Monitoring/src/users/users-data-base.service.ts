@@ -16,7 +16,7 @@ export class UsersDataBaseService {
             newUser.Identification = userData.idNumber;
             newUser.Email = userData.email;
             newUser.Birthdate = userData.birthdate;
-            newUser.IdRole = parseInt(userData.role);
+            newUser.IdRole = 1; //parseInt(userData.role);
             newUser.FirstName = userData.name;
             //newUser.LastName = userData.name;
             newUser.Password = userData.password;
@@ -35,7 +35,7 @@ export class UsersDataBaseService {
             const userByEmail = await this.userRepository.find({ where: { Email: email },
                 relations: ['role'] });
 
-            console.log('User found by email:', email, userByEmail);
+            //console.log('User found by email:', email, userByEmail);
 
             /* if (!userByEmail || userByEmail.length === 0) {
                 throw new NotFoundException(`Usuario con email ${email} no encontrado`);

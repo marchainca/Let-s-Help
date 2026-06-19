@@ -39,7 +39,7 @@ import { TranslationModule } from './common/translation/translation.module';
           entities: [__dirname + '/**/*.entity{.ts,.js}'],
           synchronize: configService.get<string>('DB_SYNCHRONIZE', 'false') === 'false',
           ssl: configService.get<string>('DB_SSL', 'false') === 'true',
-          logging: true,
+          //logging: true,
         };
       },
     }),

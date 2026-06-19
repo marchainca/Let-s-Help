@@ -206,7 +206,7 @@ export class RecognitionService {
 
       // Recuperar todas las personas registradas desde la base de datos relacional junto con sus descriptores biométricos
       const beneficiaries = await this.dataBaseRecognitionService.getAllBeneficiariesWithBiometricData();
-      console.log("Beneficiarios obtenidos de la base de datos:", beneficiaries);
+      //console.log("Beneficiarios obtenidos de la base de datos:", beneficiaries);
       if (beneficiaries.length === 0) {
         throw await errorResponse("Error: There are no people registered to make the comparison.", "identifyPerson");
       }
@@ -318,7 +318,7 @@ export class RecognitionService {
       }
 
       const beneficiaries = await this.dataBaseRecognitionService.searchBeneficiariesByName(searchTerm);
-      console.log("Beneficiarios encontrados:", beneficiaries);
+      //console.log("Beneficiarios encontrados:", beneficiaries);
       const results = beneficiaries.map(b => ({
         id: b.IdBeneficiary.toString(),
         name: `${b.FirstName || ''} ${b.LastName || ''}`.trim(),

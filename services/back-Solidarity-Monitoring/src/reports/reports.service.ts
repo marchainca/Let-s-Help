@@ -99,10 +99,10 @@ export class ReportsService {
         const formattedResults = results.map((row: any) => ({
           id: row.id,
           identificacion: row.identificacion,
-          nombresApellidos: row.nombresApellidos,
+          nombresApellidos: row.nombresapellidos,
           reporte: row.reporte,
-          createdBy: row.createdBy,
-          createdAt: row.createdAt ? this.formatDate(row.createdAt) : null,
+          createdBy: row.createdby,
+          createdAt: row.createdat ? this.formatDate(row.createdat) : null,
         }));
 
         return formattedResults;

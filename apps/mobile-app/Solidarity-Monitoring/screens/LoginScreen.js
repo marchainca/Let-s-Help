@@ -13,6 +13,7 @@ import { useTranslation } from 'react-i18next';
 import CryptoJS from 'crypto-js';
 import { UserContext } from '../context/UserContext';
 import { changeAppLanguage } from '../i18n';
+import { apiFetch } from '../api/apiClient';
 
 const LANGUAGES = [
   { code: 'es', labelKey: 'language.spanish' },
@@ -39,7 +40,7 @@ const LoginScreen = ({ navigation }) => {
     try {
       const hashPassword = CryptoJS.SHA256(password).toString();
       const apiUrl = process.env.EXPO_PUBLIC_API_URL + 'auth/login';
-      const response = await fetch(apiUrl, {
+      const response = await apiFetch(apiUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

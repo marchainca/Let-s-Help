@@ -11,6 +11,7 @@ import {
 import Svg, { Circle } from 'react-native-svg';
 import { BarChart } from 'react-native-chart-kit';
 import { useTranslation } from 'react-i18next';
+import { apiFetch } from '../api/apiClient';
 
 const PROGRESS_RING_SIZE = 80;
 
@@ -58,7 +59,7 @@ const IndicatorsScreen = () => {
     const fetchData = async () => {
       try {
         const apiUrl = `${process.env.EXPO_PUBLIC_API_URL}dashboard/indicators`;
-        const response = await fetch(apiUrl, {
+        const response = await apiFetch(apiUrl, {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',

@@ -14,6 +14,7 @@ import * as ImagePicker from 'expo-image-picker';
 import CryptoJS from 'crypto-js';
 import { useTranslation } from 'react-i18next';
 import { UserContext } from '../context/UserContext';
+import { apiFetch } from '../api/apiClient';
 
 const EditProfileScreen = () => {
   const { t } = useTranslation();
@@ -97,7 +98,7 @@ const EditProfileScreen = () => {
 
     try {
       const apiUrl = `${process.env.EXPO_PUBLIC_API_URL}users/:id=${user.id}`;
-      const response = await fetch(apiUrl, {
+      const response = await apiFetch(apiUrl, {
         method: 'PATCH',
         headers: {
           Authorization: `Bearer ${user.accessToken}`,

@@ -14,6 +14,7 @@ import {
 import Toast from 'react-native-toast-message';
 import { useTranslation } from 'react-i18next';
 import { UserContext } from '../context/UserContext';
+import { apiFetch } from '../api/apiClient';
 
 const ReportsScreen = () => {
   const { t } = useTranslation();
@@ -38,7 +39,7 @@ const ReportsScreen = () => {
     try {
       setLoadingSuggestions(true);
       const apiUrl = `${process.env.EXPO_PUBLIC_API_URL}recognition/search?name=${query}`;
-      const response = await fetch(apiUrl, {
+      const response = await apiFetch(apiUrl, {
         headers: {
           Authorization: `Bearer ${user.accessToken}`,
         },
@@ -83,7 +84,7 @@ const ReportsScreen = () => {
     try {
       setSubmittingReport(true);
       const apiUrl = `${process.env.EXPO_PUBLIC_API_URL}reports/create`;
-      const response = await fetch(apiUrl, {
+      const response = await apiFetch(apiUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

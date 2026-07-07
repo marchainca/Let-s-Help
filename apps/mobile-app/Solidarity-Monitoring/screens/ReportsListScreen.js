@@ -10,6 +10,7 @@ import {
   Alert,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
+import { apiFetch } from '../api/apiClient';
 
 const ReportsListScreen = ({ navigation }) => {
   const { t } = useTranslation();
@@ -21,7 +22,7 @@ const ReportsListScreen = ({ navigation }) => {
     setLoading(true);
     try {
       const apiUrl = `${process.env.EXPO_PUBLIC_API_URL}reports/recent`;
-      const response = await fetch(apiUrl, {
+      const response = await apiFetch(apiUrl, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',

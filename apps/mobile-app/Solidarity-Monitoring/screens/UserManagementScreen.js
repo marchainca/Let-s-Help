@@ -14,6 +14,7 @@ import CryptoJS from 'crypto-js';
 import { Picker } from '@react-native-picker/picker';
 import { useTranslation } from 'react-i18next';
 import { UserContext } from '../context/UserContext';
+import { apiFetch } from '../api/apiClient';
 
 const UserManagementScreen = () => {
   const { t } = useTranslation();
@@ -43,7 +44,7 @@ const UserManagementScreen = () => {
 
     try {
       const apiUrl = process.env.EXPO_PUBLIC_API_URL + 'users';
-      const response = await fetch(apiUrl, {
+      const response = await apiFetch(apiUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

@@ -12,6 +12,7 @@ import { Picker } from '@react-native-picker/picker';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useTranslation } from 'react-i18next';
 import { UserContext } from '../context/UserContext';
+import { apiFetch } from '../api/apiClient';
 
 const AttendanceFormScreen = ({ navigation }) => {
   const { t } = useTranslation();
@@ -37,7 +38,7 @@ const AttendanceFormScreen = ({ navigation }) => {
   const fetchPrograms = async () => {
     try {
       const apiUrl = `${process.env.EXPO_PUBLIC_API_URL}activities/programs`;
-      const response = await fetch(apiUrl, {
+      const response = await apiFetch(apiUrl, {
         headers: { Authorization: `Bearer ${user.accessToken}` },
       });
 
@@ -55,7 +56,7 @@ const AttendanceFormScreen = ({ navigation }) => {
   const fetchSubprogramsAndActivities = async (programName) => {
     try {
       const apiUrl = `${process.env.EXPO_PUBLIC_API_URL}activities/${encodeURIComponent(programName)}`;
-      const response = await fetch(apiUrl, {
+      const response = await apiFetch(apiUrl, {
         headers: { Authorization: `Bearer ${user.accessToken}` },
       });
 
@@ -83,7 +84,7 @@ const AttendanceFormScreen = ({ navigation }) => {
     try {
       setLoadingSuggestions(true);
       const apiUrl = `${process.env.EXPO_PUBLIC_API_URL}recognition/search?name=${query}`;
-      const response = await fetch(apiUrl, {
+      const response = await apiFetch(apiUrl, {
         headers: { Authorization: `Bearer ${user.accessToken}` },
       });
 
@@ -161,7 +162,7 @@ const AttendanceFormScreen = ({ navigation }) => {
     try {
       setIsSubmitting(true);
       const apiUrl = `${process.env.EXPO_PUBLIC_API_URL}attendance/absences`;
-      const response = await fetch(apiUrl, {
+      const response = await apiFetch(apiUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

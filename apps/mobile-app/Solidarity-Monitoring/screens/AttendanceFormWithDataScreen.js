@@ -11,6 +11,7 @@ import {
 import { Picker } from '@react-native-picker/picker';
 import { useTranslation } from 'react-i18next';
 import { UserContext } from '../context/UserContext';
+import { apiFetch } from '../api/apiClient';
 
 const AttendanceFormWithDataScreen = ({ route, navigation }) => {
   const { t } = useTranslation();
@@ -31,7 +32,7 @@ const AttendanceFormWithDataScreen = ({ route, navigation }) => {
   const fetchPrograms = async () => {
     try {
       const apiUrl = `${process.env.EXPO_PUBLIC_API_URL}activities/programs`;
-      const response = await fetch(apiUrl, {
+      const response = await apiFetch(apiUrl, {
         headers: { Authorization: `Bearer ${user.accessToken}` },
       });
       if (response.ok) {
@@ -49,7 +50,7 @@ const AttendanceFormWithDataScreen = ({ route, navigation }) => {
   const fetchSubPrograms = async (program) => {
     try {
       const apiUrl = `${process.env.EXPO_PUBLIC_API_URL}activities/${encodeURIComponent(program)}`;
-      const response = await fetch(apiUrl, {
+      const response = await apiFetch(apiUrl, {
         headers: { Authorization: `Bearer ${user.accessToken}` },
       });
       if (response.ok) {
@@ -101,7 +102,7 @@ const AttendanceFormWithDataScreen = ({ route, navigation }) => {
 
     try {
       const apiUrl = `${process.env.EXPO_PUBLIC_API_URL}attendance/register`;
-      const response = await fetch(apiUrl, {
+      const response = await apiFetch(apiUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

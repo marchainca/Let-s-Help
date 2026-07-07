@@ -16,6 +16,7 @@ import { CameraView } from 'expo-camera';
 import { useTranslation } from 'react-i18next';
 import { CameraPermissionContext } from '../context/CameraPermissionContext';
 import { UserContext } from '../context/UserContext';
+import { apiFetch } from '../api/apiClient';
 
 const DOC_TYPE_CITIZENSHIP = 'Cédula de ciudadanía';
 
@@ -103,7 +104,7 @@ const NewMemberScreen = () => {
 
     try {
       const apiUrl = process.env.EXPO_PUBLIC_API_URL + 'recognition/register';
-      const response = await fetch(apiUrl, {
+      const response = await apiFetch(apiUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

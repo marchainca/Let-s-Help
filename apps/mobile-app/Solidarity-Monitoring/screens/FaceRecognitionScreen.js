@@ -12,6 +12,7 @@ import { CameraView } from 'expo-camera';
 import { useTranslation } from 'react-i18next';
 import { CameraPermissionContext } from '../context/CameraPermissionContext';
 import { UserContext } from '../context/UserContext';
+import { apiFetch } from '../api/apiClient';
 
 const FaceRecognitionScreen = ({ navigation }) => {
   const { t } = useTranslation();
@@ -47,7 +48,7 @@ const FaceRecognitionScreen = ({ navigation }) => {
         imageBase64: capturedPhoto.base64,
       };
 
-      const response = await fetch(
+      const response = await apiFetch(
         `${process.env.EXPO_PUBLIC_API_URL}recognition/identify`,
         {
           method: 'POST',

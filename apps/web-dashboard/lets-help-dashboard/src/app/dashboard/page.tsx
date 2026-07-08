@@ -19,7 +19,8 @@ import {
 import EditIcon from '@mui/icons-material/Edit';
 
 import SidebarLayout from './components/SidebarLayout';
-import EditActivityModal from './components/EditActivityModal'; // SE AGREGÓ
+import EditActivityModal from './components/EditActivityModal'; 
+import params from '@/params';
 
 interface ISubprogram {
   id: string;
@@ -54,10 +55,13 @@ interface IRow {
   s4Asistencia: string;
 }
 
-const TOKEN =
-  'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJvODU5ZHIxN0s0N2VFblJRc2diNyIsImVtYWlsIjoianVhbkBleGFtcGxlLmNvbSIsInJvbGVzIjoiQWRtaW4iLCJpYXQiOjE3NDIxNDM2MjF9.YsitldhlkNOvqt_NZxGph1uKEn23xvKE5yrLBm1gsCk'; // Ajusta tu token real
-const BASE_URL = 'http://192.168.56.1:3000/letsHelp/Colombia/activities';
-const USER_ID = '3514235900'; // ID o teléfono simulado
+//tomar el tooken desde el inicio de la app almacenado en localStorage
+const TOKEN = localStorage.getItem('accessToken') || '';
+console.log('TOKEN desde localStorage:', TOKEN);
+const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || '';
+const USER = localStorage.getItem('userData') || '';
+const USER_ID = USER ? JSON.parse(USER).idNumber : ''; 
+
 
 export default function DashboardPage() {
   // Paginación
@@ -80,13 +84,14 @@ export default function DashboardPage() {
   const [weekToEdit, setWeekToEdit] = useState<number>(0);
   const [editRowData, setEditRowData] = useState<IRow | null>(null);
 
-  // 1. Obtiene la info del programa y subprogramas
+  // Obtiene la info del programa y subprogramas
   useEffect(() => {
-    fetch(`${BASE_URL}/getPrograms/${USER_ID}`, {
+    fetch(`${BASE_URL}${params.paths.activities}/getPrograms/${USER_ID}`, {
       method: 'POST',
       headers: {
-        Authorization: TOKEN,
+        Authorization: `Bearer ${TOKEN}`,
         'Content-Type': 'application/json',
+        'Accept-language': 'es',
       },
     })
       .then(async (res) => {
@@ -122,7 +127,7 @@ export default function DashboardPage() {
       setActivitiesRows([]);
       return;
     }
-    const url = `${BASE_URL}/activities-by-subprogram?programId=${programId}&subprogramId=${selectedSubprogram}`;
+    const url = `${BASE_URL}${params.paths.activitiesBySubprogram}?programId=${programId}&subprogramId=${selectedSubprogram}`;
     fetch(url, {
       method: 'GET',
       headers: {

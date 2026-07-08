@@ -57,7 +57,6 @@ interface IRow {
 
 //tomar el tooken desde el inicio de la app almacenado en localStorage
 const TOKEN = localStorage.getItem('accessToken') || '';
-console.log('TOKEN desde localStorage:', TOKEN);
 const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || '';
 const USER = localStorage.getItem('userData') || '';
 const USER_ID = USER ? JSON.parse(USER).idNumber : ''; 
@@ -131,7 +130,7 @@ export default function DashboardPage() {
     fetch(url, {
       method: 'GET',
       headers: {
-        Authorization: TOKEN,
+        Authorization: `Bearer ${TOKEN}`,
       },
     })
       .then(async (res) => {

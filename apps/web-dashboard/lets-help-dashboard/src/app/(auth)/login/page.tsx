@@ -28,7 +28,7 @@ export default function LoginPage() {
       if (response.code === 1) {
         // Guardamos data en el almacenamiento local 
         localStorage.setItem('accessToken', response.content.accessToken);
-        document.cookie = `accessToken=${response.content.accessToken}; path=/;`;
+        //document.cookie = `accessToken=${response.content.accessToken}; path=/;`;
         localStorage.setItem('userData', JSON.stringify(response.content.user));
 
         // Redireccionamos

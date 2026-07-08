@@ -12,10 +12,12 @@ import {
   Divider,
 } from '@mui/material';
 import SidebarLayout from '../components/SidebarLayout';
+import params from '@/params';
 
-// Ajusta tu token real y los endpoints si difieren
-const TOKEN = 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJvODU5ZHIxN0s0N2VFblJRc2diNyIsImVtYWlsIjoianVhbkBleGFtcGxlLmNvbSIsInJvbGVzIjoiQWRtaW4iLCJpYXQiOjE3NDIxNDM2MjF9.YsitldhlkNOvqt_NZxGph1uKEn23xvKE5yrLBm1gsCk';
-const BASE_URL = 'http://192.168.56.1:3000/letsHelp/Colombia/activities';
+const TOKEN = localStorage.getItem('accessToken') || '';
+const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || '';
+const USER = localStorage.getItem('userData') || '';
+const USER_ID = USER ? JSON.parse(USER).idNumber : '';
 
 interface IProgram {
   id: string;
@@ -68,10 +70,10 @@ export default function CreateProgramsPage() {
 
   // 1. Al montar, cargamos la lista de programas
   useEffect(() => {
-    fetch(`${BASE_URL}/getPrograms/3514235900`, {
+    fetch(`${BASE_URL}${params.paths.getPrograms}/${USER_ID}`, {
       method: 'POST',
       headers: {
-        Authorization: TOKEN,
+        Authorization: `Bearer ${TOKEN}`,
         'Content-Type': 'application/json',
       },
     })
@@ -96,10 +98,10 @@ export default function CreateProgramsPage() {
 
   // 2. Crear Programa
   const handleCreateProgram = () => {
-    fetch(`${BASE_URL}/createProgram`, {
+    fetch(`${BASE_URL}${params.paths.createProgram}`, {
       method: 'POST',
       headers: {
-        Authorization: TOKEN,
+        Authorization: `Bearer ${TOKEN}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
@@ -127,44 +129,16 @@ export default function CreateProgramsPage() {
       });
   };
 
-  // Función para recargar la lista de programas
-  /* const reloadPrograms = () => {
-    fetch(`${BASE_URL}/getPrograms/3514235900`, {
-      method: 'POST',
-      headers: {
-        Authorization: TOKEN,
-        'Content-Type': 'application/json',
-      },
-    })
-      .then(async (res) => {
-        if (!res.ok) {
-          throw new Error(`Error HTTP: ${res.status}`);
-        }
-        return res.json();
-      })
-      .then((data) => {
-        if (data.code === 1 && data.content?.length > 0) {
-          setPrograms(data.content);
-        } else {
-          setPrograms([]);
-        }
-      })
-      .catch((err) => {
-        console.error('Error al recargar programas:', err);
-        setPrograms([]);
-      });
-  }; */
-
   // 3. Crear Subprograma
   const handleCreateSubprogram = () => {
     if (!selectedProgramForSub) {
       alert('Selecciona un programa para crear el subprograma');
       return;
     }
-    fetch(`${BASE_URL}/createSubprogram`, {
+    fetch(`${BASE_URL}${params.paths.createSubprogram}`, {
       method: 'POST',
       headers: {
-        Authorization: TOKEN,
+        Authorization: `Bearer ${TOKEN}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
@@ -199,10 +173,10 @@ export default function CreateProgramsPage() {
       alert('Selecciona un programa y subprograma para crear la actividad');
       return;
     }
-    fetch(`${BASE_URL}/createActivity`, {
+    fetch(`${BASE_URL}${params.paths.createActivity}`, {
       method: 'POST',
       headers: {
-        Authorization: TOKEN,
+        Authorization: `Bearer ${TOKEN}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({

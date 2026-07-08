@@ -10,9 +10,10 @@ import {
   TextField,
   Box,
 } from '@mui/material';
+import params from '@/params';
 
 const TOKEN = process.env.NEXT_PUBLIC_AUTH_TOKEN || '';
-const UPDATE_URL = `${process.env.NEXT_PUBLIC_ACTIVITIES_API_URL}${process.env.NEXT_PUBLIC_UPDATE_ACTIVITY_ENDPOINT}`;
+const UPDATE_URL = `${process.env.NEXT_PUBLIC_API_BASE_URL}${params.paths.updateActivity}`;
 
 interface EditActivityModalProps {
   open: boolean;

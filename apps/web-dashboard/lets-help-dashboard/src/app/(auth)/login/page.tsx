@@ -1,7 +1,7 @@
 'use client';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation'; 
-import { TextField, Button, Typography, Box, Card, CardContent } from '@mui/material';
+import { TextField, Button, Typography, Box, Card, CardContent, Avatar } from '@mui/material';
 import { useTranslation } from 'react-i18next';
 import { loginRequest } from '@/app/services/authService';
 
@@ -14,8 +14,23 @@ export default function LoginPage() {
   
   // Estado para manejo de error o mensajes
   const [error, setError] = useState<string | null>(null);
+  const [userData, setUserData] = useState<{ name?: string; urlImage?: string; email?: string } | null>(null);
 
   const router = useRouter();
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const storedUserData = localStorage.getItem('userData');
+
+    if (storedUserData) {
+      try {
+        setUserData(JSON.parse(storedUserData));
+      } catch {
+        setUserData(null);
+      }
+    }
+  }, []);
 
   // Función que maneja el evento de submit del formulario
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -30,6 +45,7 @@ export default function LoginPage() {
         localStorage.setItem('accessToken', response.content.accessToken);
         //document.cookie = `accessToken=${response.content.accessToken}; path=/;`;
         localStorage.setItem('userData', JSON.stringify(response.content.user));
+        setUserData(response.content.user);
 
         // Redireccionamos
         router.push('/dashboard');
@@ -83,6 +99,26 @@ export default function LoginPage() {
               {t('login.signIn')}
             </Button>
           </form>
+
+          {userData && (
+            <Box display="flex" alignItems="center" gap={2} mt={2} p={2} bgcolor="#f9fafb" borderRadius={2}>
+              <Avatar
+                src={userData.urlImage}
+                alt={userData.name || 'Usuario'}
+                sx={{ width: 56, height: 56 }}
+              />
+              <Box>
+                <Typography variant="subtitle1" fontWeight={600}>
+                  {userData.name || 'Usuario'}
+                </Typography>
+                {userData.email && (
+                  <Typography variant="body2" color="text.secondary">
+                    {userData.email}
+                  </Typography>
+                )}
+              </Box>
+            </Box>
+          )}
 
           {error && (
             <Typography variant="body2" color="error" mt={2}>

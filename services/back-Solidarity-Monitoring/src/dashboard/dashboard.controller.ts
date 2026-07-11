@@ -27,4 +27,22 @@ export class DashboardController {
             );
         }
     }
+
+    @Get('/executive-summary')
+    async getExecutiveSummary() {
+        try {
+            const summary = await this.dashboardService.getExecutiveDashboardSummary();
+            return await sendResponse(true, params.ResponseMessages.MESSAGE_SUCCESS, summary );
+        } catch (error) {
+            throw new HttpException(
+            {
+                code: error.code,
+                message: error.message,
+                attribute: error.attribute,
+                statusCode: error.statusCode,
+            },
+                HttpStatus.BAD_REQUEST,
+            );
+        }
+    }
 }

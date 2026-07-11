@@ -23,4 +23,8 @@ export class DashboardService {
       budget,
     };
   }
+
+  async getExecutiveDashboardSummary() {
+    return this.dataBaseService.getExecutiveDashboardSummary();
+  }
 }

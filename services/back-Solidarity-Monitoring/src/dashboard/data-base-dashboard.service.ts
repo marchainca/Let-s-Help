@@ -3,6 +3,12 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { ActivityTracking } from 'src/activities/entities/activity-tracking.entity';
 import { Attendance } from 'src/attendance/entities/attendance.entity';
 import { User } from 'src/users/entities/user.entity';
+import { Beneficiary } from 'src/recognition/entities/beneficiary.entity';
+import { Program } from 'src/activities/entities/program.entity';
+import { SubProgram } from 'src/activities/entities/sub-program.entity';
+import { Activity } from 'src/activities/entities/activity.entity';
+import { Absence } from 'src/users/entities/absence.entity';
+import { Report } from 'src/users/entities/report.entity';
 import { Repository } from 'typeorm';
 
 @Injectable()
@@ -14,6 +20,18 @@ export class DataBaseDashboardService {
         private attendanceRepo: Repository<Attendance>,
         @InjectRepository(User)
         private userRepo: Repository<User>,
+        @InjectRepository(Beneficiary)
+        private beneficiaryRepo: Repository<Beneficiary>,
+        @InjectRepository(Program)
+        private programRepo: Repository<Program>,
+        @InjectRepository(SubProgram)
+        private subProgramRepo: Repository<SubProgram>,
+        @InjectRepository(Activity)
+        private activityRepo: Repository<Activity>,
+        @InjectRepository(Absence)
+        private absenceRepo: Repository<Absence>,
+        @InjectRepository(Report)
+        private reportRepo: Repository<Report>,
     ) {}
 
     // Cálculo de avances: currentMonth, lastMonth, semester
@@ -53,6 +71,74 @@ export class DataBaseDashboardService {
         currentMonth: currentMonthProgress,
         lastMonth: lastMonthProgress,
         semester: semesterProgress,
+        };
+    }
+
+    // Executive dashboard summary
+    async getExecutiveDashboardSummary() {
+        const [
+            beneficiaries,
+            programs,
+            subPrograms,
+            activities,
+            attendances,
+            absences,
+            reports,
+            users,
+        ] = await Promise.all([
+            this.beneficiaryRepo.count(),
+            this.programRepo.count(),
+            this.subProgramRepo.count(),
+            this.activityRepo.count(),
+            this.attendanceRepo.count(),
+            this.absenceRepo.count(),
+            this.reportRepo.count(),
+            this.userRepo.count(),
+        ]);
+
+        return {
+            metrics: [
+                {
+                    indicator: 'Total de beneficiarios registrados',
+                    table: 'Beneficiaries',
+                    value: beneficiaries,
+                },
+                {
+                    indicator: 'Total de programas',
+                    table: 'Programs',
+                    value: programs,
+                },
+                {
+                    indicator: 'Total de subprogramas',
+                    table: 'Sub_Programs',
+                    value: subPrograms,
+                },
+                {
+                    indicator: 'Total de actividades',
+                    table: 'Activities',
+                    value: activities,
+                },
+                {
+                    indicator: 'Total de asistencias registradas',
+                    table: 'Attendances',
+                    value: attendances,
+                },
+                {
+                    indicator: 'Total de ausencias',
+                    table: 'Absences',
+                    value: absences,
+                },
+                {
+                    indicator: 'Total de reportes disciplinarios',
+                    table: 'Reports',
+                    value: reports,
+                },
+                {
+                    indicator: 'Total de líderes o usuarios',
+                    table: 'Users',
+                    value: users,
+                },
+            ],
         };
     }
 

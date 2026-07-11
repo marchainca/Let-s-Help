@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   AppBar,
   Toolbar,
@@ -37,7 +37,22 @@ interface SidebarLayoutProps {
 
 export default function SidebarLayout({ children }: SidebarLayoutProps) {
   const [open, setOpen] = useState(false);
+  const [userData, setUserData] = useState<{ name?: string; urlImage?: string } | null>(null);
   const router = useRouter();
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const storedUserData = localStorage.getItem('userData');
+
+    if (storedUserData) {
+      try {
+        setUserData(JSON.parse(storedUserData));
+      } catch {
+        setUserData(null);
+      }
+    }
+  }, []);
 
   // Función para cerrar sesión
   const handleLogout = () => {
@@ -69,9 +84,13 @@ export default function SidebarLayout({ children }: SidebarLayoutProps) {
     >
       {/* Nombre o Branding */}
       <Box sx={{ p: 2, display: 'flex', alignItems: 'center', gap: 2 }}>
-        <Avatar alt="John Restrepo" src="" />
+        <Avatar
+          alt={userData?.name || 'Usuario'}
+          src={userData?.urlImage || ''}
+          sx={{ width: 40, height: 40 }}
+        />
         <Typography variant="body1" fontWeight="bold">
-          John Restrepo
+          {userData?.name || 'Usuario'}
         </Typography>
       </Box>
 

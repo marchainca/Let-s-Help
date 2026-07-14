@@ -27,4 +27,12 @@ export class DashboardService {
   async getExecutiveDashboardSummary() {
     return this.dataBaseService.getExecutiveDashboardSummary();
   }
+
+  async getAttendanceDashboardSummary() {
+    return this.dataBaseService.getAttendanceDashboardSummary();
+  }
+
+  async getProgramDashboardSummary() {
+    return this.dataBaseService.getProgramDashboardSummary();
+  }
 }

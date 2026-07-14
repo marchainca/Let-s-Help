@@ -35,4 +35,8 @@ export class DashboardService {
   async getProgramDashboardSummary() {
     return this.dataBaseService.getProgramDashboardSummary();
   }
+
+  async getSubProgramDashboardSummary() {
+    return this.dataBaseService.getSubProgramDashboardSummary();
+  }
 }

@@ -438,6 +438,100 @@ export class DataBaseDashboardService {
         };
     }
 
+    async getSubProgramDashboardSummary() {
+        const [subProgramsWithAttendance, subProgramsWithAbsence, subProgramsWithActivities, subProgramsWithBeneficiaries] = await Promise.all([
+            this.attendanceRepo.createQueryBuilder('att')
+                .innerJoin('att.activity', 'activity')
+                .innerJoin('activity.subProgram', 'subProgram')
+                .select('subProgram.IdSubProgram', 'id')
+                .addSelect('COUNT(att.IdAttendance)', 'count')
+                .where('att.Status = :status', { status: 'present' })
+                .groupBy('subProgram.IdSubProgram')
+                .orderBy('count', 'DESC')
+                .getRawMany(),
+            this.attendanceRepo.createQueryBuilder('att')
+                .innerJoin('att.activity', 'activity')
+                .innerJoin('activity.subProgram', 'subProgram')
+                .select('subProgram.IdSubProgram', 'id')
+                .addSelect('COUNT(att.IdAttendance)', 'count')
+                .where('att.Status = :status', { status: 'absent' })
+                .groupBy('subProgram.IdSubProgram')
+                .orderBy('count', 'DESC')
+                .getRawMany(),
+            this.activityRepo.createQueryBuilder('activity')
+                .innerJoin('activity.subProgram', 'subProgram')
+                .select('subProgram.IdSubProgram', 'id')
+                .addSelect('COUNT(activity.IdActivity)', 'count')
+                .groupBy('subProgram.IdSubProgram')
+                .orderBy('count', 'DESC')
+                .getRawMany(),
+            this.attendanceRepo.createQueryBuilder('att')
+                .innerJoin('att.activity', 'activity')
+                .innerJoin('activity.subProgram', 'subProgram')
+                .select('subProgram.IdSubProgram', 'id')
+                .addSelect('COUNT(DISTINCT att.IdBeneficiary)', 'count')
+                .groupBy('subProgram.IdSubProgram')
+                .orderBy('count', 'DESC')
+                .getRawMany(),
+        ]);
+
+        const formatSubProgram = (row: any, metric: string, value: number) => ({
+            id: row?.id,
+            metric,
+            value,
+        });
+
+        const subProgramWithMostAttendance = subProgramsWithAttendance[0]
+            ? formatSubProgram(subProgramsWithAttendance[0], 'attendance', Number(subProgramsWithAttendance[0].count) || 0)
+            : { id: null, metric: 'attendance', value: 0 };
+
+        const subProgramWithLeastAttendance = [...subProgramsWithAttendance].sort((a, b) => Number(a.count) - Number(b.count))[0]
+            ? formatSubProgram([...(subProgramsWithAttendance as any[]).sort((a, b) => Number(a.count) - Number(b.count))][0], 'attendance', Number([...subProgramsWithAttendance].sort((a, b) => Number(a.count) - Number(b.count))[0].count) || 0)
+            : { id: null, metric: 'attendance', value: 0 };
+
+        const subProgramWithMostActivities = subProgramsWithActivities[0]
+            ? formatSubProgram(subProgramsWithActivities[0], 'activities', Number(subProgramsWithActivities[0].count) || 0)
+            : { id: null, metric: 'activities', value: 0 };
+
+        const subProgramWithMostBeneficiaries = subProgramsWithBeneficiaries[0]
+            ? formatSubProgram(subProgramsWithBeneficiaries[0], 'beneficiaries', Number(subProgramsWithBeneficiaries[0].count) || 0)
+            : { id: null, metric: 'beneficiaries', value: 0 };
+
+        const findSubProgramName = async (id: number | null) => {
+            if (!id) return null;
+            const subProgram = await this.subProgramRepo.findOne({ where: { IdSubProgram: id } });
+            return subProgram ? { id, name: subProgram.IdSubProgram?.toString() } : { id, name: null };
+        };
+
+        const [mostAttendanceSubProgram, leastAttendanceSubProgram, mostActivitiesSubProgram, mostBeneficiariesSubProgram] = await Promise.all([
+            findSubProgramName(subProgramWithMostAttendance.id),
+            findSubProgramName(subProgramWithLeastAttendance.id),
+            findSubProgramName(subProgramWithMostActivities.id),
+            findSubProgramName(subProgramWithMostBeneficiaries.id),
+        ]);
+
+        return {
+            subPrograms: {
+                mostAttendance: {
+                    ...subProgramWithMostAttendance,
+                    subProgram: mostAttendanceSubProgram,
+                },
+                leastAttendance: {
+                    ...subProgramWithLeastAttendance,
+                    subProgram: leastAttendanceSubProgram,
+                },
+                mostActivities: {
+                    ...subProgramWithMostActivities,
+                    subProgram: mostActivitiesSubProgram,
+                },
+                mostBeneficiaries: {
+                    ...subProgramWithMostBeneficiaries,
+                    subProgram: mostBeneficiariesSubProgram,
+                },
+            },
+        };
+    }
+
     // Total de participantes (beneficiarios únicos) por mes, de enero a junio del año actual
   async getMonthlyParticipants(): Promise<number[]> {
     const currentYear = new Date().getFullYear();

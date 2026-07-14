@@ -39,4 +39,12 @@ export class DashboardService {
   async getSubProgramDashboardSummary(langId: number) {
     return this.dataBaseService.getSubProgramDashboardSummary(langId);
   }
+
+  async getActivityDashboardSummary(langId: number) {
+    return this.dataBaseService.getActivityDashboardSummary(langId);
+  }
+
+  async getTrackingDashboardSummary(langId: number) {
+    return this.dataBaseService.getTrackingDashboardSummary(langId);
+  }
 }

@@ -13,6 +13,7 @@ import { Absence } from 'src/users/entities/absence.entity';
 import { Report } from 'src/users/entities/report.entity';
 import { ProgramsTranslation } from 'src/common/translation/entities/programs-translation.entity';
 import { SubProgramsTranslation } from 'src/common/translation/entities/subprograms-translation.entity';
+import { ActivitiesTranslation } from 'src/common/translation/entities/activities-translation.entity';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
 @Module({
@@ -29,6 +30,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
       Report,
       ProgramsTranslation,
       SubProgramsTranslation,
+      ActivitiesTranslation,
     ]),
   ],
   providers: [DashboardService, DataBaseDashboardService],

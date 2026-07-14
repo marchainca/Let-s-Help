@@ -821,6 +821,204 @@ export class DataBaseDashboardService {
         };
     }
 
+    async getDropoutDashboardSummary(langId: number) {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        const thirtyDaysAgo = new Date(today);
+        thirtyDaysAgo.setDate(today.getDate() - 30);
+
+        const thresholds = [15, 30, 60, 90];
+        const listLimit = 10;
+
+        const daysSince = (date: Date | string | null): number | null => {
+            if (!date) return null;
+            const parsed = new Date(date);
+            parsed.setHours(0, 0, 0, 0);
+            return Math.floor((today.getTime() - parsed.getTime()) / (1000 * 60 * 60 * 24));
+        };
+
+        const getRiskLevel = (days: number | null): 'none' | 'low' | 'medium' | 'high' | 'critical' => {
+            if (days === null) return 'critical';
+            if (days >= 90) return 'critical';
+            if (days >= 60) return 'high';
+            if (days >= 30) return 'medium';
+            if (days >= 15) return 'low';
+            return 'none';
+        };
+
+        const calculateRiskScore = (
+            days: number | null,
+            neverAttended: boolean,
+            recentAbsences: number,
+            absenceRate: number,
+        ): number => {
+            if (neverAttended) return 100;
+            let score = 0;
+            if (days !== null) {
+                score += Math.min(60, (days / 90) * 60);
+            }
+            score += Math.min(20, recentAbsences * 5);
+            score += Math.min(20, absenceRate * 20);
+            return Math.min(100, Math.round(score));
+        };
+
+        const buildRiskFactors = (
+            days: number | null,
+            neverAttended: boolean,
+            recentAbsences: number,
+            absenceRate: number,
+        ): string[] => {
+            const factors: string[] = [];
+            if (neverAttended) factors.push('Sin asistencias registradas');
+            if (days !== null && days >= 30) factors.push(`Sin asistir ${days} días`);
+            else if (days !== null && days >= 15) factors.push(`Sin asistir ${days} días`);
+            if (recentAbsences >= 3) factors.push(`${recentAbsences} ausencias en los últimos 30 días`);
+            if (absenceRate >= 0.5) factors.push('Alta tasa de ausencias histórica');
+            return factors;
+        };
+
+        const [beneficiaryStats, lastPresentDetails] = await Promise.all([
+            this.beneficiaryRepo.createQueryBuilder('ben')
+                .leftJoin('ben.attendances', 'att')
+                .select('ben.IdBeneficiary', 'id')
+                .addSelect('ben.FirstName', 'firstName')
+                .addSelect('ben.LastName', 'lastName')
+                .addSelect('ben.Identification', 'identification')
+                .addSelect("MAX(CASE WHEN att.Status = 'present' THEN att.AttendanceDate END)", 'lastPresentDate')
+                .addSelect("SUM(CASE WHEN att.Status = 'present' THEN 1 ELSE 0 END)", 'totalPresent')
+                .addSelect("SUM(CASE WHEN att.Status = 'absent' THEN 1 ELSE 0 END)", 'totalAbsent')
+                .addSelect("SUM(CASE WHEN att.Status = 'justified' THEN 1 ELSE 0 END)", 'totalJustified')
+                .addSelect('COUNT(att.IdAttendance)', 'totalRecords')
+                .addSelect("SUM(CASE WHEN att.Status = 'absent' AND att.AttendanceDate >= :recentStart THEN 1 ELSE 0 END)", 'recentAbsences')
+                .setParameter('recentStart', thirtyDaysAgo)
+                .groupBy('ben.IdBeneficiary')
+                .addGroupBy('ben.FirstName')
+                .addGroupBy('ben.LastName')
+                .addGroupBy('ben.Identification')
+                .getRawMany(),
+            this.attendanceRepo.createQueryBuilder('att')
+                .innerJoin('att.beneficiary', 'ben')
+                .innerJoin('att.activity', 'activity')
+                .innerJoin('activity.subProgram', 'subProgram')
+                .innerJoin('subProgram.program', 'program')
+                .leftJoin('activity.translations', 'at', 'at.IdLanguage = :langId', { langId })
+                .leftJoin('subProgram.translations', 'spt', 'spt.IdLanguage = :langId', { langId })
+                .leftJoin('program.translations', 'pt', 'pt.IdLanguage = :langId', { langId })
+                .select('ben.IdBeneficiary', 'beneficiaryId')
+                .addSelect('att.AttendanceDate', 'lastPresentDate')
+                .addSelect('activity.IdActivity', 'activityId')
+                .addSelect('at.NameActivity', 'activityName')
+                .addSelect('subProgram.IdSubProgram', 'subProgramId')
+                .addSelect('spt.NameSubProgram', 'subProgramName')
+                .addSelect('program.IdProgram', 'programId')
+                .addSelect('pt.NameProgram', 'programName')
+                .where('att.Status = :status', { status: 'present' })
+                .distinctOn(['ben.IdBeneficiary'])
+                .orderBy('ben.IdBeneficiary', 'ASC')
+                .addOrderBy('att.AttendanceDate', 'DESC')
+                .getRawMany(),
+        ]);
+
+        const lastPresentMap = new Map(
+            lastPresentDetails.map((row) => [Number(row.beneficiaryId), row]),
+        );
+
+        const enriched = beneficiaryStats.map((row) => {
+            const daysSinceLastAttendance = daysSince(row.lastPresentDate);
+            const totalPresent = Number(row.totalPresent) || 0;
+            const totalAbsent = Number(row.totalAbsent) || 0;
+            const totalJustified = Number(row.totalJustified) || 0;
+            const totalRecords = Number(row.totalRecords) || 0;
+            const recentAbsences = Number(row.recentAbsences) || 0;
+            const neverAttended = !row.lastPresentDate;
+            const absenceRate = totalRecords > 0 ? totalAbsent / totalRecords : 0;
+            const lastDetail = lastPresentMap.get(Number(row.id));
+            const name = [row.firstName, row.lastName].filter(Boolean).join(' ').trim() || null;
+            const riskLevel = getRiskLevel(daysSinceLastAttendance);
+            const riskScore = calculateRiskScore(daysSinceLastAttendance, neverAttended, recentAbsences, absenceRate);
+
+            return {
+                id: row.id,
+                name,
+                identification: row.identification ?? null,
+                beneficiary: { id: row.id, name, identification: row.identification ?? null },
+                lastPresentDate: row.lastPresentDate ?? null,
+                daysSinceLastAttendance,
+                neverAttended,
+                totalPresent,
+                totalAbsent,
+                totalJustified,
+                recentAbsences,
+                absenceRate: Math.round(absenceRate * 10000) / 10000,
+                absencePercent: `${(absenceRate * 100).toFixed(2)}%`,
+                riskLevel,
+                abandonmentRisk: {
+                    score: riskScore,
+                    level: riskLevel,
+                    factors: buildRiskFactors(daysSinceLastAttendance, neverAttended, recentAbsences, absenceRate),
+                },
+                lastActivity: lastDetail
+                    ? { id: lastDetail.activityId, name: lastDetail.activityName ?? null }
+                    : null,
+                program: lastDetail
+                    ? { id: lastDetail.programId, name: lastDetail.programName ?? null }
+                    : null,
+                subProgram: lastDetail
+                    ? { id: lastDetail.subProgramId, name: lastDetail.subProgramName ?? null }
+                    : null,
+            };
+        });
+
+        const filterByInactiveDays = (minDays: number) =>
+            enriched
+                .filter((b) => b.daysSinceLastAttendance === null || b.daysSinceLastAttendance >= minDays)
+                .sort((a, b) => (b.daysSinceLastAttendance ?? 999) - (a.daysSinceLastAttendance ?? 999));
+
+        const byPeriod = thresholds.reduce((acc, days) => {
+            const list = filterByInactiveDays(days);
+            acc[`${days}days`] = {
+                days,
+                count: list.length,
+                beneficiaries: list.slice(0, listLimit),
+            };
+            return acc;
+        }, {} as Record<string, { days: number; count: number; beneficiaries: typeof enriched }>);
+
+        const atRisk = filterByInactiveDays(15);
+        const neverAttendedList = enriched.filter((b) => b.neverAttended);
+        const escalatingRisk = enriched.filter(
+            (b) => !b.neverAttended
+                && b.daysSinceLastAttendance !== null
+                && b.daysSinceLastAttendance < 15
+                && b.recentAbsences >= 3,
+        );
+
+        return {
+            dropout: {
+                summary: {
+                    '15days': { count: byPeriod['15days'].count },
+                    '30days': { count: byPeriod['30days'].count },
+                    '60days': { count: byPeriod['60days'].count },
+                    '90days': { count: byPeriod['90days'].count },
+                },
+                riskIndicators: {
+                    totalAtRisk: atRisk.length,
+                    neverAttended: neverAttendedList.length,
+                    escalatingRisk: escalatingRisk.length,
+                    criticalRisk: enriched.filter((b) => b.riskLevel === 'critical').length,
+                    highRisk: enriched.filter((b) => b.riskLevel === 'high').length,
+                    mediumRisk: enriched.filter((b) => b.riskLevel === 'medium').length,
+                    lowRisk: enriched.filter((b) => b.riskLevel === 'low').length,
+                },
+                earlyWarnings: escalatingRisk
+                    .sort((a, b) => b.abandonmentRisk.score - a.abandonmentRisk.score)
+                    .slice(0, listLimit),
+                byPeriod,
+            },
+        };
+    }
+
     // Total de participantes (beneficiarios únicos) por mes, de enero a junio del año actual
   async getMonthlyParticipants(): Promise<number[]> {
     const currentYear = new Date().getFullYear();

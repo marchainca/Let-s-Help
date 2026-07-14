@@ -47,4 +47,8 @@ export class DashboardService {
   async getTrackingDashboardSummary(langId: number) {
     return this.dataBaseService.getTrackingDashboardSummary(langId);
   }
+
+  async getDropoutDashboardSummary(langId: number) {
+    return this.dataBaseService.getDropoutDashboardSummary(langId);
+  }
 }

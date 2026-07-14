@@ -136,4 +136,22 @@ export class DashboardController {
             );
         }
     }
+
+    @Get('/dropout-summary')
+    async getDropoutSummary(@Language() lang: number) {
+        try {
+            const summary = await this.dashboardService.getDropoutDashboardSummary(lang);
+            return await sendResponse(true, params.ResponseMessages.MESSAGE_SUCCESS, summary );
+        } catch (error) {
+            throw new HttpException(
+            {
+                code: error.code,
+                message: error.message,
+                attribute: error.attribute,
+                statusCode: error.statusCode,
+            },
+                HttpStatus.BAD_REQUEST,
+            );
+        }
+    }
 }

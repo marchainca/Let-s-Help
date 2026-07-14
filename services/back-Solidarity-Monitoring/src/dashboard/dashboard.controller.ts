@@ -2,6 +2,7 @@ import { Controller, Get, HttpException, HttpStatus } from '@nestjs/common';
 import { DashboardService } from './dashboard.service';
 import { sendResponse } from 'src/tools/function.tools';
 import params from 'src/tools/params';
+import { Language } from 'src/common/decorators/language.decorator';
 
 @Controller('letsHelp/Colombia/dashboard')
 export class DashboardController {
@@ -47,9 +48,9 @@ export class DashboardController {
     }
 
     @Get('/attendance-summary')
-    async getAttendanceSummary() {
+    async getAttendanceSummary(@Language() lang: number) {
         try {
-            const summary = await this.dashboardService.getAttendanceDashboardSummary();
+            const summary = await this.dashboardService.getAttendanceDashboardSummary(lang);
             return await sendResponse(true, params.ResponseMessages.MESSAGE_SUCCESS, summary );
         } catch (error) {
             throw new HttpException(
@@ -65,9 +66,9 @@ export class DashboardController {
     }
 
     @Get('/program-summary')
-    async getProgramSummary() {
+    async getProgramSummary(@Language() lang: number) {
         try {
-            const summary = await this.dashboardService.getProgramDashboardSummary();
+            const summary = await this.dashboardService.getProgramDashboardSummary(lang);
             return await sendResponse(true, params.ResponseMessages.MESSAGE_SUCCESS, summary );
         } catch (error) {
             throw new HttpException(
@@ -83,9 +84,9 @@ export class DashboardController {
     }
 
     @Get('/subprogram-summary')
-    async getSubProgramSummary() {
+    async getSubProgramSummary(@Language() lang: number) {
         try {
-            const summary = await this.dashboardService.getSubProgramDashboardSummary();
+            const summary = await this.dashboardService.getSubProgramDashboardSummary(lang);
             return await sendResponse(true, params.ResponseMessages.MESSAGE_SUCCESS, summary );
         } catch (error) {
             throw new HttpException(

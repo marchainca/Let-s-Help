@@ -9,6 +9,9 @@ import { SubProgram } from 'src/activities/entities/sub-program.entity';
 import { Activity } from 'src/activities/entities/activity.entity';
 import { Absence } from 'src/users/entities/absence.entity';
 import { Report } from 'src/users/entities/report.entity';
+import { ProgramsTranslation } from 'src/common/translation/entities/programs-translation.entity';
+import { SubProgramsTranslation } from 'src/common/translation/entities/subprograms-translation.entity';
+import params from 'src/tools/params';
 import { Repository } from 'typeorm';
 
 @Injectable()
@@ -32,7 +35,31 @@ export class DataBaseDashboardService {
         private absenceRepo: Repository<Absence>,
         @InjectRepository(Report)
         private reportRepo: Repository<Report>,
+        @InjectRepository(ProgramsTranslation)
+        private programTranslationRepo: Repository<ProgramsTranslation>,
+        @InjectRepository(SubProgramsTranslation)
+        private subProgramTranslationRepo: Repository<SubProgramsTranslation>,
     ) {}
+
+    private async findProgramName(id: number | null, langId: number) {
+        if (!id) return null;
+        const translation = await this.programTranslationRepo.findOne({
+            where: { IdProgram: id, IdLanguage: langId },
+        }) ?? await this.programTranslationRepo.findOne({
+            where: { IdProgram: id, IdLanguage: params.languages.ES.code },
+        });
+        return { id, name: translation?.NameProgram ?? null };
+    }
+
+    private async findSubProgramName(id: number | null, langId: number) {
+        if (!id) return null;
+        const translation = await this.subProgramTranslationRepo.findOne({
+            where: { IdSubProgram: id, IdLanguage: langId },
+        }) ?? await this.subProgramTranslationRepo.findOne({
+            where: { IdSubProgram: id, IdLanguage: params.languages.ES.code },
+        });
+        return { id, name: translation?.NameSubProgram ?? null };
+    }
 
     // Cálculo de avances: currentMonth, lastMonth, semester
     async calculateProgress() {
@@ -75,7 +102,7 @@ export class DataBaseDashboardService {
     }
 
     // Attendance dashboard summary and KPIs
-    async getAttendanceDashboardSummary() {
+    async getAttendanceDashboardSummary(langId: number) {
         const now = new Date();
         const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
         const endOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59);
@@ -176,7 +203,9 @@ export class DataBaseDashboardService {
             .innerJoin('att.activity', 'activity')
             .innerJoin('activity.subProgram', 'subProgram')
             .innerJoin('subProgram.program', 'program')
+            .leftJoin('program.translations', 'pt', 'pt.IdLanguage = :langId', { langId })
             .select('program.IdProgram', 'id')
+            .addSelect('MAX(pt.NameProgram)', 'name')
             .addSelect('COUNT(att.IdAttendance)', 'count')
             .where('att.Status = :status', { status: 'present' })
             .andWhere('att.AttendanceDate BETWEEN :start AND :end', { start: startOfYear, end: endOfYear })
@@ -189,7 +218,9 @@ export class DataBaseDashboardService {
             .innerJoin('att.activity', 'activity')
             .innerJoin('activity.subProgram', 'subProgram')
             .innerJoin('subProgram.program', 'program')
+            .leftJoin('program.translations', 'pt', 'pt.IdLanguage = :langId', { langId })
             .select('program.IdProgram', 'id')
+            .addSelect('MAX(pt.NameProgram)', 'name')
             .addSelect('COUNT(att.IdAttendance)', 'count')
             .where('att.Status = :status', { status: 'absent' })
             .andWhere('att.AttendanceDate BETWEEN :start AND :end', { start: startOfYear, end: endOfYear })
@@ -201,7 +232,9 @@ export class DataBaseDashboardService {
         const topSubProgramsByAttendanceRaw = await this.attendanceRepo.createQueryBuilder('att')
             .innerJoin('att.activity', 'activity')
             .innerJoin('activity.subProgram', 'subProgram')
+            .leftJoin('subProgram.translations', 'spt', 'spt.IdLanguage = :langId', { langId })
             .select('subProgram.IdSubProgram', 'id')
+            .addSelect('MAX(spt.NameSubProgram)', 'name')
             .addSelect('COUNT(att.IdAttendance)', 'count')
             .where('att.Status = :status', { status: 'present' })
             .andWhere('att.AttendanceDate BETWEEN :start AND :end', { start: startOfYear, end: endOfYear })
@@ -213,7 +246,9 @@ export class DataBaseDashboardService {
         const topSubProgramsByAbsenceRaw = await this.attendanceRepo.createQueryBuilder('att')
             .innerJoin('att.activity', 'activity')
             .innerJoin('activity.subProgram', 'subProgram')
+            .leftJoin('subProgram.translations', 'spt', 'spt.IdLanguage = :langId', { langId })
             .select('subProgram.IdSubProgram', 'id')
+            .addSelect('MAX(spt.NameSubProgram)', 'name')
             .addSelect('COUNT(att.IdAttendance)', 'count')
             .where('att.Status = :status', { status: 'absent' })
             .andWhere('att.AttendanceDate BETWEEN :start AND :end', { start: startOfYear, end: endOfYear })
@@ -224,7 +259,9 @@ export class DataBaseDashboardService {
 
         const topActivitiesByAttendanceRaw = await this.attendanceRepo.createQueryBuilder('att')
             .innerJoin('att.activity', 'activity')
+            .leftJoin('activity.translations', 'at', 'at.IdLanguage = :langId', { langId })
             .select('activity.IdActivity', 'id')
+            .addSelect('MAX(at.NameActivity)', 'name')
             .addSelect('COUNT(att.IdAttendance)', 'count')
             .where('att.Status = :status', { status: 'present' })
             .andWhere('att.AttendanceDate BETWEEN :start AND :end', { start: startOfYear, end: endOfYear })
@@ -235,7 +272,9 @@ export class DataBaseDashboardService {
 
         const topActivitiesByAbsenceRaw = await this.attendanceRepo.createQueryBuilder('att')
             .innerJoin('att.activity', 'activity')
+            .leftJoin('activity.translations', 'at', 'at.IdLanguage = :langId', { langId })
             .select('activity.IdActivity', 'id')
+            .addSelect('MAX(at.NameActivity)', 'name')
             .addSelect('COUNT(att.IdAttendance)', 'count')
             .where('att.Status = :status', { status: 'absent' })
             .andWhere('att.AttendanceDate BETWEEN :start AND :end', { start: startOfYear, end: endOfYear })
@@ -244,7 +283,20 @@ export class DataBaseDashboardService {
             .limit(limit)
             .getRawMany();
 
-        const mapTop = (arr: any[], total: number) => arr.map(r => ({ id: r.id, count: Number(r.count), percent: percent(Number(r.count), total) }));
+        const mapTop = (arr: any[], total: number) => arr.map((r) => ({
+            id: r.id,
+            name: r.name ?? null,
+            count: Number(r.count),
+            percent: percent(Number(r.count), total),
+            entity: { id: r.id, name: r.name ?? null },
+        }));
+
+        const topProgramsByAttendance = mapTop(topProgramsByAttendanceRaw, totalPresentYear);
+        const topProgramsByAbsence = mapTop(topProgramsByAbsenceRaw, totalAbsenceYear);
+        const topSubProgramsByAttendance = mapTop(topSubProgramsByAttendanceRaw, totalPresentYear);
+        const topSubProgramsByAbsence = mapTop(topSubProgramsByAbsenceRaw, totalAbsenceYear);
+        const topActivitiesByAttendance = mapTop(topActivitiesByAttendanceRaw, totalPresentYear);
+        const topActivitiesByAbsence = mapTop(topActivitiesByAbsenceRaw, totalAbsenceYear);
 
         return {
             attendance: {
@@ -260,12 +312,12 @@ export class DataBaseDashboardService {
                 effectiveAttendance: { count: totalPresentYear, percent: percent(totalPresentYear, totalYear) },
                 absences: { count: totalAbsenceYear, percent: percent(totalAbsenceYear, totalYear) },
                 justifiedAbsences: { count: totalJustifiedYear, percent: percent(totalJustifiedYear, totalYear) },
-                topProgramsByAttendance: mapTop(topProgramsByAttendanceRaw, totalPresentYear),
-                topProgramsByAbsence: mapTop(topProgramsByAbsenceRaw, totalAbsenceYear),
-                topSubProgramsByAttendance: mapTop(topSubProgramsByAttendanceRaw, totalPresentYear),
-                topSubProgramsByAbsence: mapTop(topSubProgramsByAbsenceRaw, totalAbsenceYear),
-                topActivitiesByAttendance: mapTop(topActivitiesByAttendanceRaw, totalPresentYear),
-                topActivitiesByAbsence: mapTop(topActivitiesByAbsenceRaw, totalAbsenceYear),
+                topProgramsByAttendance,
+                topProgramsByAbsence,
+                topSubProgramsByAttendance,
+                topSubProgramsByAbsence,
+                topActivitiesByAttendance,
+                topActivitiesByAbsence,
             }
         };
     }
@@ -338,7 +390,7 @@ export class DataBaseDashboardService {
         };
     }
 
-    async getProgramDashboardSummary() {
+    async getProgramDashboardSummary(langId: number) {
         const [programsWithAttendance, programsWithAbsence, programsWithActivities, programsWithBeneficiaries] = await Promise.all([
             this.attendanceRepo.createQueryBuilder('att')
                 .innerJoin('att.activity', 'activity')
@@ -383,62 +435,61 @@ export class DataBaseDashboardService {
 
         const formatProgram = (row: any, metric: string, value: number) => ({
             id: row?.id,
+            name: row?.name ?? null,
             metric,
             value,
         });
 
         const programWithMostAttendance = programsWithAttendance[0]
             ? formatProgram(programsWithAttendance[0], 'attendance', Number(programsWithAttendance[0].count) || 0)
-            : { id: null, metric: 'attendance', value: 0 };
+            : { id: null, name: null, metric: 'attendance', value: 0 };
 
         const programWithLeastAttendance = [...programsWithAttendance].sort((a, b) => Number(a.count) - Number(b.count))[0]
             ? formatProgram([...(programsWithAttendance as any[]).sort((a, b) => Number(a.count) - Number(b.count))][0], 'attendance', Number([...programsWithAttendance].sort((a, b) => Number(a.count) - Number(b.count))[0].count) || 0)
-            : { id: null, metric: 'attendance', value: 0 };
+            : { id: null, name: null, metric: 'attendance', value: 0 };
 
         const programWithMostActivities = programsWithActivities[0]
             ? formatProgram(programsWithActivities[0], 'activities', Number(programsWithActivities[0].count) || 0)
-            : { id: null, metric: 'activities', value: 0 };
+            : { id: null, name: null, metric: 'activities', value: 0 };
 
         const programWithMostBeneficiaries = programsWithBeneficiaries[0]
             ? formatProgram(programsWithBeneficiaries[0], 'beneficiaries', Number(programsWithBeneficiaries[0].count) || 0)
-            : { id: null, metric: 'beneficiaries', value: 0 };
-
-        const findProgramName = async (id: number | null) => {
-            if (!id) return null;
-            const program = await this.programRepo.findOne({ where: { IdProgram: id } });
-            return program ? { id, name: program.IdProgram?.toString() } : { id, name: null };
-        };
+            : { id: null, name: null, metric: 'beneficiaries', value: 0 };
 
         const [mostAttendanceProgram, leastAttendanceProgram, mostActivitiesProgram, mostBeneficiariesProgram] = await Promise.all([
-            findProgramName(programWithMostAttendance.id),
-            findProgramName(programWithLeastAttendance.id),
-            findProgramName(programWithMostActivities.id),
-            findProgramName(programWithMostBeneficiaries.id),
+            this.findProgramName(programWithMostAttendance.id, langId),
+            this.findProgramName(programWithLeastAttendance.id, langId),
+            this.findProgramName(programWithMostActivities.id, langId),
+            this.findProgramName(programWithMostBeneficiaries.id, langId),
         ]);
 
         return {
             programs: {
                 mostAttendance: {
                     ...programWithMostAttendance,
+                    name: mostAttendanceProgram?.name ?? null,
                     program: mostAttendanceProgram,
                 },
                 leastAttendance: {
                     ...programWithLeastAttendance,
+                    name: leastAttendanceProgram?.name ?? null,
                     program: leastAttendanceProgram,
                 },
                 mostActivities: {
                     ...programWithMostActivities,
+                    name: mostActivitiesProgram?.name ?? null,
                     program: mostActivitiesProgram,
                 },
                 mostBeneficiaries: {
                     ...programWithMostBeneficiaries,
+                    name: mostBeneficiariesProgram?.name ?? null,
                     program: mostBeneficiariesProgram,
                 },
             },
         };
     }
 
-    async getSubProgramDashboardSummary() {
+    async getSubProgramDashboardSummary(langId: number) {
         const [subProgramsWithAttendance, subProgramsWithAbsence, subProgramsWithActivities, subProgramsWithBeneficiaries] = await Promise.all([
             this.attendanceRepo.createQueryBuilder('att')
                 .innerJoin('att.activity', 'activity')
@@ -477,55 +528,54 @@ export class DataBaseDashboardService {
 
         const formatSubProgram = (row: any, metric: string, value: number) => ({
             id: row?.id,
+            name: row?.name ?? null,
             metric,
             value,
         });
 
         const subProgramWithMostAttendance = subProgramsWithAttendance[0]
             ? formatSubProgram(subProgramsWithAttendance[0], 'attendance', Number(subProgramsWithAttendance[0].count) || 0)
-            : { id: null, metric: 'attendance', value: 0 };
+            : { id: null, name: null, metric: 'attendance', value: 0 };
 
         const subProgramWithLeastAttendance = [...subProgramsWithAttendance].sort((a, b) => Number(a.count) - Number(b.count))[0]
             ? formatSubProgram([...(subProgramsWithAttendance as any[]).sort((a, b) => Number(a.count) - Number(b.count))][0], 'attendance', Number([...subProgramsWithAttendance].sort((a, b) => Number(a.count) - Number(b.count))[0].count) || 0)
-            : { id: null, metric: 'attendance', value: 0 };
+            : { id: null, name: null, metric: 'attendance', value: 0 };
 
         const subProgramWithMostActivities = subProgramsWithActivities[0]
             ? formatSubProgram(subProgramsWithActivities[0], 'activities', Number(subProgramsWithActivities[0].count) || 0)
-            : { id: null, metric: 'activities', value: 0 };
+            : { id: null, name: null, metric: 'activities', value: 0 };
 
         const subProgramWithMostBeneficiaries = subProgramsWithBeneficiaries[0]
             ? formatSubProgram(subProgramsWithBeneficiaries[0], 'beneficiaries', Number(subProgramsWithBeneficiaries[0].count) || 0)
-            : { id: null, metric: 'beneficiaries', value: 0 };
-
-        const findSubProgramName = async (id: number | null) => {
-            if (!id) return null;
-            const subProgram = await this.subProgramRepo.findOne({ where: { IdSubProgram: id } });
-            return subProgram ? { id, name: subProgram.IdSubProgram?.toString() } : { id, name: null };
-        };
+            : { id: null, name: null, metric: 'beneficiaries', value: 0 };
 
         const [mostAttendanceSubProgram, leastAttendanceSubProgram, mostActivitiesSubProgram, mostBeneficiariesSubProgram] = await Promise.all([
-            findSubProgramName(subProgramWithMostAttendance.id),
-            findSubProgramName(subProgramWithLeastAttendance.id),
-            findSubProgramName(subProgramWithMostActivities.id),
-            findSubProgramName(subProgramWithMostBeneficiaries.id),
+            this.findSubProgramName(subProgramWithMostAttendance.id, langId),
+            this.findSubProgramName(subProgramWithLeastAttendance.id, langId),
+            this.findSubProgramName(subProgramWithMostActivities.id, langId),
+            this.findSubProgramName(subProgramWithMostBeneficiaries.id, langId),
         ]);
 
         return {
             subPrograms: {
                 mostAttendance: {
                     ...subProgramWithMostAttendance,
+                    name: mostAttendanceSubProgram?.name ?? null,
                     subProgram: mostAttendanceSubProgram,
                 },
                 leastAttendance: {
                     ...subProgramWithLeastAttendance,
+                    name: leastAttendanceSubProgram?.name ?? null,
                     subProgram: leastAttendanceSubProgram,
                 },
                 mostActivities: {
                     ...subProgramWithMostActivities,
+                    name: mostActivitiesSubProgram?.name ?? null,
                     subProgram: mostActivitiesSubProgram,
                 },
                 mostBeneficiaries: {
                     ...subProgramWithMostBeneficiaries,
+                    name: mostBeneficiariesSubProgram?.name ?? null,
                     subProgram: mostBeneficiariesSubProgram,
                 },
             },

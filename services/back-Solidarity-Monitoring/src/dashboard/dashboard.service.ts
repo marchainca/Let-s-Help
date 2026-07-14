@@ -28,15 +28,15 @@ export class DashboardService {
     return this.dataBaseService.getExecutiveDashboardSummary();
   }
 
-  async getAttendanceDashboardSummary() {
-    return this.dataBaseService.getAttendanceDashboardSummary();
+  async getAttendanceDashboardSummary(langId: number) {
+    return this.dataBaseService.getAttendanceDashboardSummary(langId);
   }
 
-  async getProgramDashboardSummary() {
-    return this.dataBaseService.getProgramDashboardSummary();
+  async getProgramDashboardSummary(langId: number) {
+    return this.dataBaseService.getProgramDashboardSummary(langId);
   }
 
-  async getSubProgramDashboardSummary() {
-    return this.dataBaseService.getSubProgramDashboardSummary();
+  async getSubProgramDashboardSummary(langId: number) {
+    return this.dataBaseService.getSubProgramDashboardSummary(langId);
   }
 }

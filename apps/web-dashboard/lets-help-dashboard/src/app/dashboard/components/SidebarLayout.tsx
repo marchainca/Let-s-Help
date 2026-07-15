@@ -13,7 +13,8 @@ import {
   ListItemText,
   Box,
   Divider,
-  Avatar
+  Avatar,
+  Collapse,
 } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
 import HomeIcon from '@mui/icons-material/Home';
@@ -22,14 +23,29 @@ import AddBoxIcon from '@mui/icons-material/AddBox';
 import ExtensionIcon from '@mui/icons-material/Extension';
 import TaskAltIcon from '@mui/icons-material/TaskAlt';
 import AssessmentIcon from '@mui/icons-material/Assessment';
+import DashboardIcon from '@mui/icons-material/Dashboard';
 import LogoutIcon from '@mui/icons-material/Logout';
+import ExpandLess from '@mui/icons-material/ExpandLess';
+import ExpandMore from '@mui/icons-material/ExpandMore';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
+import { useTranslation } from 'react-i18next';
+import { LanguageSwitcher } from '@/app/components/LanguageSwitcher';
+import ThemeToggle from './ThemeToggle';
 
 const drawerWidth = 240;
-
-// Altura estándar del AppBar en Material UI (por defecto ~64px en pantallas desktop)
 const appBarHeight = 64;
+
+const DASHBOARD_ROUTES = [
+  '/dashboard/executive',
+  '/dashboard/attendance-summary',
+  '/dashboard/program-summary',
+  '/dashboard/subprogram-summary',
+  '/dashboard/activity-summary',
+  '/dashboard/tracking-summary',
+  '/dashboard/dropout-summary',
+  '/dashboard/smart-alerts',
+];
 
 interface SidebarLayoutProps {
   children: React.ReactNode;
@@ -37,8 +53,11 @@ interface SidebarLayoutProps {
 
 export default function SidebarLayout({ children }: SidebarLayoutProps) {
   const [open, setOpen] = useState(false);
+  const [dashboardsOpen, setDashboardsOpen] = useState(false);
   const [userData, setUserData] = useState<{ name?: string; urlImage?: string } | null>(null);
   const router = useRouter();
+  const pathname = usePathname();
+  const { t } = useTranslation();
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -54,25 +73,50 @@ export default function SidebarLayout({ children }: SidebarLayoutProps) {
     }
   }, []);
 
-  // Función para cerrar sesión
+  useEffect(() => {
+    if (DASHBOARD_ROUTES.some((route) => pathname.startsWith(route))) {
+      setDashboardsOpen(true);
+    }
+  }, [pathname]);
+
   const handleLogout = () => {
-    // Eliminar token y datos del usuario de localStorage
     if (typeof window !== 'undefined') {
       localStorage.removeItem('accessToken');
       localStorage.removeItem('userData');
-      // Eliminar cookie de accessToken
       document.cookie = 'accessToken=; Max-Age=0; path=/;';
     }
-    // Redirigir al login
     router.push('/login');
   };
 
-  // Alterna el estado de apertura del Drawer (menú)
   const handleDrawerToggle = () => {
     setOpen(!open);
   };
 
-  // Contenido del Drawer (menú lateral)
+  const handleDashboardsToggle = () => {
+    setDashboardsOpen((prev) => !prev);
+  };
+
+  const navItems = [
+    { href: '/dashboard', label: t('dashboard.nav.home'), icon: <HomeIcon /> },
+    { href: '/dashboard/create-programs', label: t('dashboard.nav.createProgram'), icon: <AddBoxIcon /> },
+    { href: '/dashboard/create-subprogram', label: t('dashboard.nav.createSubprogram'), icon: <ExtensionIcon /> },
+    { href: '/dashboard/create-activity', label: t('dashboard.nav.createActivity'), icon: <TaskAltIcon /> },
+    { href: '/dashboard/reports', label: t('dashboard.nav.reports'), icon: <AssessmentIcon /> },
+  ];
+
+  const dashboardItems = [
+    { href: '/dashboard/executive', label: t('dashboard.nav.executive') },
+    { href: '/dashboard/attendance-summary', label: t('dashboard.nav.attendanceSummary') },
+    { href: '/dashboard/program-summary', label: t('dashboard.nav.programSummary') },
+    { href: '/dashboard/subprogram-summary', label: t('dashboard.nav.subProgramSummary') },
+    { href: '/dashboard/activity-summary', label: t('dashboard.nav.activitySummary') },
+    { href: '/dashboard/tracking-summary', label: t('dashboard.nav.trackingSummary') },
+    { href: '/dashboard/dropout-summary', label: t('dashboard.nav.dropoutSummary') },
+    { href: '/dashboard/smart-alerts', label: t('dashboard.nav.smartAlerts') },
+  ];
+
+  const isDashboardGroupActive = DASHBOARD_ROUTES.some((route) => pathname.startsWith(route));
+
   const drawerContent = (
     <Box
       sx={{
@@ -82,83 +126,76 @@ export default function SidebarLayout({ children }: SidebarLayoutProps) {
         height: '100%',
       }}
     >
-      {/* Nombre o Branding */}
       <Box sx={{ p: 2, display: 'flex', alignItems: 'center', gap: 2 }}>
         <Avatar
-          alt={userData?.name || 'Usuario'}
+          alt={userData?.name || t('dashboard.nav.home')}
           src={userData?.urlImage || ''}
           sx={{ width: 40, height: 40 }}
         />
         <Typography variant="body1" fontWeight="bold">
-          {userData?.name || 'Usuario'}
+          {userData?.name || t('dashboard.nav.home')}
         </Typography>
       </Box>
 
       <Divider />
 
       <List sx={{ flexGrow: 1 }}>
-        {/* Item 1 */}
-        <ListItemButton component={Link} href="/dashboard">
+        <ListItemButton onClick={handleDashboardsToggle} selected={isDashboardGroupActive}>
           <ListItemIcon>
-            <HomeIcon />
+            <DashboardIcon />
           </ListItemIcon>
-          <ListItemText primary="Inicio" />
+          <ListItemText primary={t('dashboard.nav.dashboards')} />
+          {dashboardsOpen ? <ExpandLess /> : <ExpandMore />}
         </ListItemButton>
 
-        {/* Crear Programa */}
-        <ListItemButton component={Link} href="/dashboard/create-programs">
-          <ListItemIcon>
-            <AddBoxIcon />
-          </ListItemIcon>
-          <ListItemText primary="Crear Programa" />
-        </ListItemButton>
+        <Collapse in={dashboardsOpen} timeout="auto" unmountOnExit>
+          <List component="div" disablePadding>
+            {dashboardItems.map((item) => (
+              <ListItemButton
+                key={item.href}
+                component={Link}
+                href={item.href}
+                selected={pathname === item.href}
+                sx={{ pl: 4 }}
+              >
+                <ListItemText primary={item.label} />
+              </ListItemButton>
+            ))}
+          </List>
+        </Collapse>
 
-        {/* Crear Subprograma */}
-        <ListItemButton component={Link} href="/dashboard/create-subprogram">
-          <ListItemIcon>
-            <ExtensionIcon />
-          </ListItemIcon>
-          <ListItemText primary="Crear Subprograma" />
-        </ListItemButton>
-
-        {/* Crear Actividad */}
-        <ListItemButton component={Link} href="/dashboard/create-activity">
-          <ListItemIcon>
-            <TaskAltIcon />
-          </ListItemIcon>
-          <ListItemText primary="Crear Actividad" />
-        </ListItemButton>
-
-        {/* Reportes */}
-        <ListItemButton component={Link} href="/dashboard/reports">
-          <ListItemIcon>
-            <AssessmentIcon />
-          </ListItemIcon>
-          <ListItemText primary="Reportes" />
-        </ListItemButton>
+        {navItems.map((item) => (
+          <ListItemButton
+            key={item.href}
+            component={Link}
+            href={item.href}
+            selected={pathname === item.href}
+          >
+            <ListItemIcon>{item.icon}</ListItemIcon>
+            <ListItemText primary={item.label} />
+          </ListItemButton>
+        ))}
 
         <ListItemButton>
           <ListItemIcon>
             <SettingsIcon />
           </ListItemIcon>
-          <ListItemText primary="Configuración" />
+          <ListItemText primary={t('dashboard.nav.settings')} />
         </ListItemButton>
 
         <ListItemButton onClick={handleLogout}>
           <ListItemIcon>
             <LogoutIcon />
           </ListItemIcon>
-          <ListItemText primary="Cerrar Sesión" />
+          <ListItemText primary={t('dashboard.nav.logout')} />
         </ListItemButton>
-
       </List>
 
       <Divider />
 
-      {/* Sección final, por ejemplo para botón Salir */}
       <Box sx={{ p: 2 }}>
-        <Typography sx={{ color: 'red', cursor: 'pointer' }}>
-          Salir
+        <Typography sx={{ color: 'error.main', cursor: 'pointer' }} onClick={handleLogout}>
+          {t('dashboard.nav.exit')}
         </Typography>
       </Box>
     </Box>
@@ -166,10 +203,8 @@ export default function SidebarLayout({ children }: SidebarLayoutProps) {
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
-      {/* Barra superior fija */}
       <AppBar position="fixed">
         <Toolbar>
-          {/* Botón tipo hamburguesa para abrir/cerrar el Drawer */}
           <IconButton
             color="inherit"
             edge="start"
@@ -182,10 +217,14 @@ export default function SidebarLayout({ children }: SidebarLayoutProps) {
           <Typography variant="h6" sx={{ flexGrow: 1 }}>
             Let&apos;s Help Colombia
           </Typography>
+
+          <ThemeToggle />
+          <Box sx={{ ml: 1 }}>
+            <LanguageSwitcher />
+          </Box>
         </Toolbar>
       </AppBar>
 
-      {/* Drawer lateral (hamburguesa) */}
       <Drawer
         open={open}
         onClose={handleDrawerToggle}
@@ -199,13 +238,12 @@ export default function SidebarLayout({ children }: SidebarLayoutProps) {
         {drawerContent}
       </Drawer>
 
-      {/* Contenido principal con margen arriba + scroll */}
       <Box
         sx={{
           flexGrow: 1,
           marginTop: `${appBarHeight}px`,
           height: `calc(100vh - ${appBarHeight}px)`,
-          overflow: 'auto', // Hace que el contenido sea scrollable
+          overflow: 'auto',
           p: 2,
         }}
       >

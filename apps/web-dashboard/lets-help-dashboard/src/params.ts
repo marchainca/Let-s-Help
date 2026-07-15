@@ -1,15 +1,20 @@
-import { create } from "domain";
-
-export default{
-    paths:{
-        activities: '/letsHelp/Colombia/activities',
-        activitiesBySubprogram: '/letsHelp/Colombia/activities/activities-by-subprogram',
-        getPrograms: '/letsHelp/Colombia/activities/getPrograms',
-        getSubprograms: '/letsHelp/Colombia/activities/getSubprograms',
-        createProgram: '/letsHelp/Colombia/activities/createProgram',
-        createSubprogram: '/letsHelp/Colombia/activities/createSubprogram',
-        createActivity: '/letsHelp/Colombia/activities/createActivity',
-        updateActivity: '/letsHelp/Colombia/activities/update-activity',
-        deleteActivity: '/letsHelp/Colombia/activities/deleteActivity',
-    }
-}
+export default {
+  paths: {
+    activities: '/letsHelp/Colombia/activities',
+    activitiesBySubprogram: '/letsHelp/Colombia/activities/activities-by-subprogram',
+    getPrograms: '/letsHelp/Colombia/activities/getPrograms',
+    getSubprograms: '/letsHelp/Colombia/activities/getSubprograms',
+    createProgram: '/letsHelp/Colombia/activities/createProgram',
+    createSubprogram: '/letsHelp/Colombia/activities/createSubprogram',
+    createActivity: '/letsHelp/Colombia/activities/createActivity',
+    updateActivity: '/letsHelp/Colombia/activities/update-activity',
+    deleteActivity: '/letsHelp/Colombia/activities/deleteActivity',
+    executiveSummary: '/letsHelp/Colombia/dashboard/executive-summary',
+    attendanceSummary: '/letsHelp/Colombia/dashboard/attendance-summary',
+    programSummary: '/letsHelp/Colombia/dashboard/program-summary',
+    subProgramSummary: '/letsHelp/Colombia/dashboard/subprogram-summary',
+    activitySummary: '/letsHelp/Colombia/dashboard/activity-summary',
+    trackingSummary: '/letsHelp/Colombia/dashboard/tracking-summary',
+    dropoutSummary: '/letsHelp/Colombia/dashboard/dropout-summary',
+  },
+};

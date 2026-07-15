@@ -1,12 +1,421 @@
 {
-    "login": {
-      "title": "Inicia Sesión",
-      "subtitle": "Ingresa correo electrónico y contraseña para ingresar",
-      "emailLabel": "Correo electrónico",
-      "passwordLabel": "Contraseña",
-      "signIn": "Entrar",
-      "noAccount": "¿No tienes cuenta?",
-      "signupFree": "Regístrate gratis."
+  "login": {
+    "title": "Inicia Sesión",
+    "subtitle": "Ingresa correo electrónico y contraseña para ingresar",
+    "emailLabel": "Correo electrónico",
+    "passwordLabel": "Contraseña",
+    "signIn": "Entrar",
+    "noAccount": "¿No tienes cuenta?",
+    "signupFree": "Regístrate gratis."
+  },
+  "dashboard": {
+    "title": "Dashboard Ejecutivo",
+    "subtitle": "Vista general del estado operativo de la fundación",
+    "nav": {
+      "dashboards": "Dashboards",
+      "executive": "Executive Dashboard",
+      "attendanceSummary": "Attendance Summary",
+      "programSummary": "Resumen de Programas",
+      "subProgramSummary": "Resumen de Subprogramas",
+      "activitySummary": "Resumen de Actividades",
+      "trackingSummary": "Seguimiento y Cumplimiento",
+      "dropoutSummary": "Riesgo de Deserción",
+      "smartAlerts": "Alertas Inteligentes",
+      "home": "Inicio",
+      "createProgram": "Crear Programa",
+      "createSubprogram": "Crear Subprograma",
+      "createActivity": "Crear Actividad",
+      "reports": "Reportes",
+      "settings": "Configuración",
+      "logout": "Cerrar Sesión",
+      "exit": "Salir"
+    },
+    "common": {
+      "retry": "Reintentar",
+      "error": "Ocurrió un error al cargar los datos",
+      "empty": "No hay datos disponibles",
+      "loading": "Cargando..."
+    },
+    "theme": {
+      "light": "Modo claro",
+      "dark": "Modo oscuro"
+    },
+    "executiveSummary": {
+      "title": "Resumen Ejecutivo",
+      "subtitle": "Indicadores clave del estado operativo de la fundación",
+      "primaryRowTitle": "Indicadores principales",
+      "derivedRowTitle": "Indicadores derivados",
+      "primaryKpis": {
+        "beneficiaries": {
+          "title": "Beneficiarios registrados",
+          "tooltip": "Total de beneficiarios registrados en la plataforma"
+        },
+        "programs": {
+          "title": "Programas",
+          "tooltip": "Total de programas activos en la fundación"
+        },
+        "subPrograms": {
+          "title": "Subprogramas",
+          "tooltip": "Total de subprogramas registrados"
+        },
+        "activities": {
+          "title": "Actividades",
+          "tooltip": "Total de actividades creadas"
+        },
+        "attendances": {
+          "title": "Asistencias registradas",
+          "tooltip": "Total de asistencias registradas en el sistema"
+        },
+        "absences": {
+          "title": "Ausencias",
+          "tooltip": "Total de ausencias registradas"
+        },
+        "reports": {
+          "title": "Reportes disciplinarios",
+          "tooltip": "Total de reportes disciplinarios generados"
+        },
+        "users": {
+          "title": "Usuarios / Líderes",
+          "tooltip": "Total de líderes y usuarios del sistema"
+        }
+      },
+      "derivedKpis": {
+        "effectiveAttendance": {
+          "title": "Asistencia efectiva",
+          "tooltip": "Porcentaje de asistencia efectiva sobre el total"
+        },
+        "absences": {
+          "title": "Ausencias",
+          "tooltip": "Porcentaje de ausencias sobre el total"
+        },
+        "justifiedAbsences": {
+          "title": "Ausencias justificadas",
+          "tooltip": "Porcentaje de ausencias justificadas"
+        },
+        "executionVsPlanning": {
+          "title": "Ejecución vs Planeación",
+          "tooltip": "Porcentaje de actividades ejecutadas respecto a las planeadas"
+        },
+        "coverage": {
+          "title": "Cobertura",
+          "tooltip": "Porcentaje de cobertura de asistentes reales vs proyectados"
+        },
+        "beneficiariesAtRisk": {
+          "title": "Beneficiarios en riesgo",
+          "tooltip": "Total de beneficiarios con riesgo de deserción"
+        },
+        "neverAttended": {
+          "title": "Nunca asistieron",
+          "tooltip": "Beneficiarios que nunca han registrado asistencia"
+        },
+        "criticalRisk": {
+          "title": "Riesgo crítico",
+          "tooltip": "Beneficiarios con nivel de riesgo crítico de abandono"
+        }
+      }
+    },
+    "attendanceSummary": {
+      "title": "Resumen de Asistencia",
+      "subtitle": "Análisis detallado de asistencias, ausencias y rankings por programa",
+      "kpiSection": {
+        "title": "Indicadores de asistencia",
+        "subtitle": "Métricas clave de asistencia efectiva y ausencias"
+      },
+      "chartsSection": {
+        "title": "Tendencias y distribución",
+        "subtitle": "Evolución temporal y distribución de estados de asistencia"
+      },
+      "rankingsSection": {
+        "title": "Rankings",
+        "subtitle": "Programas, subprogramas y actividades con mayor asistencia y ausentismo"
+      },
+      "kpis": {
+        "countLabel": "{{count}} registros",
+        "effectiveAttendance": {
+          "title": "Asistencia efectiva",
+          "tooltip": "Porcentaje de asistencia efectiva sobre el total"
+        },
+        "absences": {
+          "title": "Ausencias",
+          "tooltip": "Porcentaje de ausencias sobre el total"
+        },
+        "justifiedAbsences": {
+          "title": "Ausencias justificadas",
+          "tooltip": "Porcentaje de ausencias justificadas"
+        },
+        "beneficiariesPresent": {
+          "title": "Beneficiarios presentes",
+          "tooltip": "Total de beneficiarios presentes registrados"
+        }
+      },
+      "charts": {
+        "trendTitle": "Tendencia de asistencias",
+        "donutTitle": "Distribución de estados",
+        "periods": {
+          "day": "Día",
+          "week": "Semana",
+          "month": "Mes",
+          "year": "Año"
+        },
+        "status": {
+          "present": "Presentes",
+          "absent": "Ausentes",
+          "justified": "Justificadas"
+        }
+      },
+      "rankings": {
+        "topProgramsByAttendance": "Top programas — mayor asistencia",
+        "topProgramsByAbsence": "Top programas — mayor ausentismo",
+        "topSubProgramsByAttendance": "Top subprogramas — mayor asistencia",
+        "topSubProgramsByAbsence": "Top subprogramas — mayor ausentismo",
+        "topActivitiesByAttendance": "Top actividades — mayor asistencia",
+        "topActivitiesByAbsence": "Top actividades — mayor ausentismo"
+      }
+    },
+    "programSummary": {
+      "title": "Resumen de Programas",
+      "subtitle": "Programas destacados por asistencia, actividades y beneficiarios",
+      "section": {
+        "title": "Tarjetas resumen",
+        "subtitle": "Programas con mejor y menor desempeño en indicadores clave"
+      },
+      "cards": {
+        "mostAttendance": {
+          "title": "Mayor asistencia",
+          "tooltip": "Programa con la mayor cantidad de asistencias registradas"
+        },
+        "leastAttendance": {
+          "title": "Menor asistencia",
+          "tooltip": "Programa con la menor cantidad de asistencias registradas"
+        },
+        "mostActivities": {
+          "title": "Mayor cantidad de actividades",
+          "tooltip": "Programa con el mayor número de actividades"
+        },
+        "mostBeneficiaries": {
+          "title": "Mayor número de beneficiarios",
+          "tooltip": "Programa con el mayor número de beneficiarios"
+        }
+      },
+      "metrics": {
+        "attendance": "{{count}} asistencias",
+        "activities": "{{count}} actividades",
+        "beneficiaries": "{{count}} beneficiarios"
+      }
+    },
+    "subProgramSummary": {
+      "title": "Resumen de Subprogramas",
+      "subtitle": "Subprogramas destacados por asistencia, actividades y beneficiarios",
+      "section": {
+        "title": "Tarjetas resumen",
+        "subtitle": "Subprogramas con mejor y menor desempeño en indicadores clave"
+      },
+      "cards": {
+        "mostAttendance": {
+          "title": "Mayor asistencia",
+          "tooltip": "Subprograma con la mayor cantidad de asistencias registradas"
+        },
+        "leastAttendance": {
+          "title": "Menor asistencia",
+          "tooltip": "Subprograma con la menor cantidad de asistencias registradas"
+        },
+        "mostActivities": {
+          "title": "Mayor cantidad de actividades",
+          "tooltip": "Subprograma con el mayor número de actividades"
+        },
+        "mostBeneficiaries": {
+          "title": "Mayor número de beneficiarios",
+          "tooltip": "Subprograma con el mayor número de beneficiarios"
+        }
+      },
+      "metrics": {
+        "attendance": "{{count}} asistencias",
+        "activities": "{{count}} actividades",
+        "beneficiaries": "{{count}} beneficiarios"
+      }
+    },
+    "activitySummary": {
+      "title": "Resumen de Actividades",
+      "subtitle": "Actividades destacadas por asistencia y beneficiarios",
+      "section": {
+        "title": "Tarjetas resumen",
+        "subtitle": "Actividades con mejor y menor desempeño, incluyendo programa, subprograma y responsable"
+      },
+      "cards": {
+        "mostAttendance": {
+          "title": "Mayor asistencia",
+          "tooltip": "Actividad con la mayor cantidad de asistencias registradas"
+        },
+        "leastAttendance": {
+          "title": "Menor asistencia",
+          "tooltip": "Actividad con la menor cantidad de asistencias registradas"
+        },
+        "mostBeneficiaries": {
+          "title": "Mayor número de beneficiarios",
+          "tooltip": "Actividad con el mayor número de beneficiarios"
+        }
+      },
+      "metadata": {
+        "program": "Programa",
+        "subProgram": "Subprograma",
+        "responsible": "Responsable"
+      },
+      "metrics": {
+        "attendance": "{{count}} asistencias",
+        "beneficiaries": "{{count}} beneficiarios"
+      }
+    },
+    "trackingSummary": {
+      "title": "Seguimiento y Cumplimiento",
+      "subtitle": "Ejecución vs planeación, cobertura y cumplimiento por responsable",
+      "chartsSection": {
+        "title": "Indicadores de seguimiento",
+        "subtitle": "Comparación de actividades planeadas vs ejecutadas y métricas de cumplimiento"
+      },
+      "tableSection": {
+        "title": "Cumplimiento por responsable",
+        "subtitle": "Ranking ordenado de mayor a menor cumplimiento total"
+      },
+      "charts": {
+        "barTitle": "Actividades planeadas vs ejecutadas",
+        "planned": "Planeadas",
+        "executed": "Ejecutadas",
+        "executionGaugeTitle": "Ejecución vs planeación",
+        "coverageGaugeTitle": "Cobertura"
+      },
+      "table": {
+        "responsible": "Responsable",
+        "executed": "Ejecutadas",
+        "planned": "Planeadas",
+        "actualAttendees": "Asistentes reales",
+        "projectedAttendees": "Esperados",
+        "executionCompliance": "Cumplimiento ejecución",
+        "coverageCompliance": "Cobertura",
+        "totalCompliance": "Cumplimiento total"
+      }
+    },
+    "dropoutSummary": {
+      "title": "Riesgo de Deserción",
+      "subtitle": "Seguimiento de beneficiarios en riesgo de abandono y alertas de deserción",
+      "riskSection": {
+        "title": "Indicadores de riesgo",
+        "subtitle": "Resumen de beneficiarios por nivel de riesgo de deserción"
+      },
+      "periodSection": {
+        "title": "Distribución por período",
+        "subtitle": "Cantidad de beneficiarios en riesgo según días sin asistir"
+      },
+      "tableSection": {
+        "title": "Beneficiarios en riesgo",
+        "subtitle": "Detalle de beneficiarios en riesgo en los últimos 15 días"
+      },
+      "riskKpis": {
+        "totalAtRisk": {
+          "title": "En riesgo",
+          "tooltip": "Total de beneficiarios en riesgo de deserción"
+        },
+        "neverAttended": {
+          "title": "Nunca asistieron",
+          "tooltip": "Beneficiarios que nunca han registrado asistencia"
+        },
+        "criticalRisk": {
+          "title": "Riesgo crítico",
+          "tooltip": "Beneficiarios con riesgo crítico de abandono"
+        },
+        "highRisk": {
+          "title": "Riesgo alto",
+          "tooltip": "Beneficiarios con riesgo alto de abandono"
+        },
+        "mediumRisk": {
+          "title": "Riesgo medio",
+          "tooltip": "Beneficiarios con riesgo medio de abandono"
+        },
+        "lowRisk": {
+          "title": "Riesgo bajo",
+          "tooltip": "Beneficiarios con riesgo bajo de abandono"
+        }
+      },
+      "periods": {
+        "15days": "15 días",
+        "30days": "30 días",
+        "60days": "60 días",
+        "90days": "90 días",
+        "15daysTooltip": "Beneficiarios en riesgo — 15 días sin asistir",
+        "30daysTooltip": "Beneficiarios en riesgo — 30 días sin asistir",
+        "60daysTooltip": "Beneficiarios en riesgo — 60 días sin asistir",
+        "90daysTooltip": "Beneficiarios en riesgo — 90 días sin asistir"
+      },
+      "riskLevels": {
+        "critical": "Crítico",
+        "high": "Alto",
+        "medium": "Medio",
+        "low": "Bajo"
+      },
+      "filters": {
+        "all": "Todos",
+        "riskLevel": "Nivel de riesgo",
+        "program": "Programa",
+        "subProgram": "Subprograma"
+      },
+      "table": {
+        "name": "Nombre",
+        "identification": "Identificación",
+        "program": "Programa",
+        "subProgram": "Subprograma",
+        "lastAttendance": "Última asistencia",
+        "daysSinceLastAttendance": "Días sin asistir",
+        "totalPresent": "Total asistencias",
+        "totalAbsent": "Total ausencias",
+        "totalJustified": "Ausencias justificadas",
+        "absencePercent": "% Ausencias",
+        "riskLevel": "Nivel de riesgo",
+        "score": "Puntaje",
+        "factors": "Factores",
+        "lastActivity": "Última actividad",
+        "rowsPerPage": "Filas por página"
+      }
+    },
+    "smartAlerts": {
+      "title": "Alertas Inteligentes",
+      "subtitle": "Panel automático de alertas operativas generadas a partir de los indicadores del sistema",
+      "empty": "No hay alertas activas en este momento",
+      "count": "{{count}} alertas detectadas",
+      "section": {
+        "title": "Panel de alertas",
+        "subtitle": "Alertas generadas automáticamente según umbrales de asistencia, cumplimiento y riesgo"
+      },
+      "severity": {
+        "critical": "Crítica",
+        "warning": "Advertencia",
+        "info": "Información"
+      },
+      "sources": {
+        "attendance-summary": "Asistencia",
+        "activity-summary": "Actividades",
+        "tracking-summary": "Seguimiento",
+        "dropout-summary": "Deserción"
+      },
+      "categories": {
+        "lowestAttendanceProgram": "Programa con menor asistencia",
+        "highestAbsenceProgram": "Programa con mayor ausentismo",
+        "lowestAttendanceActivity": "Actividad con menor asistencia",
+        "lowestResponsibleCompliance": "Responsable con menor cumplimiento",
+        "responsibleBelow70": "Cumplimiento inferior al 70%",
+        "criticalBeneficiaries": "Beneficiarios críticos",
+        "coverageBelow80": "Cobertura inferior al 80%",
+        "responsibleCoverageBelow80": "Cobertura de responsable inferior al 80%"
+      },
+      "messages": {
+        "lowestAttendanceProgram": "{{name}} registra la menor asistencia con {{count}} registros ({{percent}}).",
+        "highestAbsenceProgram": "{{name}} presenta el mayor ausentismo con {{count}} ausencias ({{percent}}).",
+        "lowestAttendanceActivity": "{{name}} tiene la menor asistencia con {{count}} registros.",
+        "lowestResponsibleCompliance": "{{name}} tiene el menor cumplimiento total: {{percent}}.",
+        "responsibleBelow70": "{{name}} tiene un cumplimiento total de {{percent}}, inferior al 70%.",
+        "criticalBeneficiaries": "{{count}} beneficiario(s) en riesgo crítico.",
+        "criticalBeneficiariesWithNames": "{{count}} beneficiario(s) en riesgo crítico: {{names}}.",
+        "coverageBelow80": "La cobertura general es {{percent}} ({{actual}}/{{projected}} asistentes), inferior al 80%.",
+        "responsibleCoverageBelow80": "{{name}} tiene cobertura de {{percent}}, inferior al 80%."
+      }
     }
   }
-  
+}

@@ -1,12 +1,421 @@
 {
-    "login": {
-      "title": "Sign In",
-      "subtitle": "Use your email and password to sign in",
-      "emailLabel": "Email Address",
-      "passwordLabel": "Password",
-      "signIn": "Sign in",
-      "noAccount": "Don't have an account?",
-      "signupFree": "Sign up for free."
+  "login": {
+    "title": "Sign In",
+    "subtitle": "Use your email and password to sign in",
+    "emailLabel": "Email Address",
+    "passwordLabel": "Password",
+    "signIn": "Sign in",
+    "noAccount": "Don't have an account?",
+    "signupFree": "Sign up for free."
+  },
+  "dashboard": {
+    "title": "Executive Dashboard",
+    "subtitle": "Overview of the foundation's operational status",
+    "nav": {
+      "dashboards": "Dashboards",
+      "executive": "Executive Dashboard",
+      "attendanceSummary": "Attendance Summary",
+      "programSummary": "Program Summary",
+      "subProgramSummary": "Subprogram Summary",
+      "activitySummary": "Activity Summary",
+      "trackingSummary": "Tracking & Compliance",
+      "dropoutSummary": "Dropout Risk",
+      "smartAlerts": "Smart Alerts",
+      "home": "Home",
+      "createProgram": "Create Program",
+      "createSubprogram": "Create Subprogram",
+      "createActivity": "Create Activity",
+      "reports": "Reports",
+      "settings": "Settings",
+      "logout": "Log Out",
+      "exit": "Exit"
+    },
+    "common": {
+      "retry": "Retry",
+      "error": "An error occurred while loading data",
+      "empty": "No data available",
+      "loading": "Loading..."
+    },
+    "theme": {
+      "light": "Light mode",
+      "dark": "Dark mode"
+    },
+    "executiveSummary": {
+      "title": "Executive Summary",
+      "subtitle": "Key indicators of the foundation's operational status",
+      "primaryRowTitle": "Primary indicators",
+      "derivedRowTitle": "Derived indicators",
+      "primaryKpis": {
+        "beneficiaries": {
+          "title": "Registered beneficiaries",
+          "tooltip": "Total beneficiaries registered on the platform"
+        },
+        "programs": {
+          "title": "Programs",
+          "tooltip": "Total active programs in the foundation"
+        },
+        "subPrograms": {
+          "title": "Subprograms",
+          "tooltip": "Total registered subprograms"
+        },
+        "activities": {
+          "title": "Activities",
+          "tooltip": "Total activities created"
+        },
+        "attendances": {
+          "title": "Registered attendances",
+          "tooltip": "Total attendances recorded in the system"
+        },
+        "absences": {
+          "title": "Absences",
+          "tooltip": "Total absences recorded"
+        },
+        "reports": {
+          "title": "Disciplinary reports",
+          "tooltip": "Total disciplinary reports generated"
+        },
+        "users": {
+          "title": "Users / Leaders",
+          "tooltip": "Total leaders and system users"
+        }
+      },
+      "derivedKpis": {
+        "effectiveAttendance": {
+          "title": "Effective attendance",
+          "tooltip": "Percentage of effective attendance over the total"
+        },
+        "absences": {
+          "title": "Absences",
+          "tooltip": "Percentage of absences over the total"
+        },
+        "justifiedAbsences": {
+          "title": "Justified absences",
+          "tooltip": "Percentage of justified absences"
+        },
+        "executionVsPlanning": {
+          "title": "Execution vs Planning",
+          "tooltip": "Percentage of executed activities compared to planned"
+        },
+        "coverage": {
+          "title": "Coverage",
+          "tooltip": "Percentage of actual attendees vs projected"
+        },
+        "beneficiariesAtRisk": {
+          "title": "Beneficiaries at risk",
+          "tooltip": "Total beneficiaries at risk of dropout"
+        },
+        "neverAttended": {
+          "title": "Never attended",
+          "tooltip": "Beneficiaries who have never registered attendance"
+        },
+        "criticalRisk": {
+          "title": "Critical risk",
+          "tooltip": "Beneficiaries with critical abandonment risk level"
+        }
+      }
+    },
+    "attendanceSummary": {
+      "title": "Attendance Summary",
+      "subtitle": "Detailed analysis of attendance, absences and program rankings",
+      "kpiSection": {
+        "title": "Attendance indicators",
+        "subtitle": "Key metrics for effective attendance and absences"
+      },
+      "chartsSection": {
+        "title": "Trends and distribution",
+        "subtitle": "Temporal evolution and attendance status distribution"
+      },
+      "rankingsSection": {
+        "title": "Rankings",
+        "subtitle": "Programs, subprograms and activities with highest attendance and absenteeism"
+      },
+      "kpis": {
+        "countLabel": "{{count}} records",
+        "effectiveAttendance": {
+          "title": "Effective attendance",
+          "tooltip": "Percentage of effective attendance over the total"
+        },
+        "absences": {
+          "title": "Absences",
+          "tooltip": "Percentage of absences over the total"
+        },
+        "justifiedAbsences": {
+          "title": "Justified absences",
+          "tooltip": "Percentage of justified absences"
+        },
+        "beneficiariesPresent": {
+          "title": "Present beneficiaries",
+          "tooltip": "Total registered present beneficiaries"
+        }
+      },
+      "charts": {
+        "trendTitle": "Attendance trend",
+        "donutTitle": "Status distribution",
+        "periods": {
+          "day": "Day",
+          "week": "Week",
+          "month": "Month",
+          "year": "Year"
+        },
+        "status": {
+          "present": "Present",
+          "absent": "Absent",
+          "justified": "Justified"
+        }
+      },
+      "rankings": {
+        "topProgramsByAttendance": "Top programs — highest attendance",
+        "topProgramsByAbsence": "Top programs — highest absenteeism",
+        "topSubProgramsByAttendance": "Top subprograms — highest attendance",
+        "topSubProgramsByAbsence": "Top subprograms — highest absenteeism",
+        "topActivitiesByAttendance": "Top activities — highest attendance",
+        "topActivitiesByAbsence": "Top activities — highest absenteeism"
+      }
+    },
+    "programSummary": {
+      "title": "Program Summary",
+      "subtitle": "Highlighted programs by attendance, activities and beneficiaries",
+      "section": {
+        "title": "Summary cards",
+        "subtitle": "Programs with the best and lowest performance on key indicators"
+      },
+      "cards": {
+        "mostAttendance": {
+          "title": "Highest attendance",
+          "tooltip": "Program with the highest number of registered attendances"
+        },
+        "leastAttendance": {
+          "title": "Lowest attendance",
+          "tooltip": "Program with the lowest number of registered attendances"
+        },
+        "mostActivities": {
+          "title": "Most activities",
+          "tooltip": "Program with the highest number of activities"
+        },
+        "mostBeneficiaries": {
+          "title": "Most beneficiaries",
+          "tooltip": "Program with the highest number of beneficiaries"
+        }
+      },
+      "metrics": {
+        "attendance": "{{count}} attendances",
+        "activities": "{{count}} activities",
+        "beneficiaries": "{{count}} beneficiaries"
+      }
+    },
+    "subProgramSummary": {
+      "title": "Subprogram Summary",
+      "subtitle": "Highlighted subprograms by attendance, activities and beneficiaries",
+      "section": {
+        "title": "Summary cards",
+        "subtitle": "Subprograms with the best and lowest performance on key indicators"
+      },
+      "cards": {
+        "mostAttendance": {
+          "title": "Highest attendance",
+          "tooltip": "Subprogram with the highest number of registered attendances"
+        },
+        "leastAttendance": {
+          "title": "Lowest attendance",
+          "tooltip": "Subprogram with the lowest number of registered attendances"
+        },
+        "mostActivities": {
+          "title": "Most activities",
+          "tooltip": "Subprogram with the highest number of activities"
+        },
+        "mostBeneficiaries": {
+          "title": "Most beneficiaries",
+          "tooltip": "Subprogram with the highest number of beneficiaries"
+        }
+      },
+      "metrics": {
+        "attendance": "{{count}} attendances",
+        "activities": "{{count}} activities",
+        "beneficiaries": "{{count}} beneficiaries"
+      }
+    },
+    "activitySummary": {
+      "title": "Activity Summary",
+      "subtitle": "Highlighted activities by attendance and beneficiaries",
+      "section": {
+        "title": "Summary cards",
+        "subtitle": "Activities with the best and lowest performance, including program, subprogram and responsible"
+      },
+      "cards": {
+        "mostAttendance": {
+          "title": "Highest attendance",
+          "tooltip": "Activity with the highest number of registered attendances"
+        },
+        "leastAttendance": {
+          "title": "Lowest attendance",
+          "tooltip": "Activity with the lowest number of registered attendances"
+        },
+        "mostBeneficiaries": {
+          "title": "Most beneficiaries",
+          "tooltip": "Activity with the highest number of beneficiaries"
+        }
+      },
+      "metadata": {
+        "program": "Program",
+        "subProgram": "Subprogram",
+        "responsible": "Responsible"
+      },
+      "metrics": {
+        "attendance": "{{count}} attendances",
+        "beneficiaries": "{{count}} beneficiaries"
+      }
+    },
+    "trackingSummary": {
+      "title": "Tracking & Compliance",
+      "subtitle": "Execution vs planning, coverage and compliance by responsible",
+      "chartsSection": {
+        "title": "Tracking indicators",
+        "subtitle": "Comparison of planned vs executed activities and compliance metrics"
+      },
+      "tableSection": {
+        "title": "Compliance by responsible",
+        "subtitle": "Ranking sorted from highest to lowest total compliance"
+      },
+      "charts": {
+        "barTitle": "Planned vs executed activities",
+        "planned": "Planned",
+        "executed": "Executed",
+        "executionGaugeTitle": "Execution vs planning",
+        "coverageGaugeTitle": "Coverage"
+      },
+      "table": {
+        "responsible": "Responsible",
+        "executed": "Executed",
+        "planned": "Planned",
+        "actualAttendees": "Actual attendees",
+        "projectedAttendees": "Expected",
+        "executionCompliance": "Execution compliance",
+        "coverageCompliance": "Coverage",
+        "totalCompliance": "Total compliance"
+      }
+    },
+    "dropoutSummary": {
+      "title": "Dropout Risk",
+      "subtitle": "Tracking beneficiaries at risk of dropout and desertion alerts",
+      "riskSection": {
+        "title": "Risk indicators",
+        "subtitle": "Summary of beneficiaries by dropout risk level"
+      },
+      "periodSection": {
+        "title": "Distribution by period",
+        "subtitle": "Number of beneficiaries at risk by days without attendance"
+      },
+      "tableSection": {
+        "title": "Beneficiaries at risk",
+        "subtitle": "Detail of beneficiaries at risk in the last 15 days"
+      },
+      "riskKpis": {
+        "totalAtRisk": {
+          "title": "At risk",
+          "tooltip": "Total beneficiaries at risk of dropout"
+        },
+        "neverAttended": {
+          "title": "Never attended",
+          "tooltip": "Beneficiaries who have never registered attendance"
+        },
+        "criticalRisk": {
+          "title": "Critical risk",
+          "tooltip": "Beneficiaries with critical dropout risk"
+        },
+        "highRisk": {
+          "title": "High risk",
+          "tooltip": "Beneficiaries with high dropout risk"
+        },
+        "mediumRisk": {
+          "title": "Medium risk",
+          "tooltip": "Beneficiaries with medium dropout risk"
+        },
+        "lowRisk": {
+          "title": "Low risk",
+          "tooltip": "Beneficiaries with low dropout risk"
+        }
+      },
+      "periods": {
+        "15days": "15 days",
+        "30days": "30 days",
+        "60days": "60 days",
+        "90days": "90 days",
+        "15daysTooltip": "Beneficiaries at risk — 15 days without attendance",
+        "30daysTooltip": "Beneficiaries at risk — 30 days without attendance",
+        "60daysTooltip": "Beneficiaries at risk — 60 days without attendance",
+        "90daysTooltip": "Beneficiaries at risk — 90 days without attendance"
+      },
+      "riskLevels": {
+        "critical": "Critical",
+        "high": "High",
+        "medium": "Medium",
+        "low": "Low"
+      },
+      "filters": {
+        "all": "All",
+        "riskLevel": "Risk level",
+        "program": "Program",
+        "subProgram": "Subprogram"
+      },
+      "table": {
+        "name": "Name",
+        "identification": "Identification",
+        "program": "Program",
+        "subProgram": "Subprogram",
+        "lastAttendance": "Last attendance",
+        "daysSinceLastAttendance": "Days absent",
+        "totalPresent": "Total attendances",
+        "totalAbsent": "Total absences",
+        "totalJustified": "Justified absences",
+        "absencePercent": "Absence %",
+        "riskLevel": "Risk level",
+        "score": "Score",
+        "factors": "Factors",
+        "lastActivity": "Last activity",
+        "rowsPerPage": "Rows per page"
+      }
+    },
+    "smartAlerts": {
+      "title": "Smart Alerts",
+      "subtitle": "Automatic operational alert panel generated from system indicators",
+      "empty": "There are no active alerts at this time",
+      "count": "{{count}} alerts detected",
+      "section": {
+        "title": "Alerts panel",
+        "subtitle": "Alerts automatically generated based on attendance, compliance and risk thresholds"
+      },
+      "severity": {
+        "critical": "Critical",
+        "warning": "Warning",
+        "info": "Info"
+      },
+      "sources": {
+        "attendance-summary": "Attendance",
+        "activity-summary": "Activities",
+        "tracking-summary": "Tracking",
+        "dropout-summary": "Dropout"
+      },
+      "categories": {
+        "lowestAttendanceProgram": "Program with lowest attendance",
+        "highestAbsenceProgram": "Program with highest absenteeism",
+        "lowestAttendanceActivity": "Activity with lowest attendance",
+        "lowestResponsibleCompliance": "Responsible with lowest compliance",
+        "responsibleBelow70": "Compliance below 70%",
+        "criticalBeneficiaries": "Critical beneficiaries",
+        "coverageBelow80": "Coverage below 80%",
+        "responsibleCoverageBelow80": "Responsible coverage below 80%"
+      },
+      "messages": {
+        "lowestAttendanceProgram": "{{name}} has the lowest attendance with {{count}} records ({{percent}}).",
+        "highestAbsenceProgram": "{{name}} has the highest absenteeism with {{count}} absences ({{percent}}).",
+        "lowestAttendanceActivity": "{{name}} has the lowest attendance with {{count}} records.",
+        "lowestResponsibleCompliance": "{{name}} has the lowest total compliance: {{percent}}.",
+        "responsibleBelow70": "{{name}} has total compliance of {{percent}}, below 70%.",
+        "criticalBeneficiaries": "{{count}} beneficiary(ies) at critical risk.",
+        "criticalBeneficiariesWithNames": "{{count}} beneficiary(ies) at critical risk: {{names}}.",
+        "coverageBelow80": "Overall coverage is {{percent}} ({{actual}}/{{projected}} attendees), below 80%.",
+        "responsibleCoverageBelow80": "{{name}} has coverage of {{percent}}, below 80%."
+      }
     }
   }
-  
+}

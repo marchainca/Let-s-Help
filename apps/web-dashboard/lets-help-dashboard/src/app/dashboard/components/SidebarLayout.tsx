@@ -96,12 +96,10 @@ export default function SidebarLayout({ children }: SidebarLayoutProps) {
     setDashboardsOpen((prev) => !prev);
   };
 
+  const homeItem = { href: '/dashboard', label: t('dashboard.nav.home'), icon: <HomeIcon /> };
+
   const navItems = [
-    { href: '/dashboard', label: t('dashboard.nav.home'), icon: <HomeIcon /> },
     { href: '/dashboard/create-programs', label: t('dashboard.nav.createProgram'), icon: <AddBoxIcon /> },
-    { href: '/dashboard/create-subprogram', label: t('dashboard.nav.createSubprogram'), icon: <ExtensionIcon /> },
-    { href: '/dashboard/create-activity', label: t('dashboard.nav.createActivity'), icon: <TaskAltIcon /> },
-    { href: '/dashboard/reports', label: t('dashboard.nav.reports'), icon: <AssessmentIcon /> },
   ];
 
   const dashboardItems = [
@@ -140,6 +138,15 @@ export default function SidebarLayout({ children }: SidebarLayoutProps) {
       <Divider />
 
       <List sx={{ flexGrow: 1 }}>
+        <ListItemButton
+          component={Link}
+          href={homeItem.href}
+          selected={pathname === homeItem.href}
+        >
+          <ListItemIcon>{homeItem.icon}</ListItemIcon>
+          <ListItemText primary={homeItem.label} />
+        </ListItemButton>
+
         <ListItemButton onClick={handleDashboardsToggle} selected={isDashboardGroupActive}>
           <ListItemIcon>
             <DashboardIcon />
@@ -175,13 +182,6 @@ export default function SidebarLayout({ children }: SidebarLayoutProps) {
             <ListItemText primary={item.label} />
           </ListItemButton>
         ))}
-
-        <ListItemButton>
-          <ListItemIcon>
-            <SettingsIcon />
-          </ListItemIcon>
-          <ListItemText primary={t('dashboard.nav.settings')} />
-        </ListItemButton>
 
         <ListItemButton onClick={handleLogout}>
           <ListItemIcon>

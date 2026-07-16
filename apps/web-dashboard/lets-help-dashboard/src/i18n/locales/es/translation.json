@@ -9,12 +9,12 @@
     "signupFree": "Regístrate gratis."
   },
   "dashboard": {
-    "title": "Dashboard Ejecutivo",
+    "title": "Panel Ejecutivo",
     "subtitle": "Vista general del estado operativo de la fundación",
     "nav": {
-      "dashboards": "Dashboards",
-      "executive": "Executive Dashboard",
-      "attendanceSummary": "Attendance Summary",
+      "dashboards": "Paneles",
+      "executive": "Panel Ejecutivo",
+      "attendanceSummary": "Resumen de Asistencia",
       "programSummary": "Resumen de Programas",
       "subProgramSummary": "Resumen de Subprogramas",
       "activitySummary": "Resumen de Actividades",
@@ -77,7 +77,7 @@
       "selectSubprogram": "Selecciona un subprograma",
       "noSubprogramsWarning": "El programa seleccionado no tiene subprogramas registrados.",
       "week": "Semana",
-      "responsibleUserId": "Resp. (userId)",
+      "responsibleUserId": "Responsable (ID de usuario)",
       "projectedActivitiesShort": "Activ. Proy.",
       "executedActivitiesShort": "Activ. Ejec.",
       "projectedAttendeesShort": "Asist. Proy.",
@@ -178,7 +178,7 @@
         "subtitle": "Evolución temporal y distribución de estados de asistencia"
       },
       "rankingsSection": {
-        "title": "Rankings",
+        "title": "Clasificaciones",
         "subtitle": "Programas, subprogramas y actividades con mayor asistencia y ausentismo"
       },
       "kpis": {
@@ -216,12 +216,12 @@
         }
       },
       "rankings": {
-        "topProgramsByAttendance": "Top programas — mayor asistencia",
-        "topProgramsByAbsence": "Top programas — mayor ausentismo",
-        "topSubProgramsByAttendance": "Top subprogramas — mayor asistencia",
-        "topSubProgramsByAbsence": "Top subprogramas — mayor ausentismo",
-        "topActivitiesByAttendance": "Top actividades — mayor asistencia",
-        "topActivitiesByAbsence": "Top actividades — mayor ausentismo"
+        "topProgramsByAttendance": "Programas — mayor asistencia",
+        "topProgramsByAbsence": "Programas — mayor ausentismo",
+        "topSubProgramsByAttendance": "Subprogramas — mayor asistencia",
+        "topSubProgramsByAbsence": "Subprogramas — mayor ausentismo",
+        "topActivitiesByAttendance": "Actividades — mayor asistencia",
+        "topActivitiesByAbsence": "Actividades — mayor ausentismo"
       }
     },
     "programSummary": {
@@ -326,7 +326,7 @@
       },
       "tableSection": {
         "title": "Cumplimiento por responsable",
-        "subtitle": "Ranking ordenado de mayor a menor cumplimiento total"
+        "subtitle": "Clasificación ordenada de mayor a menor cumplimiento total"
       },
       "charts": {
         "barTitle": "Actividades planeadas vs ejecutadas",

@@ -26,7 +26,7 @@ function getCharsPerLine(fontSize: number, maxWidth = RANKING_LABEL_MAX_WIDTH): 
   return Math.max(8, Math.floor(maxWidth / (fontSize * 0.52)));
 }
 
-function wrapToLines(text: string, maxCharsPerLine: number, maxLines: number): string[] {
+function wrapToLines(text: string | null | undefined, maxCharsPerLine: number, maxLines: number): string[] {
   if (!text) return [''];
 
   const lines: string[] = [];
@@ -79,24 +79,26 @@ function wrapToLines(text: string, maxCharsPerLine: number, maxLines: number): s
   return lines.slice(0, maxLines);
 }
 
-function normalizeText(text: string): string {
-  return text.replace(/\s+/g, ' ').trim().toLowerCase();
+function normalizeText(text: string | null | undefined): string {
+  return (text ?? '').replace(/\s+/g, ' ').trim().toLowerCase();
 }
 
-function isFullyWrapped(original: string, lines: string[]): boolean {
+function isFullyWrapped(original: string | null | undefined, lines: string[]): boolean {
   return normalizeText(lines.join(' ')) === normalizeText(original);
 }
 
-export function getRankingLabelLayout(names: string[]): {
+export function getRankingLabelLayout(names: Array<string | null | undefined>): {
   displayNames: string[];
   fontSize: number;
   lineCounts: number[];
 } {
+  const safeNames = names.map((name) => name ?? '');
+
   for (let fontSize = RANKING_FONT_SIZE_DEFAULT; fontSize >= RANKING_FONT_SIZE_MIN; fontSize -= 1) {
     const charsPerLine = getCharsPerLine(fontSize);
-    const wrapped = names.map((name) => wrapToLines(name, charsPerLine, RANKING_LABEL_MAX_LINES));
+    const wrapped = safeNames.map((name) => wrapToLines(name, charsPerLine, RANKING_LABEL_MAX_LINES));
 
-    if (wrapped.every((lines, index) => isFullyWrapped(names[index], lines))) {
+    if (wrapped.every((lines, index) => isFullyWrapped(safeNames[index], lines))) {
       return {
         displayNames: wrapped.map((lines) => lines.join('\n')),
         fontSize,
@@ -107,7 +109,7 @@ export function getRankingLabelLayout(names: string[]): {
 
   const fontSize = RANKING_FONT_SIZE_MIN;
   const charsPerLine = getCharsPerLine(fontSize);
-  const wrapped = names.map((name) => wrapToLines(name, charsPerLine, RANKING_LABEL_MAX_LINES));
+  const wrapped = safeNames.map((name) => wrapToLines(name, charsPerLine, RANKING_LABEL_MAX_LINES));
 
   return {
     displayNames: wrapped.map((lines) => lines.join('\n')),
@@ -217,7 +219,7 @@ export function buildRankingBarOption(
   barColor: string,
   colors: ChartThemeColors
 ): EChartsOption {
-  const originalNames = items.map((item) => item.name).reverse();
+  const originalNames = items.map((item) => item.name ?? '').reverse();
   const counts = items.map((item) => item.count).reverse();
   const percents = items.map((item) => item.percent).reverse();
   const { displayNames, fontSize } = getRankingLabelLayout(originalNames);

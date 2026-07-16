@@ -14,10 +14,8 @@
     "nav": {
       "dashboards": "Dashboards",
       "executive": "Executive Dashboard",
-      "attendanceSummary": "Attendance Summary",
-      "programSummary": "Program Summary",
-      "subProgramSummary": "Subprogram Summary",
-      "activitySummary": "Activity Summary",
+      "attendanceSummary": "Attendance",
+      "consolidatedSummary": "Consolidated",
       "trackingSummary": "Tracking & Compliance",
       "dropoutSummary": "Dropout Risk",
       "smartAlerts": "Smart Alerts",
@@ -57,6 +55,10 @@
       "attendanceShort": "Att.",
       "edit": "Edit",
       "noActivities": "No activities for the selected subprogram"
+    },
+    "consolidatedSummary": {
+      "title": "Programs, Subprograms and Activities",
+      "subtitle": "Unified view of highlighted programs, subprograms and activities by attendance, activities and beneficiaries"
     },
     "editActivityModal": {
       "title": "Edit Activity (Week {{week}})",
@@ -167,7 +169,7 @@
       }
     },
     "attendanceSummary": {
-      "title": "Attendance Summary",
+      "title": "Consolidated Attendance",
       "subtitle": "Detailed analysis of attendance, absences and program rankings",
       "kpiSection": {
         "title": "Attendance indicators",
@@ -228,7 +230,7 @@
       "title": "Program Summary",
       "subtitle": "Highlighted programs by attendance, activities and beneficiaries",
       "section": {
-        "title": "Summary cards",
+        "title": "Programs",
         "subtitle": "Programs with the best and lowest performance on key indicators"
       },
       "cards": {
@@ -259,7 +261,7 @@
       "title": "Subprogram Summary",
       "subtitle": "Highlighted subprograms by attendance, activities and beneficiaries",
       "section": {
-        "title": "Summary cards",
+        "title": "Subprograms",
         "subtitle": "Subprograms with the best and lowest performance on key indicators"
       },
       "cards": {
@@ -290,7 +292,7 @@
       "title": "Activity Summary",
       "subtitle": "Highlighted activities by attendance and beneficiaries",
       "section": {
-        "title": "Summary cards",
+        "title": "Activities",
         "subtitle": "Activities with the best and lowest performance, including program, subprogram and responsible"
       },
       "cards": {

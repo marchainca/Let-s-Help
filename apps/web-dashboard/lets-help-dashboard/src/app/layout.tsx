@@ -3,7 +3,7 @@
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { I18nProvider } from '@/i18n/I18nProvider';
-import { LanguageSwitcher } from "./components/LanguageSwitcher";
+import PublicAppBar from './components/PublicAppBar';
 import { usePathname } from 'next/navigation';
 import QueryProvider from '@/providers/QueryProvider';
 import AppThemeProvider from '@/providers/ThemeProvider';
@@ -17,6 +17,8 @@ const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
 });
+
+const appBarHeight = 64;
 
 export default function RootLayout({
   children,
@@ -37,16 +39,14 @@ export default function RootLayout({
         <I18nProvider>
           <QueryProvider>
             <AppThemeProvider>
-              {/* Renderiza el header solo si showHeader es true */}
-              {showHeader && (
-                <header style={{ display: 'flex', alignItems: 'center', padding: '1rem' }}>
-                  <h1 style={{ margin: 0 }}>Let's Help</h1>
-                  {/* Selector de idioma en la esquina superior derecha */}
-                  <LanguageSwitcher />
-                </header>
-              )}
+              {showHeader && <PublicAppBar />}
 
-              <main>
+              <main
+                style={{
+                  marginTop: showHeader ? `${appBarHeight}px` : 0,
+                  minHeight: showHeader ? `calc(100vh - ${appBarHeight}px)` : '100vh',
+                }}
+              >
                 {children}
               </main>
             </AppThemeProvider>

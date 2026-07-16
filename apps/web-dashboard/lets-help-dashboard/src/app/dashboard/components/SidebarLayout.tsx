@@ -32,6 +32,7 @@ import { useRouter, usePathname } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
 import { LanguageSwitcher } from '@/app/components/LanguageSwitcher';
 import ThemeToggle from './ThemeToggle';
+import { clearAccessTokenCookie } from '@/lib/authCookies';
 
 const drawerWidth = 240;
 const appBarHeight = 64;
@@ -39,9 +40,7 @@ const appBarHeight = 64;
 const DASHBOARD_ROUTES = [
   '/dashboard/executive',
   '/dashboard/attendance-summary',
-  '/dashboard/program-summary',
-  '/dashboard/subprogram-summary',
-  '/dashboard/activity-summary',
+  '/dashboard/consolidated-summary',
   '/dashboard/tracking-summary',
   '/dashboard/dropout-summary',
   '/dashboard/smart-alerts',
@@ -83,7 +82,7 @@ export default function SidebarLayout({ children }: SidebarLayoutProps) {
     if (typeof window !== 'undefined') {
       localStorage.removeItem('accessToken');
       localStorage.removeItem('userData');
-      document.cookie = 'accessToken=; Max-Age=0; path=/;';
+      clearAccessTokenCookie();
     }
     router.push('/login');
   };
@@ -105,9 +104,7 @@ export default function SidebarLayout({ children }: SidebarLayoutProps) {
   const dashboardItems = [
     { href: '/dashboard/executive', label: t('dashboard.nav.executive') },
     { href: '/dashboard/attendance-summary', label: t('dashboard.nav.attendanceSummary') },
-    { href: '/dashboard/program-summary', label: t('dashboard.nav.programSummary') },
-    { href: '/dashboard/subprogram-summary', label: t('dashboard.nav.subProgramSummary') },
-    { href: '/dashboard/activity-summary', label: t('dashboard.nav.activitySummary') },
+    { href: '/dashboard/consolidated-summary', label: t('dashboard.nav.consolidatedSummary') },
     { href: '/dashboard/tracking-summary', label: t('dashboard.nav.trackingSummary') },
     { href: '/dashboard/dropout-summary', label: t('dashboard.nav.dropoutSummary') },
     { href: '/dashboard/smart-alerts', label: t('dashboard.nav.smartAlerts') },

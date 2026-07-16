@@ -36,7 +36,7 @@ export function LanguageSwitcher() {
       value={currentLang}
       onChange={handleLanguageChange}
       size="small"
-      sx={{ marginLeft: 'auto', marginRight: '1rem' }} // estilos opcionales
+      sx={{ minWidth: 120 }}
     >
       {availableLanguages.map((lang) => (
         <MenuItem key={lang.code} value={lang.code}>

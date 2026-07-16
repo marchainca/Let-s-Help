@@ -15,9 +15,7 @@
       "dashboards": "Paneles",
       "executive": "Panel Ejecutivo",
       "attendanceSummary": "Resumen de Asistencia",
-      "programSummary": "Resumen de Programas",
-      "subProgramSummary": "Resumen de Subprogramas",
-      "activitySummary": "Resumen de Actividades",
+      "consolidatedSummary": "Consolidados",
       "trackingSummary": "Seguimiento y Cumplimiento",
       "dropoutSummary": "Riesgo de Deserción",
       "smartAlerts": "Alertas Inteligentes",
@@ -57,6 +55,10 @@
       "attendanceShort": "Asist.",
       "edit": "Editar",
       "noActivities": "No hay actividades para el subprograma seleccionado"
+    },
+    "consolidatedSummary": {
+      "title": "Programas, Subprogramas y Actividades",
+      "subtitle": "Vista unificada de programas, subprogramas y actividades destacados por asistencia, actividades y beneficiarios"
     },
     "editActivityModal": {
       "title": "Editar Actividad (Semana {{week}})",
@@ -167,7 +169,7 @@
       }
     },
     "attendanceSummary": {
-      "title": "Resumen de Asistencia",
+      "title": "Consolidado de Asistencia",
       "subtitle": "Análisis detallado de asistencias, ausencias y rankings por programa",
       "kpiSection": {
         "title": "Indicadores de asistencia",
@@ -228,7 +230,7 @@
       "title": "Resumen de Programas",
       "subtitle": "Programas destacados por asistencia, actividades y beneficiarios",
       "section": {
-        "title": "Tarjetas resumen",
+        "title": "Programas",
         "subtitle": "Programas con mejor y menor desempeño en indicadores clave"
       },
       "cards": {
@@ -259,7 +261,7 @@
       "title": "Resumen de Subprogramas",
       "subtitle": "Subprogramas destacados por asistencia, actividades y beneficiarios",
       "section": {
-        "title": "Tarjetas resumen",
+        "title": "Subprogramas",
         "subtitle": "Subprogramas con mejor y menor desempeño en indicadores clave"
       },
       "cards": {
@@ -290,7 +292,7 @@
       "title": "Resumen de Actividades",
       "subtitle": "Actividades destacadas por asistencia y beneficiarios",
       "section": {
-        "title": "Tarjetas resumen",
+        "title": "Actividades",
         "subtitle": "Actividades con mejor y menor desempeño, incluyendo programa, subprograma y responsable"
       },
       "cards": {

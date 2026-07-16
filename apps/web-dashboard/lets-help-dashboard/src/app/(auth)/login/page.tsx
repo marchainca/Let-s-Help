@@ -1,9 +1,10 @@
 'use client';
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation'; 
-import { TextField, Button, Typography, Box, Card, CardContent, Avatar } from '@mui/material';
+import { TextField, Button, Typography, Box, Card, CardContent } from '@mui/material';
 import { useTranslation } from 'react-i18next';
 import { loginRequest } from '@/app/services/authService';
+import { setAccessTokenCookie } from '@/lib/authCookies';
 
 export default function LoginPage() {
   const {t} = useTranslation();
@@ -21,7 +22,14 @@ export default function LoginPage() {
   useEffect(() => {
     if (typeof window === 'undefined') return;
 
+    const storedToken = localStorage.getItem('accessToken');
     const storedUserData = localStorage.getItem('userData');
+
+    if (storedToken) {
+      setAccessTokenCookie(storedToken);
+      router.replace('/dashboard');
+      return;
+    }
 
     if (storedUserData) {
       try {
@@ -30,7 +38,7 @@ export default function LoginPage() {
         setUserData(null);
       }
     }
-  }, []);
+  }, [router]);
 
   // Función que maneja el evento de submit del formulario
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -43,7 +51,7 @@ export default function LoginPage() {
       if (response.code === 1) {
         // Guardamos data en el almacenamiento local 
         localStorage.setItem('accessToken', response.content.accessToken);
-        //document.cookie = `accessToken=${response.content.accessToken}; path=/;`;
+        setAccessTokenCookie(response.content.accessToken);
         localStorage.setItem('userData', JSON.stringify(response.content.user));
         setUserData(response.content.user);
 
@@ -60,12 +68,12 @@ export default function LoginPage() {
   };
 
   return (
-    <Box 
-      display="flex" 
-      justifyContent="center" 
-      alignItems="center" 
-      minHeight="100vh"
-      bgcolor="#f3f4f6"
+    <Box
+      display="flex"
+      justifyContent="center"
+      alignItems="center"
+      minHeight="100%"
+      sx={{ bgcolor: 'background.default', p: 2 }}
     >
       <Card sx={{ maxWidth: 400, width: '100%', borderRadius: 2 }}>
         <CardContent>

@@ -100,26 +100,6 @@ export default function LoginPage() {
             </Button>
           </form>
 
-          {userData && (
-            <Box display="flex" alignItems="center" gap={2} mt={2} p={2} bgcolor="#f9fafb" borderRadius={2}>
-              <Avatar
-                src={userData.urlImage}
-                alt={userData.name || 'Usuario'}
-                sx={{ width: 56, height: 56 }}
-              />
-              <Box>
-                <Typography variant="subtitle1" fontWeight={600}>
-                  {userData.name || 'Usuario'}
-                </Typography>
-                {userData.email && (
-                  <Typography variant="body2" color="text.secondary">
-                    {userData.email}
-                  </Typography>
-                )}
-              </Box>
-            </Box>
-          )}
-
           {error && (
             <Typography variant="body2" color="error" mt={2}>
               {error}

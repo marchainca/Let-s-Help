@@ -1,5 +1,5 @@
 import axios from 'axios';
-import i18n from '@/i18n';
+import { getAcceptLanguage } from '@/lib/apiHeaders';
 
 const apiClient = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_BASE_URL,
@@ -13,7 +13,7 @@ apiClient.interceptors.request.use((config) => {
     }
   }
 
-  config.headers['Accept-Language'] = i18n.language || 'es';
+  config.headers['Accept-Language'] = getAcceptLanguage();
   return config;
 });
 

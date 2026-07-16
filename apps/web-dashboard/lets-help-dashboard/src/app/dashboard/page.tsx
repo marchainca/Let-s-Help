@@ -22,10 +22,17 @@ import { useTranslation } from 'react-i18next';
 import SidebarLayout from './components/SidebarLayout';
 import EditActivityModal from './components/EditActivityModal'; 
 import params from '@/params';
+import { withAcceptLanguage } from '@/lib/apiHeaders';
 
 interface ISubprogram {
   id: string;
   name: string;
+}
+
+interface IProgram {
+  id: string;
+  name: string;
+  subprograms?: ISubprogram[];
 }
 
 interface IActivity {
@@ -70,13 +77,27 @@ export default function DashboardPage() {
   const [page, setPage] = useState(1);
   const handlePageChange = (_e: React.ChangeEvent<unknown>, val: number) => setPage(val);
 
-  // programName, programId
-  const [programName, setProgramName] = useState(t('dashboard.common.loading'));
+  // programas, programId
+  const [programList, setProgramList] = useState<IProgram[]>([]);
   const [programId, setProgramId] = useState<string>('');
+  const [programsLoading, setProgramsLoading] = useState(true);
+  const [programsError, setProgramsError] = useState(false);
 
   // subprograms, selectedSubprogram
   const [subprogramList, setSubprogramList] = useState<ISubprogram[]>([]);
   const [selectedSubprogram, setSelectedSubprogram] = useState<string>('');
+
+  const applyProgramSubprograms = (program: IProgram | undefined) => {
+    const subprograms = program?.subprograms ?? [];
+    setSubprogramList(subprograms);
+    setSelectedSubprogram(subprograms[0]?.id ?? '');
+  };
+
+  const handleProgramChange = (nextProgramId: string) => {
+    setProgramId(nextProgramId);
+    const program = programList.find((item) => item.id === nextProgramId);
+    applyProgramSubprograms(program);
+  };
 
   // Datos transformados para la tabla
   const [activitiesRows, setActivitiesRows] = useState<IRow[]>([]);
@@ -86,15 +107,17 @@ export default function DashboardPage() {
   const [weekToEdit, setWeekToEdit] = useState<number>(0);
   const [editRowData, setEditRowData] = useState<IRow | null>(null);
 
-  // Obtiene la info del programa y subprogramas
+  // Obtiene la lista de programas y subprogramas del usuario
   useEffect(() => {
+    setProgramsLoading(true);
+    setProgramsError(false);
+
     fetch(`${BASE_URL}${params.paths.activities}/getPrograms/${USER_ID}`, {
       method: 'POST',
-      headers: {
+      headers: withAcceptLanguage({
         Authorization: `Bearer ${TOKEN}`,
         'Content-Type': 'application/json',
-        'Accept-language': 'es',
-      },
+      }),
     })
       .then(async (res) => {
         if (!res.ok) throw new Error(`Error HTTP: ${res.status}`);
@@ -102,24 +125,29 @@ export default function DashboardPage() {
       })
       .then((data) => {
         if (data.code === 1 && data.content?.length > 0) {
-          const program = data.content[0];
-          setProgramName(program.name || t('dashboard.activitiesPage.programUnnamed'));
-          setProgramId(program.id);
+          const programs: IProgram[] = data.content.map((program: IProgram) => ({
+            ...program,
+            name: program.name || t('dashboard.activitiesPage.programUnnamed'),
+          }));
 
-          if (program.subprograms && program.subprograms.length > 0) {
-            setSubprogramList(program.subprograms);
-            setSelectedSubprogram(program.subprograms[0].id);
-          } else {
-            setSubprogramList([]);
-            setSelectedSubprogram('');
-          }
+          setProgramList(programs);
+          setProgramId(programs[0].id);
+          applyProgramSubprograms(programs[0]);
         } else {
-          setProgramName(t('dashboard.activitiesPage.programUnavailable'));
+          setProgramList([]);
+          setProgramId('');
+          applyProgramSubprograms(undefined);
         }
       })
       .catch((err) => {
         console.error('Error al obtener programa:', err);
-        setProgramName(t('dashboard.activitiesPage.programLoadError'));
+        setProgramsError(true);
+        setProgramList([]);
+        setProgramId('');
+        applyProgramSubprograms(undefined);
+      })
+      .finally(() => {
+        setProgramsLoading(false);
       });
   }, []);
 
@@ -132,9 +160,9 @@ export default function DashboardPage() {
     const url = `${BASE_URL}${params.paths.activitiesBySubprogram}?programId=${programId}&subprogramId=${selectedSubprogram}`;
     fetch(url, {
       method: 'GET',
-      headers: {
+      headers: withAcceptLanguage({
         Authorization: `Bearer ${TOKEN}`,
-      },
+      }),
     })
       .then(async (res) => {
         if (!res.ok) throw new Error(`Error HTTP: ${res.status}`);
@@ -197,28 +225,73 @@ export default function DashboardPage() {
 
   return (
     <SidebarLayout>
-      <Typography variant="h4" fontWeight="bold" mb={1} sx={{ textAlign: 'center' }}>
-        {programName}
-      </Typography>
+      <Box sx={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'center', gap: 3, mb: 2 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+          <Typography variant="h5" fontWeight="bold">
+            {t('dashboard.activitiesPage.programLabel')}
+          </Typography>
+          <Select
+            variant="outlined"
+            value={programId}
+            onChange={(event) => handleProgramChange(event.target.value as string)}
+            size="small"
+            displayEmpty
+            disabled={programsLoading || programList.length === 0}
+            sx={{ minWidth: 260 }}
+          >
+            {programsLoading && (
+              <MenuItem value="" disabled>
+                {t('dashboard.common.loading')}
+              </MenuItem>
+            )}
+            {!programsLoading && programsError && (
+              <MenuItem value="" disabled>
+                {t('dashboard.activitiesPage.programLoadError')}
+              </MenuItem>
+            )}
+            {!programsLoading && !programsError && programList.length === 0 && (
+              <MenuItem value="" disabled>
+                {t('dashboard.activitiesPage.noPrograms')}
+              </MenuItem>
+            )}
+            {programList.map((program) => (
+              <MenuItem key={program.id} value={program.id}>
+                {program.name}
+              </MenuItem>
+            ))}
+          </Select>
+        </Box>
 
-      {/* Select para subprograma */}
-      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
-        <Typography variant="h5" fontWeight="bold">
-          {t('dashboard.activitiesPage.subprogramLabel')}
-        </Typography>
-        <Select
-          variant="outlined"
-          value={selectedSubprogram}
-          onChange={(event) => setSelectedSubprogram(event.target.value as string)}
-          size="small"
-          sx={{ minWidth: 220 }}
-        >
-          {subprogramList.map((sp) => (
-            <MenuItem key={sp.id} value={sp.id}>
-              {sp.name}
-            </MenuItem>
-          ))}
-        </Select>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+          <Typography variant="h5" fontWeight="bold">
+            {t('dashboard.activitiesPage.subprogramLabel')}
+          </Typography>
+          <Select
+            variant="outlined"
+            value={selectedSubprogram}
+            onChange={(event) => setSelectedSubprogram(event.target.value as string)}
+            size="small"
+            displayEmpty
+            disabled={!programId || subprogramList.length === 0}
+            sx={{ minWidth: 260 }}
+          >
+            {!programId && (
+              <MenuItem value="" disabled>
+                {t('dashboard.activitiesPage.selectProgram')}
+              </MenuItem>
+            )}
+            {programId && subprogramList.length === 0 && (
+              <MenuItem value="" disabled>
+                {t('dashboard.activitiesPage.noSubprograms')}
+              </MenuItem>
+            )}
+            {subprogramList.map((sp) => (
+              <MenuItem key={sp.id} value={sp.id}>
+                {sp.name}
+              </MenuItem>
+            ))}
+          </Select>
+        </Box>
       </Box>
 
       <Typography variant="h6" mb={2}>

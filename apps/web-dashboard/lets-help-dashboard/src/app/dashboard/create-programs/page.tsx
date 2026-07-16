@@ -14,6 +14,7 @@ import {
 import { useTranslation } from 'react-i18next';
 import SidebarLayout from '../components/SidebarLayout';
 import params from '@/params';
+import { withAcceptLanguage } from '@/lib/apiHeaders';
 
 const TOKEN = localStorage.getItem('accessToken') || '';
 const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || '';
@@ -75,10 +76,10 @@ export default function CreateProgramsPage() {
   useEffect(() => {
     fetch(`${BASE_URL}${params.paths.getPrograms}/${USER_ID}`, {
       method: 'POST',
-      headers: {
+      headers: withAcceptLanguage({
         Authorization: `Bearer ${TOKEN}`,
         'Content-Type': 'application/json',
-      },
+      }),
     })
       .then(async (res) => {
         if (!res.ok) {
@@ -103,10 +104,10 @@ export default function CreateProgramsPage() {
   const handleCreateProgram = () => {
     fetch(`${BASE_URL}${params.paths.createProgram}`, {
       method: 'POST',
-      headers: {
+      headers: withAcceptLanguage({
         Authorization: `Bearer ${TOKEN}`,
         'Content-Type': 'application/json',
-      },
+      }),
       body: JSON.stringify({
         name: newProgramName,
         description: newProgramDesc,
@@ -140,10 +141,10 @@ export default function CreateProgramsPage() {
     }
     fetch(`${BASE_URL}${params.paths.createSubprogram}`, {
       method: 'POST',
-      headers: {
+      headers: withAcceptLanguage({
         Authorization: `Bearer ${TOKEN}`,
         'Content-Type': 'application/json',
-      },
+      }),
       body: JSON.stringify({
         programId: selectedProgramForSub,
         name: newSubprogramName,
@@ -178,10 +179,10 @@ export default function CreateProgramsPage() {
     }
     fetch(`${BASE_URL}${params.paths.createActivity}`, {
       method: 'POST',
-      headers: {
+      headers: withAcceptLanguage({
         Authorization: `Bearer ${TOKEN}`,
         'Content-Type': 'application/json',
-      },
+      }),
       body: JSON.stringify({
         programId: selectedProgramForAct,
         subprogramId: selectedSubprogForAct,

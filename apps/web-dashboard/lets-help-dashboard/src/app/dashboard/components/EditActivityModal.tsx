@@ -12,6 +12,7 @@ import {
 } from '@mui/material';
 import { useTranslation } from 'react-i18next';
 import params from '@/params';
+import { withAcceptLanguage } from '@/lib/apiHeaders';
 
 const TOKEN = process.env.NEXT_PUBLIC_AUTH_TOKEN || '';
 const UPDATE_URL = `${process.env.NEXT_PUBLIC_API_BASE_URL}${params.paths.updateActivity}`;
@@ -76,10 +77,10 @@ export default function EditActivityModal(props: EditActivityModalProps) {
 
     fetch(UPDATE_URL, {
       method: 'PATCH',
-      headers: {
-        'Authorization': TOKEN,
+      headers: withAcceptLanguage({
+        Authorization: TOKEN,
         'Content-Type': 'application/json',
-      },
+      }),
       body: JSON.stringify({
         programId,
         subprogramId,

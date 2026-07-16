@@ -1,5 +1,6 @@
 import {LoginResponse} from "../interfaces/interfaces";
-import CryptoJS from 'crypto-js'; 
+import CryptoJS from 'crypto-js';
+import { withAcceptLanguage } from '@/lib/apiHeaders';
 
   
 /**
@@ -16,7 +17,7 @@ password: string
         const hashPassword = CryptoJS.SHA256(password).toString();
         const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}${process.env.NEXT_PUBLIC_LOGIN_ENDPOINT}`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: withAcceptLanguage({ 'Content-Type': 'application/json' }),
             body: JSON.stringify({ email, password: hashPassword }),
         });
 

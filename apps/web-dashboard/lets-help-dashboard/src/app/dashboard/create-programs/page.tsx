@@ -11,6 +11,7 @@ import {
   MenuItem,
   Divider,
 } from '@mui/material';
+import { useTranslation } from 'react-i18next';
 import SidebarLayout from '../components/SidebarLayout';
 import params from '@/params';
 
@@ -27,6 +28,8 @@ interface IProgram {
 }
 
 export default function CreateProgramsPage() {
+  const { t } = useTranslation();
+
   // Lista de programas existentes
   const [programs, setPrograms] = useState<IProgram[]>([]);
 
@@ -132,7 +135,7 @@ export default function CreateProgramsPage() {
   // 3. Crear Subprograma
   const handleCreateSubprogram = () => {
     if (!selectedProgramForSub) {
-      alert('Selecciona un programa para crear el subprograma');
+      alert(t('dashboard.createPrograms.selectProgramForSubprogram'));
       return;
     }
     fetch(`${BASE_URL}${params.paths.createSubprogram}`, {
@@ -170,7 +173,7 @@ export default function CreateProgramsPage() {
   // 4. Crear Actividad
   const handleCreateActivity = () => {
     if (!selectedProgramForAct || !selectedSubprogForAct) {
-      alert('Selecciona un programa y subprograma para crear la actividad');
+      alert(t('dashboard.createPrograms.selectProgramAndSubprogramForActivity'));
       return;
     }
     fetch(`${BASE_URL}${params.paths.createActivity}`, {
@@ -222,7 +225,7 @@ export default function CreateProgramsPage() {
     <SidebarLayout>
       <Box sx={{ p: 2 }}>
         <Typography variant="h5" fontWeight="bold" mb={2}>
-          Crear Programas, Subprogramas y Actividades
+          {t('dashboard.createPrograms.pageTitle')}
         </Typography>
 
         {/* Lista de programas existentes */}
@@ -254,10 +257,10 @@ export default function CreateProgramsPage() {
           {/* Form para crear Programa */}
           <Paper sx={{ p: 2, flex: 1, minWidth: 300 }}>
             <Typography variant="h6" fontWeight="bold" mb={2}>
-              Crear Programa
+              {t('dashboard.createPrograms.createProgram')}
             </Typography>
             <TextField
-              label="Nombre del Programa"
+              label={t('dashboard.createPrograms.programName')}
               fullWidth
               variant="outlined"
               sx={{ mb: 2 }}
@@ -265,7 +268,7 @@ export default function CreateProgramsPage() {
               onChange={(e) => setNewProgramName(e.target.value)}
             />
             <TextField
-              label="Descripción"
+              label={t('dashboard.common.description')}
               fullWidth
               variant="outlined"
               multiline
@@ -275,14 +278,14 @@ export default function CreateProgramsPage() {
               onChange={(e) => setNewProgramDesc(e.target.value)}
             />
             <Button variant="contained" onClick={handleCreateProgram}>
-              Guardar Programa
+              {t('dashboard.createPrograms.saveProgram')}
             </Button>
           </Paper>
 
           {/* Form para crear Subprograma */}
           <Paper sx={{ p: 2, flex: 1, minWidth: 300 }}>
             <Typography variant="h6" fontWeight="bold" mb={2}>
-              Crear Subprograma
+              {t('dashboard.createPrograms.createSubprogram')}
             </Typography>
 
             <Select
@@ -292,7 +295,7 @@ export default function CreateProgramsPage() {
               value={selectedProgramForSub}
               onChange={(e) => setSelectedProgramForSub(e.target.value)}
             >
-              <MenuItem value="">Selecciona un programa</MenuItem>
+              <MenuItem value="">{t('dashboard.createPrograms.selectProgram')}</MenuItem>
               {programs.map((prog) => (
                 <MenuItem key={prog.id} value={prog.id}>
                   {prog.name}
@@ -301,7 +304,7 @@ export default function CreateProgramsPage() {
             </Select>
 
             <TextField
-              label="Nombre del Subprograma"
+              label={t('dashboard.createPrograms.subprogramName')}
               fullWidth
               variant="outlined"
               sx={{ mb: 2 }}
@@ -309,7 +312,7 @@ export default function CreateProgramsPage() {
               onChange={(e) => setNewSubprogramName(e.target.value)}
             />
             <TextField
-              label="Descripción"
+              label={t('dashboard.common.description')}
               fullWidth
               variant="outlined"
               multiline
@@ -319,14 +322,14 @@ export default function CreateProgramsPage() {
               onChange={(e) => setNewSubprogramDesc(e.target.value)}
             />
             <Button variant="contained" onClick={handleCreateSubprogram}>
-              Guardar Subprograma
+              {t('dashboard.createPrograms.saveSubprogram')}
             </Button>
           </Paper>
 
           {/* Form para crear Actividad */}
           <Paper sx={{ p: 2, flex: 1, minWidth: 300 }}>
             <Typography variant="h6" fontWeight="bold" mb={2}>
-              Crear Actividad
+              {t('dashboard.createPrograms.createActivity')}
             </Typography>
 
             {/* Seleccionar Programa */}
@@ -340,7 +343,7 @@ export default function CreateProgramsPage() {
                 setSelectedSubprogForAct(''); // Limpiar subprograma al cambiar programa
               }}
             >
-              <MenuItem value="">Selecciona un programa</MenuItem>
+              <MenuItem value="">{t('dashboard.createPrograms.selectProgram')}</MenuItem>
               {programs.map((prog) => (
                 <MenuItem key={prog.id} value={prog.id}>
                   {prog.name}
@@ -361,7 +364,7 @@ export default function CreateProgramsPage() {
                     !programs.find((p) => p.id === selectedProgramForAct)?.subprograms?.length
                   }
                 >
-                  <MenuItem value="">Selecciona un subprograma</MenuItem>
+                  <MenuItem value="">{t('dashboard.createPrograms.selectSubprogram')}</MenuItem>
                   {programs
                     .find((p) => p.id === selectedProgramForAct)
                     ?.subprograms?.map((sp) => (
@@ -373,7 +376,7 @@ export default function CreateProgramsPage() {
                 {/* Mensaje visual si no hay subprogramas */}
                 {programs.find((p) => p.id === selectedProgramForAct)?.subprograms?.length === 0 && (
                   <Typography color="warning.main" variant="body2" sx={{ mb: 2 }}>
-                    El programa seleccionado no tiene subprogramas registrados.
+                    {t('dashboard.createPrograms.noSubprogramsWarning')}
                   </Typography>
                 )}
               </>
@@ -381,7 +384,7 @@ export default function CreateProgramsPage() {
 
             {/* Datos de la Actividad */}
             <TextField
-              label="Título de la Actividad"
+              label={t('dashboard.createPrograms.activityTitle')}
               fullWidth
               variant="outlined"
               sx={{ mb: 2 }}
@@ -391,7 +394,7 @@ export default function CreateProgramsPage() {
 
             <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
               <TextField
-                label="Semana"
+                label={t('dashboard.createPrograms.week')}
                 type="number"
                 fullWidth
                 variant="outlined"
@@ -399,7 +402,7 @@ export default function CreateProgramsPage() {
                 onChange={(e) => setActWeekNumber(Number(e.target.value))}
               />
               <TextField
-                label="Resp. (userId)"
+                label={t('dashboard.createPrograms.responsibleUserId')}
                 fullWidth
                 variant="outlined"
                 value={actResponsible}
@@ -409,7 +412,7 @@ export default function CreateProgramsPage() {
 
             <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
               <TextField
-                label="Activ. Proy."
+                label={t('dashboard.createPrograms.projectedActivitiesShort')}
                 type="number"
                 fullWidth
                 variant="outlined"
@@ -417,7 +420,7 @@ export default function CreateProgramsPage() {
                 onChange={(e) => setActProjActivities(Number(e.target.value))}
               />
               <TextField
-                label="Activ. Ejec."
+                label={t('dashboard.createPrograms.executedActivitiesShort')}
                 type="number"
                 fullWidth
                 variant="outlined"
@@ -428,7 +431,7 @@ export default function CreateProgramsPage() {
 
             <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
               <TextField
-                label="Asist. Proy."
+                label={t('dashboard.createPrograms.projectedAttendeesShort')}
                 type="number"
                 fullWidth
                 variant="outlined"
@@ -436,7 +439,7 @@ export default function CreateProgramsPage() {
                 onChange={(e) => setActProjAttendees(Number(e.target.value))}
               />
               <TextField
-                label="Asist. Reales"
+                label={t('dashboard.createPrograms.actualAttendeesShort')}
                 type="number"
                 fullWidth
                 variant="outlined"
@@ -446,7 +449,7 @@ export default function CreateProgramsPage() {
             </Box>
 
             <Button variant="contained" onClick={handleCreateActivity}>
-              Guardar Actividad
+              {t('dashboard.createPrograms.saveActivity')}
             </Button>
           </Paper>
         </Box>

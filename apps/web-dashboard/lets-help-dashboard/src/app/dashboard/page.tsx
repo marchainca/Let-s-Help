@@ -17,6 +17,7 @@ import {
   MenuItem,
 } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
+import { useTranslation } from 'react-i18next';
 
 import SidebarLayout from './components/SidebarLayout';
 import EditActivityModal from './components/EditActivityModal'; 
@@ -63,12 +64,14 @@ const USER_ID = USER ? JSON.parse(USER).idNumber : '';
 
 
 export default function DashboardPage() {
+  const { t } = useTranslation();
+
   // Paginación
   const [page, setPage] = useState(1);
   const handlePageChange = (_e: React.ChangeEvent<unknown>, val: number) => setPage(val);
 
   // programName, programId
-  const [programName, setProgramName] = useState('Cargando...');
+  const [programName, setProgramName] = useState(t('dashboard.common.loading'));
   const [programId, setProgramId] = useState<string>('');
 
   // subprograms, selectedSubprogram
@@ -100,7 +103,7 @@ export default function DashboardPage() {
       .then((data) => {
         if (data.code === 1 && data.content?.length > 0) {
           const program = data.content[0];
-          setProgramName(program.name || 'Programa sin nombre');
+          setProgramName(program.name || t('dashboard.activitiesPage.programUnnamed'));
           setProgramId(program.id);
 
           if (program.subprograms && program.subprograms.length > 0) {
@@ -111,12 +114,12 @@ export default function DashboardPage() {
             setSelectedSubprogram('');
           }
         } else {
-          setProgramName('Programa no disponible');
+          setProgramName(t('dashboard.activitiesPage.programUnavailable'));
         }
       })
       .catch((err) => {
         console.error('Error al obtener programa:', err);
-        setProgramName('Error al cargar programa');
+        setProgramName(t('dashboard.activitiesPage.programLoadError'));
       });
   }, []);
 
@@ -201,7 +204,7 @@ export default function DashboardPage() {
       {/* Select para subprograma */}
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
         <Typography variant="h5" fontWeight="bold">
-          Subprograma:
+          {t('dashboard.activitiesPage.subprogramLabel')}
         </Typography>
         <Select
           variant="outlined"
@@ -219,7 +222,7 @@ export default function DashboardPage() {
       </Box>
 
       <Typography variant="h6" mb={2}>
-        * Las actividades y asistencias se muestran de la forma: programadas / ejecutadas
+        {t('dashboard.activitiesPage.activitiesNote')}
       </Typography>
 
       <Paper sx={{ p: 2, overflow: 'auto' }}>
@@ -237,7 +240,7 @@ export default function DashboardPage() {
                     fontSize: '1rem',
                   }}
                 >
-                  Actividades - Asistentes
+                  {t('dashboard.activitiesPage.tableTitle')}
                 </TableCell>
               </TableRow>
               <TableRow>
@@ -249,38 +252,38 @@ export default function DashboardPage() {
                     width: 280,
                   }}
                 >
-                  Descripción de la actividad
+                  {t('dashboard.activitiesPage.activityDescription')}
                 </TableCell>
                 <TableCell colSpan={3} align="center" sx={{ backgroundColor: '#29ABE2', color: '#fff', fontWeight: 'bold' }}>
-                  Semana 1
+                  {t('dashboard.activitiesPage.weekNumber', { number: 1 })}
                 </TableCell>
                 <TableCell colSpan={3} align="center" sx={{ backgroundColor: '#29ABE2', color: '#fff', fontWeight: 'bold' }}>
-                  Semana 2
+                  {t('dashboard.activitiesPage.weekNumber', { number: 2 })}
                 </TableCell>
                 <TableCell colSpan={3} align="center" sx={{ backgroundColor: '#29ABE2', color: '#fff', fontWeight: 'bold' }}>
-                  Semana 3
+                  {t('dashboard.activitiesPage.weekNumber', { number: 3 })}
                 </TableCell>
                 <TableCell colSpan={3} align="center" sx={{ backgroundColor: '#29ABE2', color: '#fff', fontWeight: 'bold' }}>
-                  Semana 4
+                  {t('dashboard.activitiesPage.weekNumber', { number: 4 })}
                 </TableCell>
               </TableRow>
               <TableRow>
                 {/* Semana 1 */}
-                <TableCell align="center" sx={{ fontWeight: 'bold' }}>Activ.</TableCell>
-                <TableCell align="center" sx={{ fontWeight: 'bold' }}>Asist.</TableCell>
-                <TableCell align="center" sx={{ fontWeight: 'bold' }}>Editar</TableCell>
+                <TableCell align="center" sx={{ fontWeight: 'bold' }}>{t('dashboard.activitiesPage.activitiesShort')}</TableCell>
+                <TableCell align="center" sx={{ fontWeight: 'bold' }}>{t('dashboard.activitiesPage.attendanceShort')}</TableCell>
+                <TableCell align="center" sx={{ fontWeight: 'bold' }}>{t('dashboard.activitiesPage.edit')}</TableCell>
                 {/* Semana 2 */}
-                <TableCell align="center" sx={{ fontWeight: 'bold' }}>Activ.</TableCell>
-                <TableCell align="center" sx={{ fontWeight: 'bold' }}>Asist.</TableCell>
-                <TableCell align="center" sx={{ fontWeight: 'bold' }}>Editar</TableCell>
+                <TableCell align="center" sx={{ fontWeight: 'bold' }}>{t('dashboard.activitiesPage.activitiesShort')}</TableCell>
+                <TableCell align="center" sx={{ fontWeight: 'bold' }}>{t('dashboard.activitiesPage.attendanceShort')}</TableCell>
+                <TableCell align="center" sx={{ fontWeight: 'bold' }}>{t('dashboard.activitiesPage.edit')}</TableCell>
                 {/* Semana 3 */}
-                <TableCell align="center" sx={{ fontWeight: 'bold' }}>Activ.</TableCell>
-                <TableCell align="center" sx={{ fontWeight: 'bold' }}>Asist.</TableCell>
-                <TableCell align="center" sx={{ fontWeight: 'bold' }}>Editar</TableCell>
+                <TableCell align="center" sx={{ fontWeight: 'bold' }}>{t('dashboard.activitiesPage.activitiesShort')}</TableCell>
+                <TableCell align="center" sx={{ fontWeight: 'bold' }}>{t('dashboard.activitiesPage.attendanceShort')}</TableCell>
+                <TableCell align="center" sx={{ fontWeight: 'bold' }}>{t('dashboard.activitiesPage.edit')}</TableCell>
                 {/* Semana 4 */}
-                <TableCell align="center" sx={{ fontWeight: 'bold' }}>Activ.</TableCell>
-                <TableCell align="center" sx={{ fontWeight: 'bold' }}>Asist.</TableCell>
-                <TableCell align="center" sx={{ fontWeight: 'bold' }}>Editar</TableCell>
+                <TableCell align="center" sx={{ fontWeight: 'bold' }}>{t('dashboard.activitiesPage.activitiesShort')}</TableCell>
+                <TableCell align="center" sx={{ fontWeight: 'bold' }}>{t('dashboard.activitiesPage.attendanceShort')}</TableCell>
+                <TableCell align="center" sx={{ fontWeight: 'bold' }}>{t('dashboard.activitiesPage.edit')}</TableCell>
               </TableRow>
             </TableHead>
 
@@ -327,7 +330,7 @@ export default function DashboardPage() {
               {activitiesRows.length === 0 && (
                 <TableRow>
                   <TableCell colSpan={13} align="center">
-                    No hay actividades para el subprograma seleccionado
+                    {t('dashboard.activitiesPage.noActivities')}
                   </TableCell>
                 </TableRow>
               )}

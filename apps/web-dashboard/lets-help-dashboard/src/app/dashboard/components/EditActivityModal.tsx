@@ -10,6 +10,7 @@ import {
   TextField,
   Box,
 } from '@mui/material';
+import { useTranslation } from 'react-i18next';
 import params from '@/params';
 
 const TOKEN = process.env.NEXT_PUBLIC_AUTH_TOKEN || '';
@@ -29,6 +30,7 @@ interface EditActivityModalProps {
 }
 
 export default function EditActivityModal(props: EditActivityModalProps) {
+  const { t } = useTranslation();
   const { open, onClose, onSaved, rowData, weekNumber, programId, subprogramId } = props;
 
   const [projectedActivities, setProjectedActivities] = useState<number>(0);
@@ -106,18 +108,18 @@ export default function EditActivityModal(props: EditActivityModalProps) {
 
   return (
     <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
-      <DialogTitle>Editar Actividad (Semana {weekNumber})</DialogTitle>
+      <DialogTitle>{t('dashboard.editActivityModal.title', { week: weekNumber })}</DialogTitle>
       <DialogContent dividers>
         <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
           <TextField
-            label="Actividades Proyectadas"
+            label={t('dashboard.editActivityModal.projectedActivities')}
             type="number"
             value={projectedActivities}
             onChange={(e) => setProjectedActivities(Number(e.target.value))}
             fullWidth
           />
           <TextField
-            label="Actividades Ejecutadas"
+            label={t('dashboard.editActivityModal.executedActivities')}
             type="number"
             value={executedActivities}
             onChange={(e) => setExecutedActivities(Number(e.target.value))}
@@ -127,14 +129,14 @@ export default function EditActivityModal(props: EditActivityModalProps) {
 
         <Box sx={{ display: 'flex', gap: 2 }}>
           <TextField
-            label="Asistentes Proyectados"
+            label={t('dashboard.editActivityModal.projectedAttendees')}
             type="number"
             value={projectedAttendees}
             onChange={(e) => setProjectedAttendees(Number(e.target.value))}
             fullWidth
           />
           <TextField
-            label="Asistentes Reales"
+            label={t('dashboard.editActivityModal.actualAttendees')}
             type="number"
             value={actualAttendees}
             onChange={(e) => setActualAttendees(Number(e.target.value))}
@@ -143,9 +145,9 @@ export default function EditActivityModal(props: EditActivityModalProps) {
         </Box>
       </DialogContent>
       <DialogActions>
-        <Button onClick={onClose}>Cancelar</Button>
+        <Button onClick={onClose}>{t('dashboard.common.cancel')}</Button>
         <Button variant="contained" onClick={handleSave}>
-          Guardar
+          {t('dashboard.common.save')}
         </Button>
       </DialogActions>
     </Dialog>

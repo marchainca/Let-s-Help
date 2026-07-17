@@ -72,8 +72,11 @@ export default function CreateProgramsPage() {
     }
   }, []);
 
-  // 1. Al montar, cargamos la lista de programas
-  useEffect(() => {
+  const reloadPage = () => {
+    window.location.reload();
+  };
+
+  const loadPrograms = () =>
     fetch(`${BASE_URL}${params.paths.getPrograms}/${USER_ID}`, {
       method: 'POST',
       headers: withAcceptLanguage({
@@ -89,7 +92,7 @@ export default function CreateProgramsPage() {
       })
       .then((data) => {
         if (data.code === 1 && data.content?.length > 0) {
-          setPrograms(data.content); // array de programas
+          setPrograms(data.content);
         } else {
           setPrograms([]);
         }
@@ -98,6 +101,10 @@ export default function CreateProgramsPage() {
         console.error('Error al obtener programas existentes:', err);
         setPrograms([]);
       });
+
+  // 1. Al montar, cargamos la lista de programas
+  useEffect(() => {
+    void loadPrograms();
   }, []);
 
   // 2. Crear Programa
@@ -121,12 +128,10 @@ export default function CreateProgramsPage() {
         return res.json();
       })
       .then((data) => {
-        console.log('Programa creado:', data);
-        // Opcional: recargar la lista de programas
-        //reloadPrograms();
-        // Limpiar el formulario
-        setNewProgramName('');
-        setNewProgramDesc('');
+        if (data.code != null && data.code !== 1) {
+          throw new Error(data.message || 'Error al crear programa');
+        }
+        reloadPage();
       })
       .catch((err) => {
         console.error('Error al crear programa:', err);
@@ -158,13 +163,10 @@ export default function CreateProgramsPage() {
         return res.json();
       })
       .then((data) => {
-        console.log('Subprograma creado:', data);
-        // Recargar programas (para ver el nuevo subprograma)
-        //reloadPrograms();
-        // Limpiar formulario
-        setNewSubprogramName('');
-        setNewSubprogramDesc('');
-        setSelectedProgramForSub('');
+        if (data.code != null && data.code !== 1) {
+          throw new Error(data.message || 'Error al crear subprograma');
+        }
+        reloadPage();
       })
       .catch((err) => {
         console.error('Error al crear subprograma:', err);
@@ -204,18 +206,10 @@ export default function CreateProgramsPage() {
         return res.json();
       })
       .then((data) => {
-        console.log('Actividad creada:', data);
-        // Limpiar formulario
-        setNewActTitle('');
-        setActWeekNumber(1);
-        setActProjActivities(0);
-        setActExecActivities(0);
-        setActProjAttendees(0);
-        setActExecAttendees(0);
-        setActResponsible(actResponsible);
-        setSelectedProgramForAct('');
-        setSelectedSubprogForAct('');
-        // Opcional: recargar o mostrar en otra lista
+        if (data.code != null && data.code !== 1) {
+          throw new Error(data.message || 'Error al crear actividad');
+        }
+        reloadPage();
       })
       .catch((err) => {
         console.error('Error al crear actividad:', err);

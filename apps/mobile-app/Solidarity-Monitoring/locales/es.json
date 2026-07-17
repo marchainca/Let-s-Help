@@ -183,7 +183,12 @@
     "selectBirthdate": "Seleccionar Fecha de Nacimiento",
     "registerUser": "Registrar Usuario",
     "userRegistered": "Usuario registrado correctamente",
-    "registerFailed": "Ocurrió un error al registrar el usuario"
+    "registerFailed": "Ocurrió un error al registrar el usuario",
+    "profilePhoto": "Foto de perfil",
+    "selectPhoto": "Seleccionar foto",
+    "takePhoto": "Tomar foto",
+    "chooseFromGallery": "Elegir de galería",
+    "photoRequired": "Debe seleccionar una foto de perfil"
   },
   "newMember": {
     "title": "Nuevo Integrante",

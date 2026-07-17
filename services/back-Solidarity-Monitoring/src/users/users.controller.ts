@@ -16,7 +16,7 @@ export class UsersController {
     constructor(private readonly usersService: UsersService) {}
 
     @Post()
-    //@Roles('Admin')
+    @Roles('Admin')
     async createUser(@Body() userData: CreateUserDto, @Language() langId:number): Promise<CustomResponse> {
         try {
           //console.log("depués del try")

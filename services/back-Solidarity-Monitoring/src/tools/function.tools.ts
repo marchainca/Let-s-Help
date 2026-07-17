@@ -95,26 +95,29 @@ export function formatDate(seconds: number) {
 }
 
 // metodo para guardar la imagen en el servidor local en la ruta "uploads" y retornar la ruta del archivo guardado
-export async function saveImageLocally(base64String: string, fileName: string, imagesFolder = process.env.IMAGES_FOLDER ?? 'uploads'): Promise<string> {
+export async function saveImageLocally(
+  base64String: string,
+  fileName: string,
+  imagesFolder = process.env.IMAGES_FOLDER ?? 'uploads',
+  returnPublicUrl = false,
+): Promise<string> {
 
   const fs = require('fs');
-  // Obtener la ruta absoluta del directorio actual y luego construir la ruta completa para la ubicación .env IMAGES_FOLDER usar this.configureModule.get('IMAGES_FOLDER') para obtener la ruta del directorio de imágenes desde el archivo .env;
   const path = require('path');
   const uploadsDir = path.join(__dirname, '..', '..', imagesFolder);
+  const filePath = path.join(uploadsDir, fileName);
 
-  // Crear el directorio "uploads" si no existe
+  fs.mkdirSync(path.dirname(filePath), { recursive: true });
 
-  if (!fs.existsSync(uploadsDir)) {
-    fs.mkdirSync(uploadsDir);
-  }
-
-  // Eliminar encabezado base64 si está presente
-   const cleanBase64 = base64String.replace(
+  const cleanBase64 = base64String.replace(
     /^data:image\/\w+;base64,/,
     '',
   );
-  const filePath = path.join(uploadsDir, fileName);
   const buffer = Buffer.from(cleanBase64, 'base64');
   fs.writeFileSync(filePath, buffer);
+
+  if (returnPublicUrl) {
+    return `/${path.join(imagesFolder, fileName).replace(/\\/g, '/')}`;
+  }
   return filePath;
 }

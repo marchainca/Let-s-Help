@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { errorResponse } from 'src/tools/function.tools';
+import { errorResponse, isBase64, saveImageLocally } from 'src/tools/function.tools';
 import { UsersDataBaseService } from './users-data-base.service';
 
 @Injectable()
@@ -9,6 +9,22 @@ export class UsersService {
     constructor(
         private readonly dataBaseService: UsersDataBaseService,
     ) {}
+
+    private getImageExtension(base64String: string): string {
+        const match = base64String.match(/^data:image\/(\w+);base64,/);
+        if (!match) return 'jpg';
+        return match[1].replace('jpeg', 'jpg');
+    }
+
+    private async saveProfileImage(base64Image: string, idNumber: string): Promise<string> {
+        if (!(await isBase64(base64Image))) {
+            throw await errorResponse('Error: profile image must be a valid base64 string.', 'createUser');
+        }
+
+        const extension = this.getImageExtension(base64Image);
+        const fileName = `user_${idNumber}_${Date.now()}.${extension}`;
+        return saveImageLocally(base64Image, `profiles/${fileName}`, 'uploads', true);
+    }
 
     /**
      * Crear usuarios en Firestore
@@ -28,6 +44,10 @@ export class UsersService {
 
             if (userByIdNumber.length > 0) {
                 throw await errorResponse(`Error: user is already registered with the idNumber ${data.idNumber}`, "createUser");
+            }
+
+            if (data.urlImage) {
+                data.urlImage = await this.saveProfileImage(data.urlImage, data.idNumber);
             }
 
             //data.password = await argon2.hash(data.password);

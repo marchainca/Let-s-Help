@@ -8,7 +8,7 @@ import { UsersDataBaseService } from './users-data-base.service';
 export class UsersService {
     private collectionName = 'users';
     private readonly profileImagesFolder = 'uploads';
-    private readonly appBaseUrl = (process.env.APP_URL ?? 'http://localhost:4000').replace(/\/$/, '');
+    private readonly appBaseUrl = (process.env.APP_URL ?? 'http://192.168.1.33:4000').replace(/\/$/, '');
 
     constructor(
         private readonly dataBaseService: UsersDataBaseService,

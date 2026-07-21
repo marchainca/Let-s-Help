@@ -227,11 +227,12 @@ export class DataBaseServiceAttendance {
         fecha: string,
         langId: number,
         isJustified = false,
+        idUsuario: number,
     ): Promise<object> {
     try {
       // 1. Crear la ausencia base (sin DescriptionAbsence)
       const newAbsence = this.absenceRepository.create({
-        IdUser: 1, // temporal, luego obtener del token
+        IdUser: idUsuario,
         IdBeneficiary,
         IdActivity,
         IsJustified: isJustified,

@@ -168,6 +168,7 @@ export class AttendanceService {
         fecha: string,
         langId: number,
         isJustified = false,
+        idUsuario: number,
     ): Promise<object> {
         try {
             // Validar que el integrante existe
@@ -197,6 +198,7 @@ export class AttendanceService {
                 fecha,
                 langId,
                 isJustified,
+                idUsuario,
             );
 
             return {

@@ -59,7 +59,6 @@ export class UsersController {
     @Patch(':id')
     async updateUser(@Param('id') userId: string, @Body() updateData: UpdateUserDto, @Language() langId: number): Promise<string> {
         try {
-          //console.log("contenido de userId: ", userId)
           await this.usersService.updateUser(userId, updateData, langId);
           return `User with ID ${userId} updated successfully.`;
         } catch (error) {

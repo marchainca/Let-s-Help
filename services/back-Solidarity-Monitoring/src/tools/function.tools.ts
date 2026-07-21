@@ -33,17 +33,17 @@ export async function errorResponse(message: string, attribute: string): Promise
 }
 
 //Método para validar si un string está codificado en base64
-export async function isBase64(value: string):Promise<boolean> {
-  if (typeof value !== 'string') {
-      return false;
+export function isBase64(value: string): boolean {
+  if (!value) return false;
+  const clean = value
+      .replace(/^data:.*;base64,/, '')
+      .replace(/\s/g, '');
+  try {
+      const buffer = Buffer.from(clean, 'base64');
+      return buffer.toString('base64') === clean;
+  } catch {
+    return false;
   }
-
-  // Eliminar prefijos como "data:image/jpeg;base64," si están presentes
-  const base64Pattern = /^(data:\w+\/[a-zA-Z\+]+;base64,)?([A-Za-z0-9+/]+={0,2})$/;
-
-  console.log("validacion base64",  base64Pattern.test(value) && value.length % 4 === 0)
-
-  return base64Pattern.test(value) && value.length % 4 === 0;
 }
 
 // Método para subir la imagen a Cloud Storage

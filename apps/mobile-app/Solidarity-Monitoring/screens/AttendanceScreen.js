@@ -15,14 +15,18 @@ const AttendanceScreen = ({ navigation }) => {
           style={styles.optionButton}
           onPress={() => navigation.navigate('AttendanceForm')}
         >
-          <Text style={styles.buttonText}>{t('attendance.absences')}</Text>
+          <Text style={styles.buttonText} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.8}>
+            {t('attendance.absences')}
+          </Text>
         </TouchableOpacity>
 
         <TouchableOpacity
           style={styles.optionButton}
           onPress={() => navigation.navigate('FaceRecognition')}
         >
-          <Text style={styles.buttonText}>{t('attendance.attendance')}</Text>
+          <Text style={styles.buttonText} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.8}>
+            {t('attendance.attendance')}
+          </Text>
         </TouchableOpacity>
       </View>
 
@@ -54,22 +58,27 @@ const styles = StyleSheet.create({
   },
   buttonContainer: {
     flexDirection: 'row',
-    justifyContent: 'space-around',
+    justifyContent: 'space-between',
     width: '100%',
+    gap: 12,
     marginBottom: 40,
   },
   optionButton: {
+    flex: 1,
     backgroundColor: '#3B82F6',
+    minHeight: 56,
     paddingVertical: 15,
-    paddingHorizontal: 20,
+    paddingHorizontal: 8,
     borderRadius: 8,
-    width: '40%',
+    justifyContent: 'center',
     alignItems: 'center',
   },
   buttonText: {
     color: '#fff',
     fontSize: 16,
     fontWeight: 'bold',
+    textAlign: 'center',
+    width: '100%',
   },
   progressContainer: {
     flexDirection: 'row',

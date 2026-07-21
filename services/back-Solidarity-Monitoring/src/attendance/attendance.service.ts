@@ -161,7 +161,14 @@ export class AttendanceService {
     }
 
     // Registrar inasistencia
-    async registerAbsence(identificacion: string, actividad: string, motivo: string, fecha: string, langId: number): Promise<object> {
+    async registerAbsence(
+        identificacion: string,
+        actividad: string,
+        motivo: string,
+        fecha: string,
+        langId: number,
+        isJustified = false,
+    ): Promise<object> {
         try {
             // Validar que el integrante existe
             const integrant = await this.dataBaseServiceAttendance.getBeneficiaryByIdentification(identificacion);
@@ -183,9 +190,19 @@ export class AttendanceService {
             }
 
             // Crear un nuevo registro de inasistencia
-            await this.dataBaseServiceAttendance.registerAbsence(integrant.idBeneficiary, activity.IdActivity, motivo, fecha, langId);
+            await this.dataBaseServiceAttendance.registerAbsence(
+                integrant.idBeneficiary,
+                activity.IdActivity,
+                motivo,
+                fecha,
+                langId,
+                isJustified,
+            );
 
-            return { message: `Inasistencia registrada exitosamente para el integrante ${identificacion}` };
+            return {
+                message: `Inasistencia registrada exitosamente para el integrante ${identificacion}`,
+                isJustified,
+            };
         } catch (error) {
             console.log("Error in registerAbsence: ", error);
             throw error;

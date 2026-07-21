@@ -105,14 +105,23 @@ export class AttendanceController {
         @Body('actividad') actividad: string,
         @Body('motivo') motivo: string,
         @Body('fecha') fecha: string,
+        @Body('justificada') justificada: boolean | string = false,
         @Language() langId: number,
     ): Promise<object> {
         try {
             if (!identificacion || !actividad || !motivo) {
                 throw new BadRequestException('Todos los campos (identificacion, actividad, motivo) son obligatorios.');
             }
-            console.log("Llega al controlador:", identificacion, actividad, motivo, fecha);
-            const absence = await this.attendanceService.registerAbsence(identificacion, actividad, motivo, fecha, langId);
+            const isJustified = justificada === true || justificada === 'true';
+            console.log("Llega al controlador:", identificacion, actividad, motivo, fecha, isJustified);
+            const absence = await this.attendanceService.registerAbsence(
+                identificacion,
+                actividad,
+                motivo,
+                fecha,
+                langId,
+                isJustified,
+            );
             return await sendResponse(true, params.ResponseMessages.SUCCESS, absence);
         } catch (error) {
             throw new HttpException(

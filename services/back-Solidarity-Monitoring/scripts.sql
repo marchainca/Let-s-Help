@@ -162,6 +162,7 @@ CREATE TABLE Absences (
     IdBeneficiary       INTEGER NOT NULL REFERENCES Beneficiaries(IdBeneficiary), -- Beneficiario que se ausenta.
     IdActivity          INTEGER NOT NULL REFERENCES Activities(IdActivity),
     DescriptionAbsence  TEXT,
+    IsJustified         BOOLEAN NOT NULL DEFAULT FALSE,
     CreatedAt           TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 

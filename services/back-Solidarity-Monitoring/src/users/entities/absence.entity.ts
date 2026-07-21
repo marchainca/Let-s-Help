@@ -19,6 +19,9 @@ export class Absence {
   @Column({ type: 'int' })
   IdActivity: number;
 
+  @Column({ type: 'boolean', default: false })
+  IsJustified: boolean;
+
   @CreateDateColumn({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   CreatedAt: Date;
 

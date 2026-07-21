@@ -193,7 +193,7 @@ export class DataBaseServiceAttendance {
             .where('ben.Identification = :identificacion', { identificacion })
             .andWhere('at.NameActivity = :actividad', { actividad })
             .andWhere('att.AttendanceDate = :fecha', { fecha })
-            .andWhere('att.Status = :status', { status: 'absent' })
+            .andWhere('att.Status IN (:...statuses)', { statuses: ['absent', 'justified'] })
             .getOne();
             return !!existingAbsence;
         } catch (error) {
@@ -220,13 +220,21 @@ export class DataBaseServiceAttendance {
     }
 
     //Crear el registro en Absences y luego en Attendances con status 'absent' y el IdAbsence correspondiente
-    async registerAbsence(IdBeneficiary: number, IdActivity: number, motivo: string, fecha: string, langId: number): Promise<object> {
+    async registerAbsence(
+        IdBeneficiary: number,
+        IdActivity: number,
+        motivo: string,
+        fecha: string,
+        langId: number,
+        isJustified = false,
+    ): Promise<object> {
     try {
       // 1. Crear la ausencia base (sin DescriptionAbsence)
       const newAbsence = this.absenceRepository.create({
         IdUser: 1, // temporal, luego obtener del token
         IdBeneficiary,
         IdActivity,
+        IsJustified: isJustified,
       });
       const savedAbsence = await this.absenceRepository.save(newAbsence);
       const absenceId = savedAbsence.IdAbsence;
@@ -260,12 +268,12 @@ export class DataBaseServiceAttendance {
       });
       await this.absencesTranslationRepository.save(targetTranslation);
 
-      // 5. Crear el registro de asistencia (Attendances) – sin cambios
+      // 5. Crear el registro de asistencia (Attendances)
       const newAttendance: Partial<Attendance> = {
         IdBeneficiary,
         IdActivity,
         AttendanceDate: new Date(fecha),
-        Status: 'absent',
+        Status: isJustified ? 'justified' : 'absent',
         IdAbsence: absenceId,
         CreatedAt: new Date(),
         UpdatedAt: new Date(),
@@ -274,7 +282,10 @@ export class DataBaseServiceAttendance {
       console.log("Registro de inasistencia a crear: ", newAttendance);
       await this.attendanceRepository.save(newAttendance);
 
-      return { message: `Inasistencia registrada exitosamente para el beneficiario con ID ${IdBeneficiary} en la actividad con ID ${IdActivity}` };
+      return {
+        message: `Inasistencia registrada exitosamente para el beneficiario con ID ${IdBeneficiary} en la actividad con ID ${IdActivity}`,
+        isJustified,
+      };
     } catch (error) {
       console.error('Error al registrar inasistencia:', error);
       throw error;

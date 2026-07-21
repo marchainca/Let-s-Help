@@ -24,4 +24,8 @@ export class UpdateUserDto {
   @IsString()
   @IsOptional()
   password?: string
+
+  @IsString()
+  @IsOptional()
+  urlImage?:string;
 }

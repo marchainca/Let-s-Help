@@ -1,10 +1,13 @@
 import { Injectable } from '@nestjs/common';
+import * as fs from 'fs';
+import * as path from 'path';
 import { errorResponse, isBase64, saveImageLocally } from 'src/tools/function.tools';
 import { UsersDataBaseService } from './users-data-base.service';
 
 @Injectable()
 export class UsersService {
     private collectionName = 'users';
+    private readonly imagesFolder = process.env.IMAGES_FOLDER ?? 'uploads';
 
     constructor(
         private readonly dataBaseService: UsersDataBaseService,
@@ -16,14 +19,40 @@ export class UsersService {
         return match[1].replace('jpeg', 'jpg');
     }
 
-    private async saveProfileImage(base64Image: string, idNumber: string): Promise<string> {
+    private resolveLocalImagePath(imageUrl: string): string | null {
+        if (!imageUrl) return null;
+
+        if (imageUrl.startsWith(`/uploads/profiles/`)) {
+            return path.join(process.cwd(), imageUrl.replace(/^\//, '').replace(/\//g, path.sep));
+        }
+
+        const profilesSegment = `${path.sep}profiles${path.sep}`;
+        if (path.isAbsolute(imageUrl) && imageUrl.includes(profilesSegment)) {
+            return imageUrl;
+        }
+
+        return null;
+    }
+
+    private deleteLocalProfileImage(imageUrl: string | null): void {
+        const filePath = this.resolveLocalImagePath(imageUrl ?? '');
+        if (!filePath || !fs.existsSync(filePath)) return;
+
+        fs.unlinkSync(filePath);
+    }
+
+    private async saveProfileImage(
+        base64Image: string,
+        idNumber: string,
+        attribute = 'createUser',
+    ): Promise<string> {
         if (!(await isBase64(base64Image))) {
-            throw await errorResponse('Error: profile image must be a valid base64 string.', 'createUser');
+            throw await errorResponse('Error: profile image must be a valid base64 string.', attribute);
         }
 
         const extension = this.getImageExtension(base64Image);
         const fileName = `user_${idNumber}_${Date.now()}.${extension}`;
-        return saveImageLocally(base64Image, `profiles/${fileName}`, 'uploads', true);
+        return saveImageLocally(base64Image, `profiles/${fileName}`, this.imagesFolder, true);
     }
 
     /**
@@ -89,10 +118,7 @@ export class UsersService {
 
     // Actualizar un usuario por ID
     async updateUser(userId: string, data: any, langId: number): Promise<void> {
-        /* if ( await isBase64(data.urlImage) ) {
-            console.log("Entro al if del base64")
-           data.urlImage= await uploadImageToCloudStorage(data.urlImage, `images/${data.idNumber}-${Date.now()}.jpg`)
-        } */
+        
         // Buscar el usuario por identificación
         const user  = await this.dataBaseService.getUserByIdNumber(userId, langId);
         
@@ -121,8 +147,16 @@ export class UsersService {
         }
 
         // Actualizar imagen de perfil
-        if (data.profileImage !== undefined) {
-            user[0].UrlImage = data.profileImage;
+        const profileImageBase64 = data.profileImage ?? data.urlImage;
+        if (profileImageBase64 !== undefined) {
+            const previousImageUrl = user[0].UrlImage;
+            const newImageUrl = await this.saveProfileImage(
+                profileImageBase64,
+                user[0].Identification,
+                'updateUser',
+            );
+            user[0].UrlImage = newImageUrl;
+            this.deleteLocalProfileImage(previousImageUrl);
         }
 
         // Actualizar contraseña (aplicar hash SHA‑256)

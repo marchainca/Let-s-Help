@@ -7,7 +7,8 @@ import { UsersDataBaseService } from './users-data-base.service';
 @Injectable()
 export class UsersService {
     private collectionName = 'users';
-    private readonly imagesFolder = process.env.IMAGES_FOLDER ?? 'uploads';
+    private readonly profileImagesFolder = 'uploads';
+    private readonly appBaseUrl = (process.env.APP_URL ?? 'http://localhost:4000').replace(/\/$/, '');
 
     constructor(
         private readonly dataBaseService: UsersDataBaseService,
@@ -19,19 +20,29 @@ export class UsersService {
         return match[1].replace('jpeg', 'jpg');
     }
 
-    private resolveLocalImagePath(imageUrl: string): string | null {
+    private buildFullImageUrl(relativePath: string): string {
+        return `${this.appBaseUrl}${relativePath}`;
+    }
+
+    private getImagePathname(imageUrl: string): string | null {
         if (!imageUrl) return null;
 
-        if (imageUrl.startsWith(`/uploads/profiles/`)) {
-            return path.join(process.cwd(), imageUrl.replace(/^\//, '').replace(/\//g, path.sep));
+        if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) {
+            try {
+                return new URL(imageUrl).pathname;
+            } catch {
+                return null;
+            }
         }
 
-        const profilesSegment = `${path.sep}profiles${path.sep}`;
-        if (path.isAbsolute(imageUrl) && imageUrl.includes(profilesSegment)) {
-            return imageUrl;
-        }
+        return imageUrl.startsWith('/') ? imageUrl : `/${imageUrl}`;
+    }
 
-        return null;
+    private resolveLocalImagePath(imageUrl: string): string | null {
+        const pathname = this.getImagePathname(imageUrl);
+        if (!pathname?.startsWith('/uploads/profiles/')) return null;
+
+        return path.join(process.cwd(), pathname.replace(/^\//, '').replace(/\//g, path.sep));
     }
 
     private deleteLocalProfileImage(imageUrl: string | null): void {
@@ -52,7 +63,13 @@ export class UsersService {
 
         const extension = this.getImageExtension(base64Image);
         const fileName = `user_${idNumber}_${Date.now()}.${extension}`;
-        return saveImageLocally(base64Image, `profiles/${fileName}`, this.imagesFolder, true);
+        const relativeUrl = await saveImageLocally(
+            base64Image,
+            `profiles/${fileName}`,
+            this.profileImagesFolder,
+            true,
+        );
+        return this.buildFullImageUrl(relativeUrl);
     }
 
     /**

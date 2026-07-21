@@ -31,6 +31,7 @@ const AttendanceFormScreen = ({ navigation }) => {
   });
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
+  const [justificationType, setJustificationType] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [suggestions, setSuggestions] = useState([]);
   const [loadingSuggestions, setLoadingSuggestions] = useState(false);
@@ -136,6 +137,25 @@ const AttendanceFormScreen = ({ navigation }) => {
     }
   };
 
+  const handleJustificationChange = (value) => {
+    setJustificationType(value);
+
+    if (value === 'unjustified') {
+      setFormData((prev) => ({
+        ...prev,
+        reason: t('attendanceForm.unjustifiedDefaultReason'),
+      }));
+      return;
+    }
+
+    if (value === 'justified') {
+      setFormData((prev) => ({
+        ...prev,
+        reason: prev.reason === t('attendanceForm.unjustifiedDefaultReason') ? '' : prev.reason,
+      }));
+    }
+  };
+
   const handleSubmit = async () => {
     if (
       !program ||
@@ -144,6 +164,7 @@ const AttendanceFormScreen = ({ navigation }) => {
       !formData.firstName ||
       !formData.lastName ||
       !formData.documentNumber ||
+      !justificationType ||
       !formData.reason
     ) {
       Alert.alert(t('common.error'), t('common.completeAllFieldsFormal'));
@@ -157,6 +178,7 @@ const AttendanceFormScreen = ({ navigation }) => {
       actividad: activity,
       motivo: formData.reason,
       fecha: selectedDate.toISOString().split('T')[0],
+      justificada: justificationType === 'justified',
     };
 
     try {
@@ -277,6 +299,17 @@ const AttendanceFormScreen = ({ navigation }) => {
         />
       )}
 
+      <Text style={styles.label}>{t('attendanceForm.justificationLabel')}</Text>
+      <Picker
+        selectedValue={justificationType}
+        style={styles.picker}
+        onValueChange={handleJustificationChange}
+      >
+        <Picker.Item label={t('attendanceForm.selectJustification')} value="" />
+        <Picker.Item label={t('attendanceForm.justified')} value="justified" />
+        <Picker.Item label={t('attendanceForm.unjustified')} value="unjustified" />
+      </Picker>
+
       <Text style={styles.label}>{t('attendanceForm.reasonLabel')}</Text>
       <TextInput
         style={styles.input}
@@ -284,6 +317,7 @@ const AttendanceFormScreen = ({ navigation }) => {
         onChangeText={(text) => handleInputChange('reason', text)}
         multiline
         textAlignVertical="top"
+        editable={justificationType !== 'unjustified'}
       />
 
       <TouchableOpacity style={styles.submitButton} onPress={handleSubmit} disabled={isSubmitting}>

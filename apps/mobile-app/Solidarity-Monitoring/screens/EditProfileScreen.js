@@ -147,7 +147,10 @@ const EditProfileScreen = () => {
 
       if (response.ok) {
         Alert.alert(t('common.success'), t('editProfile.profileUpdated'));
-        updateUser(updatedData);
+        updateUser({
+          ...updatedData,
+          ...(updatedData.urlImage ? { profileImageUrl: updatedData.urlImage } : {}),
+        });
       } else {
         const errorData = await response.json();
         Alert.alert(

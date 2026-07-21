@@ -17,9 +17,15 @@ import ReportsHomeScreen from '../screens/ReportsHomeScreen';
 
 const Drawer = createDrawerNavigator();
 
+const DEFAULT_PROFILE_IMAGE =
+  'http://localhost:4000/uploads/profiles/user_4514539_1784596474857.jpg';
+
 function CustomDrawerContent(props) {
   const { user, logout } = useContext(UserContext);
   const { t } = useTranslation();
+
+  const profileImageUri =
+    user?.profileImageUrl || user?.urlImage || DEFAULT_PROFILE_IMAGE;
 
   const handleLogout = () => {
     Alert.alert(t('navigation.logout'), t('navigation.logoutConfirm'), [
@@ -37,7 +43,11 @@ function CustomDrawerContent(props) {
   return (
     <DrawerContentScrollView {...props}>
       <View style={styles.profileContainer}>
-        <Image source={{ uri: user?.profileImageUrl }} style={styles.profileImage} />
+        <Image
+          source={{ uri: profileImageUri }}
+          style={styles.profileImage}
+          resizeMode="cover"
+        />
         <Text style={styles.profileName}>{user?.name}</Text>
         <Text style={styles.profileEmail}>{user?.email}</Text>
         <TouchableOpacity

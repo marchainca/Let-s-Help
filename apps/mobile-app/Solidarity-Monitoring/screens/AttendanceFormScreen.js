@@ -173,6 +173,7 @@ const AttendanceFormScreen = ({ navigation }) => {
 
     const requestData = {
       identificacion: formData.documentNumber,
+      idUsuario: user.id,
       programa: program,
       subprograma: subprogram,
       actividad: activity,

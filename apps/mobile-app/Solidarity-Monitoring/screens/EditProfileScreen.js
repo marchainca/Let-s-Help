@@ -1,4 +1,4 @@
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext, useRef } from 'react';
 import {
   View,
   Text,
@@ -8,16 +8,21 @@ import {
   Alert,
   Image,
   ScrollView,
+  Modal,
 } from 'react-native';
 import { DateTimePickerAndroid } from '@react-native-community/datetimepicker';
+import { CameraView } from 'expo-camera';
 import * as ImagePicker from 'expo-image-picker';
 import CryptoJS from 'crypto-js';
 import { useTranslation } from 'react-i18next';
 import { UserContext } from '../context/UserContext';
+import { CameraPermissionContext } from '../context/CameraPermissionContext';
 import { apiFetch } from '../api/apiClient';
 
 const EditProfileScreen = () => {
   const { t } = useTranslation();
+  const { hasCameraPermission } = useContext(CameraPermissionContext);
+  const cameraRef = useRef(null);
 
   const parseDate = (dateString) => {
     if (!dateString) return new Date();
@@ -44,12 +49,13 @@ const EditProfileScreen = () => {
   const [birthdate, setBirthdate] = useState(parseDate(user?.birthdate));
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [isCameraVisible, setIsCameraVisible] = useState(false);
 
   const handleDateChange = (event, selectedDate) => {
     if (selectedDate) setBirthdate(selectedDate);
   };
 
-  const handleChangeImage = async () => {
+  const handleSelectFromGallery = async () => {
     try {
       const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
       if (!permissionResult.granted) {
@@ -75,6 +81,38 @@ const EditProfileScreen = () => {
     }
   };
 
+  const handleTakePhoto = () => {
+    if (!hasCameraPermission) {
+      Alert.alert(t('common.permissionDenied'), t('faceRecognition.cameraPermissionDenied'));
+      return;
+    }
+    setIsCameraVisible(true);
+  };
+
+  const handleCapturePhoto = async () => {
+    try {
+      if (!cameraRef.current) {
+        throw new Error(t('newMember.cameraAccessFailed'));
+      }
+
+      const capturedPhoto = await cameraRef.current.takePictureAsync({ base64: true });
+      setProfileImage(`data:image/jpeg;base64,${capturedPhoto.base64}`);
+      setIsCameraVisible(false);
+      Alert.alert(t('common.success'), t('editProfile.imageUpdated'));
+    } catch (error) {
+      console.error('Error al capturar foto:', error);
+      Alert.alert(t('common.error'), t('newMember.captureFailed'));
+    }
+  };
+
+  const handleChangeImage = () => {
+    Alert.alert(t('userManagement.selectPhoto'), '', [
+      { text: t('userManagement.takePhoto'), onPress: handleTakePhoto },
+      { text: t('userManagement.chooseFromGallery'), onPress: handleSelectFromGallery },
+      { text: t('common.cancel'), style: 'cancel' },
+    ]);
+  };
+
   const handleSaveChanges = async () => {
     if (password !== confirmPassword) {
       Alert.alert(t('common.error'), t('editProfile.passwordMismatch'));
@@ -97,7 +135,7 @@ const EditProfileScreen = () => {
     }
 
     try {
-      const apiUrl = `${process.env.EXPO_PUBLIC_API_URL}users/:id=${user.id}`;
+      const apiUrl = `${process.env.EXPO_PUBLIC_API_URL}users/${idNumber}`;
       const response = await apiFetch(apiUrl, {
         method: 'PATCH',
         headers: {
@@ -182,6 +220,24 @@ const EditProfileScreen = () => {
       <TouchableOpacity style={styles.saveButton} onPress={handleSaveChanges}>
         <Text style={styles.saveButtonText}>{t('editProfile.saveChanges')}</Text>
       </TouchableOpacity>
+
+      <Modal visible={isCameraVisible} animationType="slide" transparent={false}>
+        <View style={styles.modalContainer}>
+          <CameraView style={styles.camera} ref={cameraRef} facing="front">
+            <View style={styles.cameraControls}>
+              <TouchableOpacity style={styles.captureButton} onPress={handleCapturePhoto}>
+                <Text style={styles.captureButtonText}>{t('newMember.capture')}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.cancelButton}
+                onPress={() => setIsCameraVisible(false)}
+              >
+                <Text style={styles.cancelButtonText}>{t('common.cancel')}</Text>
+              </TouchableOpacity>
+            </View>
+          </CameraView>
+        </View>
+      </Modal>
     </ScrollView>
   );
 };
@@ -234,6 +290,45 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
     fontWeight: 'bold',
+  },
+  modalContainer: {
+    flex: 1,
+    backgroundColor: '#000',
+  },
+  camera: {
+    flex: 1,
+  },
+  cameraControls: {
+    flex: 1,
+    backgroundColor: 'transparent',
+    justifyContent: 'flex-end',
+    alignItems: 'center',
+    paddingBottom: 40,
+  },
+  captureButton: {
+    backgroundColor: '#2196f3',
+    padding: 15,
+    borderRadius: 10,
+    marginBottom: 15,
+    width: '80%',
+    alignItems: 'center',
+  },
+  captureButtonText: {
+    color: '#fff',
+    fontWeight: 'bold',
+    fontSize: 16,
+  },
+  cancelButton: {
+    backgroundColor: '#fff',
+    padding: 15,
+    borderRadius: 10,
+    width: '80%',
+    alignItems: 'center',
+  },
+  cancelButtonText: {
+    color: '#333',
+    fontWeight: 'bold',
+    fontSize: 16,
   },
 });
 

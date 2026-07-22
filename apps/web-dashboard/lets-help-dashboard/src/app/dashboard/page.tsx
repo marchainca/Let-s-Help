@@ -29,7 +29,7 @@ import DashboardSection from './components/common/DashboardSection';
 import DashboardEmptyState from './components/common/DashboardEmptyState';
 import EditActivityModal from './components/EditActivityModal';
 import params from '@/params';
-import { withAcceptLanguage } from '@/lib/apiHeaders';
+import { authenticatedFetch } from '@/lib/authenticatedFetch';
 import {
   ActivityFilters,
   ActivityTableRow,
@@ -41,11 +41,6 @@ import {
 } from '@/lib/activitiesUtils';
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || '';
-
-function getAuthToken() {
-  if (typeof window === 'undefined') return '';
-  return localStorage.getItem('accessToken') || '';
-}
 
 function getUserId() {
   if (typeof window === 'undefined') return '';
@@ -133,12 +128,11 @@ export default function DashboardPage() {
     setProgramsError(false);
 
     try {
-      const response = await fetch(`${BASE_URL}${params.paths.getPrograms}/${getUserId()}`, {
+      const response = await authenticatedFetch(`${BASE_URL}${params.paths.getPrograms}/${getUserId()}`, {
         method: 'POST',
-        headers: withAcceptLanguage({
-          Authorization: `Bearer ${getAuthToken()}`,
+        headers: {
           'Content-Type': 'application/json',
-        }),
+        },
       });
 
       if (!response.ok) {
@@ -203,11 +197,8 @@ export default function DashboardPage() {
     const url = `${BASE_URL}${params.paths.activitiesBySubprogram}?programId=${programId}&subprogramId=${selectedSubprogram}`;
 
     try {
-      const response = await fetch(url, {
+      const response = await authenticatedFetch(url, {
         method: 'GET',
-        headers: withAcceptLanguage({
-          Authorization: `Bearer ${getAuthToken()}`,
-        }),
       });
 
       if (!response.ok) {

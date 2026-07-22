@@ -4,7 +4,11 @@ import { useRouter } from 'next/navigation';
 import { TextField, Button, Typography, Box, Card, CardContent } from '@mui/material';
 import { useTranslation } from 'react-i18next';
 import { loginRequest } from '@/app/services/authService';
-import { setAccessTokenCookie } from '@/lib/authCookies';
+import {
+  ensureValidAccessToken,
+  hasAuthSession,
+  persistAuthSession,
+} from '@/lib/authSession';
 
 export default function LoginPage() {
   const {t} = useTranslation();
@@ -22,14 +26,7 @@ export default function LoginPage() {
   useEffect(() => {
     if (typeof window === 'undefined') return;
 
-    const storedToken = localStorage.getItem('accessToken');
     const storedUserData = localStorage.getItem('userData');
-
-    if (storedToken) {
-      setAccessTokenCookie(storedToken);
-      router.replace('/dashboard');
-      return;
-    }
 
     if (storedUserData) {
       try {
@@ -38,6 +35,16 @@ export default function LoginPage() {
         setUserData(null);
       }
     }
+
+    if (!hasAuthSession()) return;
+
+    void ensureValidAccessToken()
+      .then(() => {
+        router.replace('/dashboard');
+      })
+      .catch(() => {
+        setUserData(null);
+      });
   }, [router]);
 
   // Función que maneja el evento de submit del formulario
@@ -49,13 +56,9 @@ export default function LoginPage() {
       const response = await loginRequest(email, password);
 
       if (response.code === 1) {
-        // Guardamos data en el almacenamiento local 
-        localStorage.setItem('accessToken', response.content.accessToken);
-        setAccessTokenCookie(response.content.accessToken);
-        localStorage.setItem('userData', JSON.stringify(response.content.user));
+        persistAuthSession(response.content);
         setUserData(response.content.user);
 
-        // Redireccionamos
         router.push('/dashboard');
       } else {
         // Manejo de error si code != 1

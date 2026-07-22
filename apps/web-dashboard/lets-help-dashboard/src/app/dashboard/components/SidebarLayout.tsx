@@ -32,7 +32,7 @@ import { useRouter, usePathname } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
 import { LanguageSwitcher } from '@/app/components/LanguageSwitcher';
 import ThemeToggle from './ThemeToggle';
-import { clearAccessTokenCookie } from '@/lib/authCookies';
+import { clearAuthSession } from '@/lib/authSession';
 
 const drawerWidth = 240;
 const appBarHeight = 64;
@@ -79,11 +79,7 @@ export default function SidebarLayout({ children }: SidebarLayoutProps) {
   }, [pathname]);
 
   const handleLogout = () => {
-    if (typeof window !== 'undefined') {
-      localStorage.removeItem('accessToken');
-      localStorage.removeItem('userData');
-      clearAccessTokenCookie();
-    }
+    clearAuthSession();
     router.push('/login');
   };
 

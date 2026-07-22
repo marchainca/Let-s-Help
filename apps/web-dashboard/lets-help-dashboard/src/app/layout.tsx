@@ -7,6 +7,7 @@ import PublicAppBar from './components/PublicAppBar';
 import { usePathname } from 'next/navigation';
 import QueryProvider from '@/providers/QueryProvider';
 import AppThemeProvider from '@/providers/ThemeProvider';
+import AuthSessionProvider from '@/providers/AuthSessionProvider';
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -38,7 +39,8 @@ export default function RootLayout({
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
         <I18nProvider>
           <QueryProvider>
-            <AppThemeProvider>
+            <AuthSessionProvider>
+              <AppThemeProvider>
               {showHeader && <PublicAppBar />}
 
               <main
@@ -49,7 +51,8 @@ export default function RootLayout({
               >
                 {children}
               </main>
-            </AppThemeProvider>
+              </AppThemeProvider>
+            </AuthSessionProvider>
           </QueryProvider>
         </I18nProvider>
       </body>

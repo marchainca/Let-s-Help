@@ -2,7 +2,13 @@
 
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { clearAccessTokenCookie, setAccessTokenCookie } from '@/lib/authCookies';
+import {
+  clearAuthSession,
+  ensureValidAccessToken,
+  getAccessToken,
+  hasAuthSession,
+} from '@/lib/authSession';
+import { setAccessTokenCookie } from '@/lib/authCookies';
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -12,15 +18,20 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const router = useRouter();
 
   useEffect(() => {
-    const token = localStorage.getItem('accessToken');
-
-    if (!token) {
-      clearAccessTokenCookie();
+    if (!hasAuthSession()) {
+      clearAuthSession();
       router.replace('/login');
       return;
     }
 
-    setAccessTokenCookie(token);
+    void ensureValidAccessToken()
+      .then((token) => {
+        setAccessTokenCookie(token);
+      })
+      .catch(() => {
+        clearAuthSession();
+        router.replace('/login');
+      });
   }, [router]);
 
   return children;

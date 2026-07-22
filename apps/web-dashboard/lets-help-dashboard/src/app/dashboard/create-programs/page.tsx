@@ -14,12 +14,22 @@ import {
 import { useTranslation } from 'react-i18next';
 import SidebarLayout from '../components/SidebarLayout';
 import params from '@/params';
-import { withAcceptLanguage } from '@/lib/apiHeaders';
+import { authenticatedFetch } from '@/lib/authenticatedFetch';
 
-const TOKEN = localStorage.getItem('accessToken') || '';
 const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || '';
-const USER = localStorage.getItem('userData') || '';
-const USER_ID = USER ? JSON.parse(USER).idNumber : '';
+
+function getUserId() {
+  if (typeof window === 'undefined') return '';
+
+  const userData = localStorage.getItem('userData');
+  if (!userData) return '';
+
+  try {
+    return JSON.parse(userData).idNumber ?? '';
+  } catch {
+    return '';
+  }
+}
 
 interface IProgram {
   id: string;
@@ -77,12 +87,11 @@ export default function CreateProgramsPage() {
   };
 
   const loadPrograms = () =>
-    fetch(`${BASE_URL}${params.paths.getPrograms}/${USER_ID}`, {
+    authenticatedFetch(`${BASE_URL}${params.paths.getPrograms}/${getUserId()}`, {
       method: 'POST',
-      headers: withAcceptLanguage({
-        Authorization: `Bearer ${TOKEN}`,
+      headers: {
         'Content-Type': 'application/json',
-      }),
+      },
     })
       .then(async (res) => {
         if (!res.ok) {
@@ -108,12 +117,11 @@ export default function CreateProgramsPage() {
 
   // 2. Crear Programa
   const handleCreateProgram = () => {
-    fetch(`${BASE_URL}${params.paths.createProgram}`, {
+    authenticatedFetch(`${BASE_URL}${params.paths.createProgram}`, {
       method: 'POST',
-      headers: withAcceptLanguage({
-        Authorization: `Bearer ${TOKEN}`,
+      headers: {
         'Content-Type': 'application/json',
-      }),
+      },
       body: JSON.stringify({
         name: newProgramName,
         description: newProgramDesc,
@@ -143,12 +151,11 @@ export default function CreateProgramsPage() {
       alert(t('dashboard.createPrograms.selectProgramForSubprogram'));
       return;
     }
-    fetch(`${BASE_URL}${params.paths.createSubprogram}`, {
+    authenticatedFetch(`${BASE_URL}${params.paths.createSubprogram}`, {
       method: 'POST',
-      headers: withAcceptLanguage({
-        Authorization: `Bearer ${TOKEN}`,
+      headers: {
         'Content-Type': 'application/json',
-      }),
+      },
       body: JSON.stringify({
         programId: selectedProgramForSub,
         name: newSubprogramName,
@@ -182,12 +189,11 @@ export default function CreateProgramsPage() {
       alert(t('dashboard.createPrograms.executionDateRequired'));
       return;
     }
-    fetch(`${BASE_URL}${params.paths.createActivity}`, {
+    authenticatedFetch(`${BASE_URL}${params.paths.createActivity}`, {
       method: 'POST',
-      headers: withAcceptLanguage({
-        Authorization: `Bearer ${TOKEN}`,
+      headers: {
         'Content-Type': 'application/json',
-      }),
+      },
       body: JSON.stringify({
         programId: selectedProgramForAct,
         subprogramId: selectedSubprogForAct,

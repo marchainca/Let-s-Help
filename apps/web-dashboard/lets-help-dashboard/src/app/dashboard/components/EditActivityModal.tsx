@@ -13,15 +13,10 @@ import {
 } from '@mui/material';
 import { useTranslation } from 'react-i18next';
 import params from '@/params';
-import { withAcceptLanguage } from '@/lib/apiHeaders';
+import { authenticatedFetch } from '@/lib/authenticatedFetch';
 import { ActivityTableRow, formatExecutionDate } from '@/lib/activitiesUtils';
 
 const UPDATE_URL = `${process.env.NEXT_PUBLIC_API_BASE_URL}${params.paths.updateActivity}`;
-
-function getAuthToken() {
-  if (typeof window === 'undefined') return '';
-  return localStorage.getItem('accessToken') || process.env.NEXT_PUBLIC_AUTH_TOKEN || '';
-}
 
 interface EditActivityModalProps {
   open: boolean;
@@ -53,12 +48,11 @@ export default function EditActivityModal(props: EditActivityModalProps) {
   const handleSave = () => {
     if (!rowData.id) return;
 
-    fetch(UPDATE_URL, {
+    authenticatedFetch(UPDATE_URL, {
       method: 'PATCH',
-      headers: withAcceptLanguage({
-        Authorization: getAuthToken(),
+      headers: {
         'Content-Type': 'application/json',
-      }),
+      },
       body: JSON.stringify({
         programId,
         subprogramId,

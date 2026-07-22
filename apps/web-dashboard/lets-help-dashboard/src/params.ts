@@ -1,5 +1,7 @@
 export default {
   paths: {
+    authLogin: '/letsHelp/Colombia/auth/login',
+    authRefresh: '/letsHelp/Colombia/auth/refresh',
     activities: '/letsHelp/Colombia/activities',
     activitiesBySubprogram: '/letsHelp/Colombia/activities/activities-by-subprogram',
     getAllActivities: '/letsHelp/Colombia/activities/getAllActivities',

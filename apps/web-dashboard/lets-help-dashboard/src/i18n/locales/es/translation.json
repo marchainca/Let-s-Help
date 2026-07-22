@@ -39,6 +39,16 @@
       "week": "Semana"
     },
     "activitiesPage": {
+      "title": "Seguimiento de Actividades",
+      "subtitle": "Monitorea actividades y asistencias planeadas y ejecutadas por programa y subprograma",
+      "filtersSection": {
+        "title": "Filtros",
+        "subtitle": "Filtra actividades por programa, subprograma, fecha, mes o año"
+      },
+      "tableSection": {
+        "title": "Actividades y asistencias",
+        "subtitle": "Los valores se muestran como programadas / ejecutadas"
+      },
       "programUnnamed": "Programa sin nombre",
       "programUnavailable": "Programa no disponible",
       "programLoadError": "Error al cargar programa",
@@ -47,6 +57,13 @@
       "noPrograms": "No hay programas disponibles",
       "noSubprograms": "No hay subprogramas para el programa seleccionado",
       "subprogramLabel": "Subprograma:",
+      "filterDate": "Fecha de ejecución",
+      "filterMonth": "Mes",
+      "filterYear": "Año",
+      "all": "Todos",
+      "clearFilters": "Limpiar filtros",
+      "executionDate": "Fecha de ejecución",
+      "noExecutionDate": "Sin fecha",
       "activitiesNote": "* Las actividades y asistencias se muestran de la forma: programadas / ejecutadas",
       "tableTitle": "Actividades - Asistentes",
       "activityDescription": "Descripción de la actividad",
@@ -54,14 +71,16 @@
       "activitiesShort": "Activ.",
       "attendanceShort": "Asist.",
       "edit": "Editar",
-      "noActivities": "No hay actividades para el subprograma seleccionado"
+      "noActivities": "No hay actividades para el subprograma seleccionado",
+      "noMatchingActivities": "No hay actividades que coincidan con los filtros seleccionados"
     },
     "consolidatedSummary": {
       "title": "Programas, Subprogramas y Actividades",
       "subtitle": "Vista unificada de programas, subprogramas y actividades destacados por asistencia, actividades y beneficiarios"
     },
     "editActivityModal": {
-      "title": "Editar Actividad (Semana {{week}})",
+      "title": "Editar Actividad",
+      "executionDateLabel": "Fecha de ejecución: {{date}}",
       "projectedActivities": "Actividades Proyectadas",
       "executedActivities": "Actividades Ejecutadas",
       "projectedAttendees": "Asistentes Proyectados",
@@ -78,7 +97,8 @@
       "selectProgram": "Selecciona un programa",
       "selectSubprogram": "Selecciona un subprograma",
       "noSubprogramsWarning": "El programa seleccionado no tiene subprogramas registrados.",
-      "week": "Semana",
+      "executionDate": "Fecha de ejecución",
+      "executionDateRequired": "Selecciona una fecha de ejecución para la actividad",
       "responsibleUserId": "Responsable (ID de usuario)",
       "projectedActivitiesShort": "Activ. Proy.",
       "executedActivitiesShort": "Activ. Ejec.",

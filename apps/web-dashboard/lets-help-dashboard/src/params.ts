@@ -2,6 +2,7 @@ export default {
   paths: {
     activities: '/letsHelp/Colombia/activities',
     activitiesBySubprogram: '/letsHelp/Colombia/activities/activities-by-subprogram',
+    getAllActivities: '/letsHelp/Colombia/activities/getAllActivities',
     getPrograms: '/letsHelp/Colombia/activities/getPrograms',
     getSubprograms: '/letsHelp/Colombia/activities/getSubprograms',
     createProgram: '/letsHelp/Colombia/activities/createProgram',

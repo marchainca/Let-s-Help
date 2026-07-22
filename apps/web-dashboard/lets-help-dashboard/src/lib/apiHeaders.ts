@@ -1,12 +1,14 @@
 import i18n from '@/i18n';
 
 export function getAcceptLanguage(): string {
+  if (i18n.language) return i18n.language;
+
   if (typeof window !== 'undefined') {
     const storedLang = localStorage.getItem('lang');
     if (storedLang) return storedLang;
   }
 
-  return i18n.language || 'es';
+  return 'es';
 }
 
 export function withAcceptLanguage(

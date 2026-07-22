@@ -39,6 +39,16 @@
       "week": "Week"
     },
     "activitiesPage": {
+      "title": "Activities Tracking",
+      "subtitle": "Monitor planned and executed activities and attendance by program and subprogram",
+      "filtersSection": {
+        "title": "Filters",
+        "subtitle": "Filter activities by program, subprogram, date, month or year"
+      },
+      "tableSection": {
+        "title": "Activities and attendance",
+        "subtitle": "Values are shown as planned / executed"
+      },
       "programUnnamed": "Program without name",
       "programUnavailable": "Program not available",
       "programLoadError": "Error loading program",
@@ -47,6 +57,13 @@
       "noPrograms": "No programs available",
       "noSubprograms": "No subprograms for the selected program",
       "subprogramLabel": "Subprogram:",
+      "filterDate": "Execution date",
+      "filterMonth": "Month",
+      "filterYear": "Year",
+      "all": "All",
+      "clearFilters": "Clear filters",
+      "executionDate": "Execution date",
+      "noExecutionDate": "Not scheduled",
       "activitiesNote": "* Activities and attendance are shown as: planned / executed",
       "tableTitle": "Activities - Attendees",
       "activityDescription": "Activity description",
@@ -54,14 +71,16 @@
       "activitiesShort": "Act.",
       "attendanceShort": "Att.",
       "edit": "Edit",
-      "noActivities": "No activities for the selected subprogram"
+      "noActivities": "No activities for the selected subprogram",
+      "noMatchingActivities": "No activities match the selected filters"
     },
     "consolidatedSummary": {
       "title": "Programs, Subprograms and Activities",
       "subtitle": "Unified view of highlighted programs, subprograms and activities by attendance, activities and beneficiaries"
     },
     "editActivityModal": {
-      "title": "Edit Activity (Week {{week}})",
+      "title": "Edit Activity",
+      "executionDateLabel": "Execution date: {{date}}",
       "projectedActivities": "Projected Activities",
       "executedActivities": "Executed Activities",
       "projectedAttendees": "Projected Attendees",
@@ -78,7 +97,8 @@
       "selectProgram": "Select a program",
       "selectSubprogram": "Select a subprogram",
       "noSubprogramsWarning": "The selected program has no registered subprograms.",
-      "week": "Week",
+      "executionDate": "Execution date",
+      "executionDateRequired": "Select an execution date for the activity",
       "responsibleUserId": "Responsible (userId)",
       "projectedActivitiesShort": "Proj. Act.",
       "executedActivitiesShort": "Exec. Act.",

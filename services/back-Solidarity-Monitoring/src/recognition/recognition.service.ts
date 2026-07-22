@@ -321,8 +321,8 @@ export class RecognitionService {
       //console.log("Beneficiarios encontrados:", beneficiaries);
       const results = beneficiaries.map(b => ({
         id: b.IdBeneficiary.toString(),
-        name: `${b.FirstName || ''} ${b.LastName || ''}`.trim(),
-        lastName: b.LastName || '',
+        name: `${b.FirstName || ''}`.trim(),
+        lastName: `${b.LastName || ''}`.trim(),
         documentNumber: b.Identification || '',
       }));
       return results;

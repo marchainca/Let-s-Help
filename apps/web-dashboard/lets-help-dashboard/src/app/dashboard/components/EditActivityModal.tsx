@@ -9,30 +9,32 @@ import {
   Button,
   TextField,
   Box,
+  Typography,
 } from '@mui/material';
 import { useTranslation } from 'react-i18next';
 import params from '@/params';
 import { withAcceptLanguage } from '@/lib/apiHeaders';
+import { ActivityTableRow, formatExecutionDate } from '@/lib/activitiesUtils';
 
-const TOKEN = process.env.NEXT_PUBLIC_AUTH_TOKEN || '';
 const UPDATE_URL = `${process.env.NEXT_PUBLIC_API_BASE_URL}${params.paths.updateActivity}`;
+
+function getAuthToken() {
+  if (typeof window === 'undefined') return '';
+  return localStorage.getItem('accessToken') || process.env.NEXT_PUBLIC_AUTH_TOKEN || '';
+}
 
 interface EditActivityModalProps {
   open: boolean;
   onClose: () => void;
   onSaved: () => void;
-  rowData: {
-    id?: string;
-    [key: string]: any;
-  };
-  weekNumber: number;
+  rowData: ActivityTableRow;
   programId: string;
   subprogramId: string;
 }
 
 export default function EditActivityModal(props: EditActivityModalProps) {
-  const { t } = useTranslation();
-  const { open, onClose, onSaved, rowData, weekNumber, programId, subprogramId } = props;
+  const { t, i18n } = useTranslation();
+  const { open, onClose, onSaved, rowData, programId, subprogramId } = props;
 
   const [projectedActivities, setProjectedActivities] = useState<number>(0);
   const [executedActivities, setExecutedActivities] = useState<number>(0);
@@ -40,37 +42,13 @@ export default function EditActivityModal(props: EditActivityModalProps) {
   const [actualAttendees, setActualAttendees] = useState<number>(0);
 
   useEffect(() => {
-    if (!rowData || !weekNumber) return;
+    if (!rowData) return;
 
-    let sActividad = '';
-    let sAsistencia = '';
-    switch (weekNumber) {
-      case 1:
-        sActividad = rowData.s1Actividad || '0/0';
-        sAsistencia = rowData.s1Asistencia || '0/0';
-        break;
-      case 2:
-        sActividad = rowData.s2Actividad || '0/0';
-        sAsistencia = rowData.s2Asistencia || '0/0';
-        break;
-      case 3:
-        sActividad = rowData.s3Actividad || '0/0';
-        sAsistencia = rowData.s3Asistencia || '0/0';
-        break;
-      case 4:
-        sActividad = rowData.s4Actividad || '0/0';
-        sAsistencia = rowData.s4Asistencia || '0/0';
-        break;
-    }
-
-    const [projAct, execAct] = sActividad.split('/');
-    const [projAtt, execAtt] = sAsistencia.split('/');
-
-    setProjectedActivities(Number(projAct));
-    setExecutedActivities(Number(execAct));
-    setProjectedAttendees(Number(projAtt));
-    setActualAttendees(Number(execAtt));
-  }, [rowData, weekNumber]);
+    setProjectedActivities(rowData.projectedActivities);
+    setExecutedActivities(rowData.executedActivities);
+    setProjectedAttendees(rowData.projectedAttendees);
+    setActualAttendees(rowData.actualAttendees);
+  }, [rowData]);
 
   const handleSave = () => {
     if (!rowData.id) return;
@@ -78,7 +56,7 @@ export default function EditActivityModal(props: EditActivityModalProps) {
     fetch(UPDATE_URL, {
       method: 'PATCH',
       headers: withAcceptLanguage({
-        Authorization: TOKEN,
+        Authorization: getAuthToken(),
         'Content-Type': 'application/json',
       }),
       body: JSON.stringify({
@@ -89,7 +67,7 @@ export default function EditActivityModal(props: EditActivityModalProps) {
         executedActivities,
         projectedAttendees,
         actualAttendees,
-        weekNumber,
+        weekNumber: rowData.weekNumber,
       }),
     })
       .then(async (res) => {
@@ -99,7 +77,6 @@ export default function EditActivityModal(props: EditActivityModalProps) {
         return res.json();
       })
       .then(() => {
-        // Éxito => invocamos onSaved() para recargar la tabla en page.tsx
         onSaved();
       })
       .catch((err) => {
@@ -107,10 +84,23 @@ export default function EditActivityModal(props: EditActivityModalProps) {
       });
   };
 
+  const executionDateLabel = formatExecutionDate(
+    rowData.executionDate,
+    i18n.language,
+    t('dashboard.activitiesPage.noExecutionDate')
+  );
+
   return (
     <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
-      <DialogTitle>{t('dashboard.editActivityModal.title', { week: weekNumber })}</DialogTitle>
+      <DialogTitle>{t('dashboard.editActivityModal.title')}</DialogTitle>
       <DialogContent dividers>
+        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+          {rowData.title}
+        </Typography>
+        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+          {t('dashboard.editActivityModal.executionDateLabel', { date: executionDateLabel })}
+        </Typography>
+
         <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
           <TextField
             label={t('dashboard.editActivityModal.projectedActivities')}

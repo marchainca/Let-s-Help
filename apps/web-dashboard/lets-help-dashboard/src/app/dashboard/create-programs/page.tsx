@@ -29,7 +29,7 @@ interface IProgram {
 }
 
 export default function CreateProgramsPage() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
 
   // Lista de programas existentes
   const [programs, setPrograms] = useState<IProgram[]>([]);
@@ -47,7 +47,7 @@ export default function CreateProgramsPage() {
   const [selectedProgramForAct, setSelectedProgramForAct] = useState('');
   const [selectedSubprogForAct, setSelectedSubprogForAct] = useState('');
   const [newActTitle, setNewActTitle] = useState('');
-  const [actWeekNumber, setActWeekNumber] = useState<number>(1);
+  const [actExecutionDate, setActExecutionDate] = useState('');
   const [actProjActivities, setActProjActivities] = useState<number>(0);
   const [actExecActivities, setActExecActivities] = useState<number>(0);
   const [actProjAttendees, setActProjAttendees] = useState<number>(0);
@@ -102,10 +102,9 @@ export default function CreateProgramsPage() {
         setPrograms([]);
       });
 
-  // 1. Al montar, cargamos la lista de programas
   useEffect(() => {
     void loadPrograms();
-  }, []);
+  }, [i18n.language]);
 
   // 2. Crear Programa
   const handleCreateProgram = () => {
@@ -179,6 +178,10 @@ export default function CreateProgramsPage() {
       alert(t('dashboard.createPrograms.selectProgramAndSubprogramForActivity'));
       return;
     }
+    if (!actExecutionDate) {
+      alert(t('dashboard.createPrograms.executionDateRequired'));
+      return;
+    }
     fetch(`${BASE_URL}${params.paths.createActivity}`, {
       method: 'POST',
       headers: withAcceptLanguage({
@@ -190,12 +193,12 @@ export default function CreateProgramsPage() {
         subprogramId: selectedSubprogForAct,
         activityData: {
           title: newActTitle,
-          weekNumber: actWeekNumber,
+          executionDate: actExecutionDate,
+          responsible: actResponsible,
           projectedActivities: actProjActivities,
           executedActivities: actExecActivities,
           projectedAttendees: actProjAttendees,
           actualAttendees: actExecAttendees,
-          responsible: actResponsible,
         },
       }),
     })
@@ -389,12 +392,13 @@ export default function CreateProgramsPage() {
 
             <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
               <TextField
-                label={t('dashboard.createPrograms.week')}
-                type="number"
+                label={t('dashboard.createPrograms.executionDate')}
+                type="date"
                 fullWidth
                 variant="outlined"
-                value={actWeekNumber}
-                onChange={(e) => setActWeekNumber(Number(e.target.value))}
+                value={actExecutionDate}
+                onChange={(e) => setActExecutionDate(e.target.value)}
+                InputLabelProps={{ shrink: true }}
               />
               <TextField
                 label={t('dashboard.createPrograms.responsibleUserId')}

@@ -209,7 +209,7 @@ export class DataBaseServiceAttendance {
             const activity = await this.activityRepository
             .createQueryBuilder('act')
             .innerJoin('act.translations', 'at', 'at.IdLanguage = :langId AND at.NameActivity = :activityName', { langId, activityName })
-            .select(['act.IdActivity', 'act.IdProgram', 'act.IdSubProgram', 'act.IdUser'])
+            .select(['act.IdActivity', 'act.IdProgram', 'act.IdSubProgram', 'act.IdUser', 'act.ExecutionDate'])
             .getOne();
             console.log('Actividad encontrada por nombre:', activity);
             return activity;

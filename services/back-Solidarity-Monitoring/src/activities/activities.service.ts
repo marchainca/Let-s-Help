@@ -3,6 +3,7 @@ import { Firestore } from '@google-cloud/firestore';
 import { errorResponse } from 'src/tools/function.tools';
 import { UpdateActivityDto } from './dtos/update-activity.dto';
 import { DataBaseService } from './data-base.service';
+import { getTrackingPeriodFromDate, parseDateOnly } from './utils/activity-tracking-period.util';
 
 @Injectable()
 export class ActivitiesService {
@@ -11,6 +12,13 @@ export class ActivitiesService {
     constructor(
       private readonly databaseService: DataBaseService,
     ) {}
+
+    private formatExecutionDate(date: Date | string | null | undefined): string | null {
+      if (!date) return null;
+      const parsed = parseDateOnly(date);
+      if (isNaN(parsed.getTime())) return null;
+      return parsed.toISOString().split('T')[0];
+    }
 
     /**
      * Obtiene la lista de todas las actividades.
@@ -23,7 +31,10 @@ export class ActivitiesService {
        const structuredData = programsAndActivities.map(program => {
             const result: any = { id: program.translations[0]?.NameProgram };
             for (const sub of program.subPrograms) {
-                result[sub.translations[0]?.NameSubProgram ] = sub.activities.map(t => t.translations[0]?.NameActivity);
+                result[sub.translations[0]?.NameSubProgram ] = sub.activities.map(activity => ({
+                  name: activity.translations[0]?.NameActivity,
+                  executionDate: this.formatExecutionDate(activity.ExecutionDate),
+                }));
             }
             return result;
         });
@@ -60,16 +71,19 @@ export class ActivitiesService {
       try {
         const programByName = await this.databaseService.getProgramActivities(programName, langId);
 
-        const output: Record<string, string[]> = {};
+        const output: Record<string, { name: string; executionDate: string | null }[]> = {};
         for (const row of programByName) {
-          const subName = row.subprogramname;   // usar minúsculas
-          const actName = row.activityname;     // usar minúsculas
+          const subName = row.subprogramname;
+          const actName = row.activityname;
           if (!subName) continue;
           if (!output[subName]) {
           output[subName] = [];
           }
-          if (actName && !output[subName].includes(actName)) {
-            output[subName].push(actName);
+          if (actName && !output[subName].some((activity) => activity.name === actName)) {
+            output[subName].push({
+              name: actName,
+              executionDate: this.formatExecutionDate(row.executiondate),
+            });
           }
         }
         return output;
@@ -120,10 +134,12 @@ export class ActivitiesService {
       const user = await this.databaseService.findUserByIdentification(body.activityData.responsible);
 
       const newActivity = await this.databaseService.createActivity(body, user.IdUser, langId);
-      for( let week = 1; week <= 4; week++) {
-        body['activityData'].weekNumber = week;
-        await this.databaseService.createActivityTracking(body, newActivity, user.IdUser);
-      }
+      await this.databaseService.createActivityTracking(
+        body,
+        newActivity,
+        user.IdUser,
+        body.activityData.executionDate,
+      );
 
       return 'Activity created successfully';
     } catch (error) {
@@ -185,8 +201,11 @@ export class ActivitiesService {
       const structuredActivities = activities.map(activity => ({
         id: activity.IdActivity.toString(),
         title: activity.NameActivity,
+        executionDate: this.formatExecutionDate(activity.ExecutionDate),
         activities: (activity.activityTrackings || []).map(tracking => ({
           weekNumber: tracking.WeekNumber,
+          monthNumber: tracking.MonthNumber,
+          year: tracking.Year,
           projectedActivities: tracking.PlannedActivities ?? 0,
           executedActivities: tracking.ExecutedActivities ?? 0,
           projectedAttendees: tracking.ProjectedAttendees ?? 0,
@@ -235,10 +254,23 @@ export class ActivitiesService {
         throw await errorResponse(`Error: The activity with ID ${activityId} does not belong to the specified program.`, 'updateActivityWeek');
       }
 
-      const tracking = await this.databaseService.findActivityTrackingByActivityAndWeek(actId, weekNumber);
+      if (!activity.ExecutionDate) {
+        throw await errorResponse(`Error: The activity with ID ${activityId} has no execution date.`, 'updateActivityWeek');
+      }
+
+      const period = getTrackingPeriodFromDate(parseDateOnly(activity.ExecutionDate));
+      const tracking = await this.databaseService.findActivityTrackingByActivityAndPeriod(
+        actId,
+        weekNumber ?? period.weekNumber,
+        period.monthNumber,
+        period.year,
+      );
 
       if (!tracking) {
-        throw await errorResponse(`Error: Week ${weekNumber} was not found in the activity.`, 'updateActivityWeek');
+        throw await errorResponse(
+          `Error: Week ${weekNumber ?? period.weekNumber} was not found for month ${period.monthNumber}/${period.year} in the activity.`,
+          'updateActivityWeek',
+        );
       }
 
       // Actualizar solo los campos que fueron enviados en el DTO

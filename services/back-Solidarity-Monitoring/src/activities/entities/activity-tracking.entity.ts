@@ -28,6 +28,12 @@ export class ActivityTracking {
   @Column({ type: 'int', nullable: true, name: 'WeekNumber' })
   WeekNumber: number;
 
+  @Column({ type: 'int', nullable: true, name: 'MonthNumber' })
+  MonthNumber: number;
+
+  @Column({ type: 'int', nullable: true, name: 'Year' })
+  Year: number;
+
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP', name: 'CreatedAt' })
   CreatedAt: Date;
 

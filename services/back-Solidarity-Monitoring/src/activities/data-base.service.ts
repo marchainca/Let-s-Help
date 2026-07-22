@@ -11,6 +11,7 @@ import { TranslationService } from 'src/common/translation/translation.service';
 import params from 'src/tools/params';
 import { SubProgramsTranslation } from 'src/common/translation/entities/subprograms-translation.entity';
 import { ActivitiesTranslation } from 'src/common/translation/entities/activities-translation.entity';
+import { getTrackingPeriodFromDate, parseDateOnly } from './utils/activity-tracking-period.util';
 
 @Injectable()
 export class DataBaseService {
@@ -49,7 +50,7 @@ export class DataBaseService {
             .leftJoinAndSelect('a.translations', 'at', 'at.IdLanguage = :langId', { langId })
             .select(['p.IdProgram', 'pt.NameProgram', 'pt.DescriptionProgram',
                     'sp.IdSubProgram', 'spt.NameSubProgram', 'spt.DescriptionSubProgram',
-                    'a.IdActivity', 'at.NameActivity'])
+                    'a.IdActivity', 'a.ExecutionDate', 'at.NameActivity'])
             .orderBy('pt.NameProgram', 'ASC')
             .addOrderBy('spt.NameSubProgram', 'ASC')
             .addOrderBy('at.NameActivity', 'ASC')
@@ -92,8 +93,9 @@ export class DataBaseService {
                 .leftJoin('sp.activities', 'a')
                 .leftJoin('ActivitiesTranslations', 'at', 'at.IdActivity = a.IdActivity AND at.IdLanguage = :langId')
                 .select([
-                'spt.NameSubProgram as subprogramname',   // alias en minúsculas
-                'at.NameActivity as activityname'         // alias en minúsculas
+                'spt.NameSubProgram as subprogramname',
+                'at.NameActivity as activityname',
+                'a.ExecutionDate as executiondate',
                 ])
                 .orderBy('spt.NameSubProgram', 'ASC')
                 .addOrderBy('at.NameActivity', 'ASC')
@@ -324,8 +326,17 @@ export class DataBaseService {
             const programId = body['programId'];
             const subprogramId = body['subprogramId'];
             const activityTitle = body['activityData']?.title;
+            const executionDateValue = body['activityData']?.executionDate;
             if (!activityTitle) {
             throw new Error('El título de la actividad es obligatorio');
+            }
+            if (!executionDateValue) {
+            throw new Error('La fecha de ejecución de la actividad es obligatoria');
+            }
+
+            const executionDate = parseDateOnly(executionDateValue);
+            if (isNaN(executionDate.getTime())) {
+            throw new Error('Formato de fecha de ejecución inválido. Use YYYY-MM-DD');
             }
 
             // Crear la entidad base de la actividad
@@ -333,6 +344,7 @@ export class DataBaseService {
             newActivity.IdUser = userId;
             newActivity.IdProgram = programId;
             newActivity.subProgram = subprogramId;
+            newActivity.ExecutionDate = executionDate;
             const savedActivity = await this.activityRepository.save(newActivity);
             const activityId = savedActivity.IdActivity;
 
@@ -373,18 +385,26 @@ export class DataBaseService {
         }
     }
 
-    async createActivityTracking(body: object, activityId: number, userId: number): Promise<string> {
+    async createActivityTracking(
+        body: object,
+        activityId: number,
+        userId: number,
+        executionDateValue: string | Date,
+    ): Promise<string> {
         try {
-
+            const executionDate = parseDateOnly(executionDateValue);
+            const { weekNumber, monthNumber, year } = getTrackingPeriodFromDate(executionDate);
             const newActivityTracking = new ActivityTracking;
 
             newActivityTracking.IdActivity = activityId;
-            newActivityTracking.IdUser =userId;
+            newActivityTracking.IdUser = userId;
             newActivityTracking.ActualAttendees = body['activityData'].actualAttendees;
             newActivityTracking.ExecutedActivities = body['activityData'].executedActivities;
             newActivityTracking.PlannedActivities = body['activityData'].projectedActivities;
             newActivityTracking.ProjectedAttendees = body['activityData'].projectedAttendees;
-            newActivityTracking.WeekNumber = body['activityData'].weekNumber;
+            newActivityTracking.WeekNumber = weekNumber;
+            newActivityTracking.MonthNumber = monthNumber;
+            newActivityTracking.Year = year;
 
             const saveActivityTracking = await this.activityTrackingRepository.save(newActivityTracking);
             return saveActivityTracking.IdTracking.toString();
@@ -406,9 +426,12 @@ export class DataBaseService {
             .where('act.IdSubProgram = :subProgramId', { subProgramId })
             .select([
                 'act.IdActivity AS id',
+                'act.ExecutionDate AS executionDate',
                 'at.NameActivity AS title',
                 'track.IdTracking AS trackingId',
                 'track.WeekNumber AS weekNumber',
+                'track.MonthNumber AS monthNumber',
+                'track.Year AS year',
                 'track.PlannedActivities AS plannedActivities',
                 'track.ExecutedActivities AS executedActivities',
                 'track.ProjectedAttendees AS projectedAttendees',
@@ -428,6 +451,7 @@ export class DataBaseService {
                 if (!activitiesMap.has(activityId)) {
                     activitiesMap.set(activityId, {
                     IdActivity: activityId,
+                    ExecutionDate: row.executiondate,
                     NameActivity: row.title,
                     user: { Identification: row.responsible },
                     activityTrackings: []
@@ -437,6 +461,8 @@ export class DataBaseService {
                 if (row.trackingid) {
                     activity.activityTrackings.push({
                     WeekNumber: row.weeknumber,
+                    MonthNumber: row.monthnumber,
+                    Year: row.year,
                     PlannedActivities: row.plannedactivities,
                     ExecutedActivities: row.executedactivities,
                     ProjectedAttendees: row.projectedattendees,
@@ -470,7 +496,32 @@ export class DataBaseService {
         }
     }
 
-    //Buscar el registro de tracking para esa actividad y semana
+    //Buscar el registro de tracking para esa actividad, semana y periodo
+    async findActivityTrackingByActivityAndPeriod(
+        actId: number,
+        weekNumber: number,
+        monthNumber: number,
+        year: number,
+    ): Promise<ActivityTracking> {
+        try {
+            const activityTracking = await this.activityTrackingRepository.findOne({
+                where: {
+                    IdActivity: actId,
+                    WeekNumber: weekNumber,
+                    MonthNumber: monthNumber,
+                    Year: year,
+                },
+            });
+            return activityTracking;
+        } catch (error) {
+            console.error(
+                `Error al encontrar tracking para actividad ID: ${actId}, semana: ${weekNumber}, mes: ${monthNumber}, año: ${year}`,
+                error.message || error,
+            );
+            throw error;
+        }
+    }
+
     async findActivityTrackingByActivityAndWeek(actId: number, weekNumber: number): Promise<ActivityTracking> {
         try {
             const activityTracking = await this.activityTrackingRepository.findOne({

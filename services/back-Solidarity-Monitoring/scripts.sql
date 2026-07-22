@@ -150,6 +150,7 @@ CREATE TABLE Activities (
     IdSubProgram INTEGER NOT NULL REFERENCES Sub_Programs(IdSubProgram) ON DELETE CASCADE,
     IdUser       INTEGER NOT NULL REFERENCES Users(IdUser), -- usuario que crea/lidera la actividad
     NameActivity VARCHAR(250) NOT NULL,
+    ExecutionDate DATE,
     CreatedAt    TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -191,6 +192,8 @@ CREATE TABLE "Activities_tracking" (
     "PlannedActivities"   INTEGER,
     "ProjectedAttendees"  INTEGER,
     "WeekNumber"          INTEGER,
+    "MonthNumber"         INTEGER,
+    "Year"                INTEGER,
     "CreatedAt"           TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -327,6 +330,7 @@ CREATE INDEX idx_reports_idbeneficiary ON Reports(IdBeneficiary);
 CREATE INDEX idx_Activities_tracking_idactivity ON Activities_tracking(IdActivity);
 CREATE INDEX idx_Activities_tracking_iduser ON Activities_tracking(IdUser);
 CREATE INDEX idx_Activities_tracking_week ON Activities_tracking(WeekNumber);
+CREATE INDEX idx_Activities_tracking_period ON "Activities_tracking"("IdActivity", "WeekNumber", "MonthNumber", "Year");
 CREATE INDEX idx_attendances_beneficiary ON "Attendances"("IdBeneficiary");
 CREATE INDEX idx_attendances_activity ON "Attendances"("IdActivity");
 CREATE INDEX idx_attendances_date ON "Attendances"("AttendanceDate");
@@ -376,3 +380,7 @@ ALTER TABLE "Attendances" ALTER COLUMN "CheckInTime" SET DEFAULT CURRENT_TIME;
 -- Modificar nombre de la
 ALTER TABLE "Languages" RENAME COLUMN name TO "Name";
 
+-- Periodo de seguimiento en Activities_tracking (semana del mes + mes + año)
+ALTER TABLE "Activities_tracking"
+ADD COLUMN IF NOT EXISTS "MonthNumber" INTEGER,
+ADD COLUMN IF NOT EXISTS "Year" INTEGER;

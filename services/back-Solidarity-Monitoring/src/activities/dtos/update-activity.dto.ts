@@ -13,9 +13,9 @@ export class UpdateActivityDto {
   @IsString()
   activityId: string;
 
-  @IsNotEmpty()
+  @IsOptional()
   @IsNumber()
-  weekNumber: number;
+  weekNumber?: number;
 
   @IsOptional()
   @IsNumber()

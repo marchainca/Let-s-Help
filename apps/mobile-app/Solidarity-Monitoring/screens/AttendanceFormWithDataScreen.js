@@ -12,6 +12,15 @@ import { Picker } from '@react-native-picker/picker';
 import { useTranslation } from 'react-i18next';
 import { UserContext } from '../context/UserContext';
 import { apiFetch } from '../api/apiClient';
+import {
+  parseProgramsCatalog,
+  getProgramNames,
+  findProgramInCatalog,
+  extractSubprogramsFromProgram,
+  extractSubprogramsFromContent,
+  getActivityName,
+  formatActivityLabel,
+} from '../api/activities';
 
 const AttendanceFormWithDataScreen = ({ route, navigation }) => {
   const { t } = useTranslation();
@@ -19,6 +28,7 @@ const AttendanceFormWithDataScreen = ({ route, navigation }) => {
   const { recognizedData } = route.params;
 
   const [programs, setPrograms] = useState([]);
+  const [programsCatalog, setProgramsCatalog] = useState([]);
   const [subPrograms, setSubPrograms] = useState({});
   const [activities, setActivities] = useState([]);
   const [selectedProgram, setSelectedProgram] = useState('');
@@ -29,15 +39,32 @@ const AttendanceFormWithDataScreen = ({ route, navigation }) => {
     fetchPrograms();
   }, []);
 
+  const applyProgramSelection = (programName, catalog = programsCatalog) => {
+    const programData = findProgramInCatalog(catalog, programName);
+
+    if (programData) {
+      const { activities: activitiesData } = extractSubprogramsFromProgram(programData);
+      setSubPrograms(activitiesData);
+      setSelectedSubProgram('');
+      setActivities([]);
+      setSelectedActivity('');
+      return true;
+    }
+
+    return false;
+  };
+
   const fetchPrograms = async () => {
     try {
-      const apiUrl = `${process.env.EXPO_PUBLIC_API_URL}activities/programs`;
+      const apiUrl = `${process.env.EXPO_PUBLIC_API_URL}activities/getAllActivities`;
       const response = await apiFetch(apiUrl, {
         headers: { Authorization: `Bearer ${user.accessToken}` },
       });
       if (response.ok) {
         const data = await response.json();
-        setPrograms(data.content.getPrograms || []);
+        const catalog = parseProgramsCatalog(data.content);
+        setProgramsCatalog(catalog);
+        setPrograms(getProgramNames(catalog));
       } else {
         Alert.alert(t('common.error'), t('attendanceFormWithData.programsLoadFailed'));
       }
@@ -55,7 +82,8 @@ const AttendanceFormWithDataScreen = ({ route, navigation }) => {
       });
       if (response.ok) {
         const data = await response.json();
-        setSubPrograms(data.content || {});
+        const { activities: activitiesData } = extractSubprogramsFromContent(data.content);
+        setSubPrograms(activitiesData);
         setSelectedSubProgram('');
         setActivities([]);
         setSelectedActivity('');
@@ -70,7 +98,16 @@ const AttendanceFormWithDataScreen = ({ route, navigation }) => {
 
   const handleProgramChange = (program) => {
     setSelectedProgram(program);
-    if (program) {
+
+    if (!program) {
+      setSubPrograms({});
+      setSelectedSubProgram('');
+      setActivities([]);
+      setSelectedActivity('');
+      return;
+    }
+
+    if (!applyProgramSelection(program)) {
       fetchSubPrograms(program);
     }
   };
@@ -128,10 +165,14 @@ const AttendanceFormWithDataScreen = ({ route, navigation }) => {
   };
 
   return (
-    <ScrollView style={styles.container}>
+    <ScrollView
+      contentContainerStyle={styles.container}
+      keyboardShouldPersistTaps="handled"
+      showsVerticalScrollIndicator={false}
+    >
       <Text style={styles.title}>{t('attendanceFormWithData.title')}</Text>
 
-      <Picker selectedValue={selectedProgram} onValueChange={handleProgramChange}>
+      <Picker selectedValue={selectedProgram} style={styles.picker} onValueChange={handleProgramChange}>
         <Picker.Item label={t('attendanceFormWithData.selectProgram')} value="" />
         {programs.map((program, index) => (
           <Picker.Item key={index} label={program} value={program} />
@@ -140,6 +181,7 @@ const AttendanceFormWithDataScreen = ({ route, navigation }) => {
 
       <Picker
         selectedValue={selectedSubProgram}
+        style={styles.picker}
         onValueChange={handleSubProgramChange}
         enabled={!!selectedProgram}
       >
@@ -151,12 +193,17 @@ const AttendanceFormWithDataScreen = ({ route, navigation }) => {
 
       <Picker
         selectedValue={selectedActivity}
+        style={styles.picker}
         onValueChange={(value) => setSelectedActivity(value)}
         enabled={!!selectedSubProgram}
       >
         <Picker.Item label={t('attendanceFormWithData.selectActivity')} value="" />
-        {activities.map((activity, index) => (
-          <Picker.Item key={index} label={activity} value={activity} />
+        {activities.map((activityItem, index) => (
+          <Picker.Item
+            key={`${getActivityName(activityItem)}-${index}`}
+            label={formatActivityLabel(activityItem)}
+            value={getActivityName(activityItem)}
+          />
         ))}
       </Picker>
 
@@ -184,14 +231,22 @@ const AttendanceFormWithDataScreen = ({ route, navigation }) => {
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
+    flexGrow: 1,
     padding: 20,
+    paddingBottom: 32,
     backgroundColor: '#fff',
   },
   title: {
     fontSize: 24,
     fontWeight: 'bold',
     marginBottom: 20,
+  },
+  picker: {
+    height: 50,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 5,
   },
   label: {
     fontSize: 16,
@@ -209,6 +264,8 @@ const styles = StyleSheet.create({
     padding: 15,
     borderRadius: 5,
     alignItems: 'center',
+    marginTop: 8,
+    marginBottom: 8,
   },
   buttonText: {
     color: '#fff',

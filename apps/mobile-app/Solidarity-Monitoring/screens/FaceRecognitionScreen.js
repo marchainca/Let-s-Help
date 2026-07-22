@@ -91,6 +91,7 @@ const FaceRecognitionScreen = ({ navigation }) => {
     } catch (error) {
       console.error('Error en el reconocimiento facial:', error);
       setErrorMessage(t('faceRecognition.unexpectedError'));
+      Alert.alert(t('common.error'), t('faceRecognition.unexpectedError'));
     } finally {
       setIsRecognizing(false);
     }
@@ -109,12 +110,23 @@ const FaceRecognitionScreen = ({ navigation }) => {
       {hasCameraPermission && (
         <CameraView style={styles.camera} ref={cameraRef} facing={facing} />
       )}
-      {isRecognizing && (
-        <ActivityIndicator size="large" color="#0000ff" style={styles.loadingIndicator} />
-      )}
-      <TouchableOpacity style={styles.button} onPress={handleFaceRecognition}>
+      <TouchableOpacity
+        style={[styles.button, isRecognizing && styles.buttonDisabled]}
+        onPress={handleFaceRecognition}
+        disabled={isRecognizing}
+      >
         <Text style={styles.buttonText}>{t('faceRecognition.startRecognition')}</Text>
       </TouchableOpacity>
+
+      <Modal visible={isRecognizing} transparent animationType="fade">
+        <View style={styles.processingOverlay}>
+          <View style={styles.processingCard}>
+            <ActivityIndicator size="large" color="#1E90FF" />
+            <Text style={styles.processingText}>{t('faceRecognition.processing')}</Text>
+          </View>
+        </View>
+      </Modal>
+
       <Modal
         visible={isCameraVisible}
         transparent={false}
@@ -145,15 +157,14 @@ const styles = StyleSheet.create({
     width: '100%',
     height: '60%',
   },
-  loadingIndicator: {
-    position: 'absolute',
-    top: '45%',
-  },
   button: {
     marginTop: 20,
     backgroundColor: '#000',
     padding: 15,
     borderRadius: 10,
+  },
+  buttonDisabled: {
+    opacity: 0.6,
   },
   buttonText: {
     color: '#fff',
@@ -187,6 +198,27 @@ const styles = StyleSheet.create({
   modalButtonText: {
     color: '#fff',
     fontWeight: 'bold',
+  },
+  processingOverlay: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+  },
+  processingCard: {
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    paddingVertical: 28,
+    paddingHorizontal: 24,
+    alignItems: 'center',
+    minWidth: '75%',
+  },
+  processingText: {
+    marginTop: 16,
+    fontSize: 16,
+    color: '#333',
+    textAlign: 'center',
+    fontWeight: '600',
   },
 });
 

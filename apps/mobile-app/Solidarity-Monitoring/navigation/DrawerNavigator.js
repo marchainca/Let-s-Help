@@ -32,9 +32,8 @@ function CustomDrawerContent(props) {
       { text: t('common.cancel'), style: 'cancel' },
       {
         text: t('common.accept'),
-        onPress: () => {
-          logout();
-          props.navigation.replace('Login');
+        onPress: async () => {
+          await logout();
         },
       },
     ]);

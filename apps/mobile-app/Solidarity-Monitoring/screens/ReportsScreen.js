@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   Image,
   KeyboardAvoidingView,
+  ScrollView,
   FlatList,
   Alert,
   Platform,
@@ -126,9 +127,14 @@ const ReportsScreen = () => {
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      style={styles.container}
+      style={styles.keyboardView}
     >
-      <Text style={styles.title}>{t('reports.title')}</Text>
+      <ScrollView
+        contentContainerStyle={styles.container}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+      >
+        <Text style={styles.title}>{t('reports.title')}</Text>
 
       {profileImage ? (
         <Image source={{ uri: profileImage }} style={styles.profileImage} />
@@ -168,6 +174,7 @@ const ReportsScreen = () => {
             )}
             style={styles.suggestionsList}
             keyboardShouldPersistTaps="handled"
+            scrollEnabled={false}
           />
         )}
       </View>
@@ -207,14 +214,20 @@ const ReportsScreen = () => {
           {submittingReport ? t('common.sending') : t('reports.submitReport')}
         </Text>
       </TouchableOpacity>
+      </ScrollView>
     </KeyboardAvoidingView>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
+  keyboardView: {
     flex: 1,
+    backgroundColor: '#f9f9f9',
+  },
+  container: {
+    flexGrow: 1,
     padding: 20,
+    paddingBottom: 32,
     backgroundColor: '#f9f9f9',
   },
   title: {
@@ -277,10 +290,14 @@ const styles = StyleSheet.create({
   },
   submitButton: {
     backgroundColor: '#4caf50',
-    padding: 15,
+    paddingVertical: 15,
+    paddingHorizontal: 16,
     borderRadius: 5,
     alignItems: 'center',
+    justifyContent: 'center',
     marginTop: 20,
+    minHeight: 52,
+    width: '100%',
   },
   buttonText: {
     color: '#fff',

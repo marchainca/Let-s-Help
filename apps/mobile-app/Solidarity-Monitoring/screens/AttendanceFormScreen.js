@@ -13,11 +13,21 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import { useTranslation } from 'react-i18next';
 import { UserContext } from '../context/UserContext';
 import { apiFetch } from '../api/apiClient';
+import {
+  parseProgramsCatalog,
+  getProgramNames,
+  findProgramInCatalog,
+  extractSubprogramsFromProgram,
+  extractSubprogramsFromContent,
+  getActivityName,
+  formatActivityLabel,
+} from '../api/activities';
 
 const AttendanceFormScreen = ({ navigation }) => {
   const { t } = useTranslation();
   const { user } = useContext(UserContext);
   const [programs, setPrograms] = useState([]);
+  const [programsCatalog, setProgramsCatalog] = useState([]);
   const [program, setProgram] = useState('');
   const [subprograms, setSubprograms] = useState([]);
   const [subprogram, setSubprogram] = useState('');
@@ -36,16 +46,37 @@ const AttendanceFormScreen = ({ navigation }) => {
   const [suggestions, setSuggestions] = useState([]);
   const [loadingSuggestions, setLoadingSuggestions] = useState(false);
 
+  const applyProgramSelection = (programName, catalog = programsCatalog) => {
+    const programData = findProgramInCatalog(catalog, programName);
+
+    if (programData) {
+      const { subprograms: subprogramsData, activities: activitiesData } =
+        extractSubprogramsFromProgram(programData);
+      setSubprograms(subprogramsData);
+      setActivities(activitiesData);
+      setActivity('');
+      setSubprogram('');
+      return;
+    }
+
+    setSubprograms([]);
+    setActivities({});
+    setActivity('');
+    setSubprogram('');
+  };
+
   const fetchPrograms = async () => {
     try {
-      const apiUrl = `${process.env.EXPO_PUBLIC_API_URL}activities/programs`;
+      const apiUrl = `${process.env.EXPO_PUBLIC_API_URL}activities/getAllActivities`;
       const response = await apiFetch(apiUrl, {
         headers: { Authorization: `Bearer ${user.accessToken}` },
       });
 
       if (response.ok) {
         const data = await response.json();
-        setPrograms(data.content.getPrograms || []);
+        const catalog = parseProgramsCatalog(data.content);
+        setProgramsCatalog(catalog);
+        setPrograms(getProgramNames(catalog));
       } else {
         console.error('Error fetching programs:', await response.text());
       }
@@ -63,9 +94,10 @@ const AttendanceFormScreen = ({ navigation }) => {
 
       if (response.ok) {
         const data = await response.json();
-        const subprogramsData = Object.keys(data.content || {});
+        const { subprograms: subprogramsData, activities: activitiesData } =
+          extractSubprogramsFromContent(data.content);
         setSubprograms(subprogramsData);
-        setActivities(data.content || {});
+        setActivities(activitiesData);
         setActivity('');
         setSubprogram('');
       } else {
@@ -104,6 +136,21 @@ const AttendanceFormScreen = ({ navigation }) => {
 
   const handleProgramChange = (selectedProgram) => {
     setProgram(selectedProgram);
+
+    if (!selectedProgram) {
+      setSubprograms([]);
+      setActivities({});
+      setActivity('');
+      setSubprogram('');
+      return;
+    }
+
+    const programData = findProgramInCatalog(programsCatalog, selectedProgram);
+    if (programData) {
+      applyProgramSelection(selectedProgram);
+      return;
+    }
+
     fetchSubprogramsAndActivities(selectedProgram);
   };
 
@@ -250,8 +297,12 @@ const AttendanceFormScreen = ({ navigation }) => {
         enabled={!!subprogram}
       >
         <Picker.Item label={t('attendanceForm.selectActivity')} value="" />
-        {(activities[subprogram] || []).map((activityName, index) => (
-          <Picker.Item key={index} label={activityName} value={activityName} />
+        {(activities[subprogram] || []).map((activityItem, index) => (
+          <Picker.Item
+            key={`${getActivityName(activityItem)}-${index}`}
+            label={formatActivityLabel(activityItem)}
+            value={getActivityName(activityItem)}
+          />
         ))}
       </Picker>
 
@@ -334,6 +385,7 @@ const styles = StyleSheet.create({
   container: {
     flexGrow: 1,
     padding: 20,
+    paddingBottom: 32,
     backgroundColor: '#fff',
   },
   header: {
@@ -379,6 +431,7 @@ const styles = StyleSheet.create({
   },
   submitButton: {
     marginTop: 20,
+    marginBottom: 8,
     backgroundColor: '#3B82F6',
     paddingVertical: 15,
     borderRadius: 8,

@@ -165,7 +165,11 @@ const EditProfileScreen = () => {
   };
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
+    <ScrollView
+      contentContainerStyle={styles.container}
+      keyboardShouldPersistTaps="handled"
+      showsVerticalScrollIndicator={false}
+    >
       <Text style={styles.title}>{t('editProfile.title')}</Text>
 
       <TouchableOpacity onPress={handleChangeImage}>
@@ -249,6 +253,7 @@ const styles = StyleSheet.create({
   container: {
     flexGrow: 1,
     padding: 20,
+    paddingBottom: 32,
     backgroundColor: '#fff',
   },
   title: {
@@ -288,6 +293,7 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     alignItems: 'center',
     marginTop: 20,
+    marginBottom: 8,
   },
   saveButtonText: {
     color: '#fff',

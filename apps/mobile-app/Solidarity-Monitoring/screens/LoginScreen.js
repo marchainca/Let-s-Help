@@ -8,10 +8,14 @@ import {
   StyleSheet,
   Image,
   Modal,
+  ScrollView,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import CryptoJS from 'crypto-js';
 import { UserContext } from '../context/UserContext';
+import { mapAuthContentToUser } from '../api/authSession';
 import { changeAppLanguage } from '../i18n';
 import { apiFetch } from '../api/apiClient';
 
@@ -51,16 +55,7 @@ const LoginScreen = ({ navigation }) => {
 
       if (response.ok) {
         const data = await response.json();
-        login({
-          id: data.content.user.id,
-          idNumber: data.content.user.idNumber,
-          name: data.content.user.name,
-          email: data.content.user.email,
-          role: data.content.user.role,
-          profileImageUrl: data.content.user.urlImage,
-          accessToken: data.content.accessToken,
-          birthdate: data.content.user.birthdate,
-        });
+        await login(mapAuthContentToUser(data.content));
         navigation.navigate('Home');
       } else {
         Alert.alert(t('common.error'), t('login.invalidCredentials'));
@@ -72,7 +67,15 @@ const LoginScreen = ({ navigation }) => {
   };
 
   return (
-    <View style={styles.container}>
+    <KeyboardAvoidingView
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      style={styles.keyboardView}
+    >
+      <ScrollView
+        contentContainerStyle={styles.container}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+      >
       <Image source={require('../assets/clave.png')} style={styles.logo} />
       <Text style={styles.foundationText}>{t('login.foundation')}</Text>
 
@@ -123,6 +126,7 @@ const LoginScreen = ({ navigation }) => {
       <TouchableOpacity>
         <Text style={styles.forgotPassword}>{t('login.forgotPassword')}</Text>
       </TouchableOpacity>
+      </ScrollView>
 
       <Modal
         visible={languageModalVisible}
@@ -161,16 +165,21 @@ const LoginScreen = ({ navigation }) => {
           </View>
         </View>
       </Modal>
-    </View>
+    </KeyboardAvoidingView>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
+  keyboardView: {
     flex: 1,
+    backgroundColor: '#fff',
+  },
+  container: {
+    flexGrow: 1,
     justifyContent: 'center',
     alignItems: 'center',
     padding: 20,
+    paddingBottom: 32,
     backgroundColor: '#fff',
   },
   logo: {

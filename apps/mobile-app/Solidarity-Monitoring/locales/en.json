@@ -122,6 +122,7 @@
     "cameraNotAvailable": "Error: Camera not available.",
     "cameraPermissionRequired": "Camera permission was not granted. Enable it in settings.",
     "startRecognition": "Start face recognition",
+    "processing": "Face recognition in progress...",
     "recognitionError": "Recognition error.",
     "unexpectedError": "Unexpected error during recognition.",
     "registerMemberFailed": "Could not register member: {{message}}"

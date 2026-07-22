@@ -1,30 +1,104 @@
-import React, { createContext, useState } from 'react';
+import React, { createContext, useState, useEffect, useCallback } from 'react';
+import {
+  mapAuthContentToUser,
+  persistAuthSession,
+  loadAuthSession,
+  clearAuthSession,
+} from '../api/authSession';
+import {
+  configureTokenManager,
+  syncTokensFromUser,
+  refreshAccessToken,
+  isAccessTokenExpired,
+  isRefreshTokenExpired,
+} from '../api/tokenManager';
 
-// Crear el contexto
 export const UserContext = createContext();
 
-// Proveedor del contexto
 export const UserProvider = ({ children }) => {
   const [user, setUser] = useState(null);
+  const [isAuthLoading, setIsAuthLoading] = useState(true);
 
-  // Función para actualizar el usuario
-  const updateUser = (updatedData) => {
-    setUser((prevUser) => ({
-      ...prevUser,
-      ...updatedData,
-    }));
-  };
+  const applyUserSession = useCallback(async (userData) => {
+    setUser(userData);
+    syncTokensFromUser(userData);
 
-  const login = (userData) => {
-    setUser(userData); // Guarda los datos del usuario después de iniciar sesión
-  };
+    if (userData) {
+      await persistAuthSession(userData);
+    }
+  }, []);
 
-  const logout = () => {
-    setUser(null); // Limpia los datos del usuario al cerrar sesión
-  };
+  const login = useCallback(
+    async (userData) => {
+      await applyUserSession(userData);
+    },
+    [applyUserSession]
+  );
+
+  const updateUser = useCallback((updatedData) => {
+    setUser((prevUser) => {
+      const mergedUser = { ...prevUser, ...updatedData };
+      syncTokensFromUser(mergedUser);
+      persistAuthSession(mergedUser);
+      return mergedUser;
+    });
+  }, []);
+
+  const logout = useCallback(async () => {
+    await clearAuthSession();
+    syncTokensFromUser(null);
+    setUser(null);
+  }, []);
+
+  const restoreAuthSession = useCallback(async () => {
+    try {
+      const storedUser = await loadAuthSession();
+      if (!storedUser?.refreshToken) return;
+
+      syncTokensFromUser(storedUser);
+      setUser(storedUser);
+
+      if (isRefreshTokenExpired()) {
+        await clearAuthSession();
+        syncTokensFromUser(null);
+        setUser(null);
+        return;
+      }
+
+      if (isAccessTokenExpired()) {
+        await refreshAccessToken();
+      }
+    } catch (error) {
+      console.error('Error al restaurar la sesión:', error);
+      await clearAuthSession();
+      syncTokensFromUser(null);
+      setUser(null);
+    } finally {
+      setIsAuthLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    configureTokenManager({
+      onTokensUpdated: (updatedUser) => {
+        setUser((prevUser) => {
+          const mergedUser = { ...prevUser, ...updatedUser };
+          persistAuthSession(mergedUser);
+          return mergedUser;
+        });
+      },
+      onSessionExpired: () => {
+        clearAuthSession();
+        syncTokensFromUser(null);
+        setUser(null);
+      },
+    });
+
+    restoreAuthSession();
+  }, [restoreAuthSession]);
 
   return (
-    <UserContext.Provider value={{ user, login, logout,updateUser }}>
+    <UserContext.Provider value={{ user, login, logout, updateUser, isAuthLoading }}>
       {children}
     </UserContext.Provider>
   );

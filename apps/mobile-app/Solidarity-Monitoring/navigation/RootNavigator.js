@@ -1,7 +1,9 @@
-import React from 'react';
-import { NavigationContainer } from '@react-navigation/native';
+import React, { useContext, useEffect, useRef } from 'react';
+import { ActivityIndicator, View, StyleSheet } from 'react-native';
+import { NavigationContainer, createNavigationContainerRef } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { useTranslation } from 'react-i18next';
+import { UserContext } from '../context/UserContext';
 import DrawerNavigator from './DrawerNavigator';
 import LoginScreen from '../screens/LoginScreen';
 import AttendanceScreen from '../screens/AttendanceScreen';
@@ -17,14 +19,43 @@ import ReportDetailScreen from '../screens/ReportDetailScreen';
 import IndicatorsScreen from '../screens/IndicatorsScreen';
 
 const Stack = createStackNavigator();
+export const navigationRef = createNavigationContainerRef();
 
 export default function RootNavigator() {
   const { t } = useTranslation();
+  const { user, isAuthLoading } = useContext(UserContext);
+  const wasAuthenticatedRef = useRef(false);
+
+  useEffect(() => {
+    if (isAuthLoading) return;
+
+    if (user) {
+      wasAuthenticatedRef.current = true;
+      return;
+    }
+
+    if (wasAuthenticatedRef.current && navigationRef.isReady()) {
+      navigationRef.reset({
+        index: 0,
+        routes: [{ name: 'Login' }],
+      });
+    }
+
+    wasAuthenticatedRef.current = false;
+  }, [user, isAuthLoading]);
+
+  if (isAuthLoading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#1E90FF" />
+      </View>
+    );
+  }
 
   return (
-    <NavigationContainer>
+    <NavigationContainer ref={navigationRef}>
       <Stack.Navigator
-        initialRouteName="Login"
+        initialRouteName={user ? 'Home' : 'Login'}
         screenOptions={{ headerBackTitle: t('navigation.back') }}
       >
         <Stack.Screen name="Login" component={LoginScreen} options={{ headerShown: false }} />
@@ -88,3 +119,12 @@ export default function RootNavigator() {
     </NavigationContainer>
   );
 }
+
+const styles = StyleSheet.create({
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#fff',
+  },
+});

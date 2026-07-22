@@ -174,7 +174,11 @@ const UserManagementScreen = () => {
   };
 
   return (
-    <ScrollView contentContainerStyle={styles.scrollContainer}>
+    <ScrollView
+      contentContainerStyle={styles.scrollContainer}
+      keyboardShouldPersistTaps="handled"
+      showsVerticalScrollIndicator={false}
+    >
       <View style={styles.container}>
         <Text style={styles.title}>{t('userManagement.title')}</Text>
 
@@ -290,9 +294,9 @@ const UserManagementScreen = () => {
 const styles = StyleSheet.create({
   scrollContainer: {
     flexGrow: 1,
+    paddingBottom: 32,
   },
   container: {
-    flex: 1,
     padding: 20,
     backgroundColor: '#f9f9f9',
   },
@@ -361,7 +365,7 @@ const styles = StyleSheet.create({
     padding: 15,
     borderRadius: 10,
     alignItems: 'center',
-    marginBottom: 20,
+    marginBottom: 8,
   },
   buttonText: {
     color: '#fff',

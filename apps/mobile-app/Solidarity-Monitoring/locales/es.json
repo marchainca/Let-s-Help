@@ -122,6 +122,7 @@
     "cameraNotAvailable": "Error: Cámara no disponible.",
     "cameraPermissionRequired": "No se concedió permiso para usar la cámara. Habilítelo en los ajustes.",
     "startRecognition": "Iniciar Reconocimiento Facial",
+    "processing": "Reconocimiento facial en proceso...",
     "recognitionError": "Error en el reconocimiento.",
     "unexpectedError": "Error inesperado al realizar el reconocimiento.",
     "registerMemberFailed": "No fué posible registrar el integrante: {{message}}"

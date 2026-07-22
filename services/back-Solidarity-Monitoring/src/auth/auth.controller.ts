@@ -13,7 +13,7 @@ export class AuthController {
         try {
             console.log(email, password)
             const user = await this.authService.validateUser(email, password);
-            const login = await  this.authService.login(user);
+            const login = await this.authService.login(user);
             return await sendResponse(true, params.ResponseMessages.SUCCESS, login);
         } catch (error) {
             throw new HttpException(
@@ -27,5 +27,23 @@ export class AuthController {
             );
         }
         
+    }
+
+    @Post('refresh')
+    async refresh(@Body('refreshToken') refreshToken: string): Promise<CustomResponse> {
+        try {
+            const tokens = await this.authService.refreshTokens(refreshToken);
+            return await sendResponse(true, params.ResponseMessages.SUCCESS, tokens);
+        } catch (error) {
+            throw new HttpException(
+                {
+                code: error.code,
+                message: error.message,
+                attribute: error.attribute,
+                statusCode: error.statusCode,
+                },
+                HttpStatus.BAD_REQUEST,
+            );
+        }
     }
 }

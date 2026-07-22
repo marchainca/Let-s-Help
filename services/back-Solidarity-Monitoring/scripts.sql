@@ -10,6 +10,7 @@ CREATE DATABASE lets_help;
 
 -- Eliminar tablas en orden inverso a las dependencias (si existen)
 DROP TABLE IF EXISTS Biometric_data CASCADE;
+DROP TABLE IF EXISTS "RefreshTokens" CASCADE;
 DROP TABLE IF EXISTS Absences CASCADE;
 DROP TABLE IF EXISTS Reports CASCADE;
 DROP TABLE IF EXISTS "Activities_tracking" CASCADE;
@@ -51,6 +52,20 @@ CREATE TABLE Users (
     UrlImage         VARCHAR(250),
     CreatedAt        TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+-- =============================================
+-- 2.1 RefreshTokens
+-- =============================================
+CREATE TABLE "RefreshTokens" (
+    "IdRefreshToken" SERIAL PRIMARY KEY,
+    "IdUser"         INTEGER NOT NULL REFERENCES "Users"("IdUser") ON DELETE CASCADE,
+    "Token"          VARCHAR(512) NOT NULL UNIQUE,
+    "ExpiresAt"      TIMESTAMP NOT NULL,
+    "CreatedAt"      TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX idx_refresh_tokens_user ON "RefreshTokens"("IdUser");
+CREATE INDEX idx_refresh_tokens_token ON "RefreshTokens"("Token");
 
 -- =============================================
 -- 3. States
@@ -384,3 +399,12 @@ ALTER TABLE "Languages" RENAME COLUMN name TO "Name";
 ALTER TABLE "Activities_tracking"
 ADD COLUMN IF NOT EXISTS "MonthNumber" INTEGER,
 ADD COLUMN IF NOT EXISTS "Year" INTEGER;
+
+-- Refresh tokens para renovación de sesión
+CREATE TABLE IF NOT EXISTS "RefreshTokens" (
+    "IdRefreshToken" SERIAL PRIMARY KEY,
+    "IdUser"         INTEGER NOT NULL REFERENCES "Users"("IdUser") ON DELETE CASCADE,
+    "Token"          VARCHAR(512) NOT NULL UNIQUE,
+    "ExpiresAt"      TIMESTAMP NOT NULL,
+    "CreatedAt"      TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
